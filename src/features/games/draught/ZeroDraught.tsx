@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Coins, Copy, Crown, Eye, Flag, Loader2, Share2, Trophy, Users } from "@/components/icons/glyphs";
+import { ArrowLeft, ChevronRight, Coins, Copy, Crown, Eye, Flag, Loader2, Play, Share2, Trophy, Users } from "@/components/icons/glyphs";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
@@ -29,11 +29,20 @@ import { StakePicker } from "./StakePicker";
 import { LiveMatches } from "./LiveMatches";
 import { MatchComments } from "./MatchComments";
 
-import { CardSelect } from "@/components/CardSelect";
 const primary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#ff4fc3] px-5 text-sm font-bold text-[#190c20] disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#ff6fcf,#cc208f)] px-5 text-sm font-bold text-white shadow-[0_14px_32px_-14px_rgba(255,79,195,0.9)] transition active:scale-[0.98] disabled:opacity-40";
+const gold =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(145deg,#ffe7a3,#ffca75_45%,#d99a2b)] px-5 text-sm font-bold text-[#3a2006] shadow-[0_14px_32px_-14px_rgba(255,202,117,0.9)] transition active:scale-[0.98] disabled:opacity-40";
 const secondary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-white disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white/[0.07] px-4 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/[0.12] active:scale-[0.98] disabled:opacity-40";
+const danger =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-red-500 px-5 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-40";
+const PAGE_CSS = `
+@keyframes zd-floaty { 0%,100% { transform: translateY(-5px); } 50% { transform: translateY(5px); } }
+@keyframes zd-rise-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+.zd-float { animation: zd-floaty 5s ease-in-out infinite; }
+.zd-rise { animation: zd-rise-in .35s cubic-bezier(.2,.8,.2,1) both; }
+`;
 
 export function ZeroDraught({
   roomId,
@@ -270,113 +279,196 @@ export function ZeroDraught({
     }
   };
 
+  /* ── derived for the premium layout ── */
+  const opponent = mySide === 1 ? black : red;
+  const meSide = mySide === 1 ? red : black;
+  const piecesLeft = (s: Side) => (board ? board.filter((p) => Math.sign(p) === s).length : 12);
+  const capturedBy = (s: Side) => 12 - piecesLeft((-s) as Side);
+  const myTurn = !ended && turn === mySide && (isSolo || data?.room.status === "active");
+  const won = isSolo ? solo.winner === 1 : data?.room.winner === profile?.id;
+  const drawn = isSolo ? solo.draw : data?.room.status === "finished" && !data?.room.winner;
+  const statusTitle = ended
+    ? result
+    : data?.room.status === "waiting"
+      ? "Waiting for your friend"
+      : spectator
+        ? `${(turn === 1 ? red : black).name.split(" ")[0]} to move`
+        : myTurn
+          ? "Your move"
+          : isSolo
+            ? "Zero Bot is thinking…"
+            : `${opponent.name.split(" ")[0]} is thinking…`;
+  const statusHint = ended
+    ? isSolo
+      ? "Every game sharpens the next one."
+      : `Result: ${data?.room.reason?.replace(/_/g, " ") || "complete"}`
+    : data?.room.status === "waiting"
+      ? "Share the code below. The match starts the moment they join. Red moves first."
+      : spectator
+        ? "You're watching live. Moves appear as they're played."
+        : !myTurn
+          ? "Plan your reply while you wait."
+          : moves.some((m) => m.capture !== null)
+            ? (isSolo ? solo.forced : data?.room.forced) != null
+              ? "Keep jumping with the same piece."
+              : "A capture is available. You must take it."
+            : "Tap a glowing piece, then a highlighted square.";
+
+  const DIFFS = [
+    { v: 1, label: "Easy", note: "Relaxed" },
+    { v: 3, label: "Balanced", note: "A fair fight" },
+    { v: 4, label: "Challenging", note: "Thinks ahead" },
+  ];
+
   return (
-    <div
-      className="fixed inset-0 z-[60] overflow-y-auto bg-[#0c0715] text-white"
-      style={{ backgroundImage: "radial-gradient(ellipse at top right,#47223e80,transparent 65%)" }}
-    >
-      <div className="mx-auto w-full max-w-[1050px] px-3 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+12px)] sm:px-6">
-        <header className="mb-5 flex items-center gap-3">
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-[#09050d] text-white">
+      <style>{PAGE_CSS}</style>
+      {/* Ambient glows */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full bg-[#cc208f]/[0.18] blur-[130px]" />
+        <div className="absolute -right-48 top-1/3 h-[520px] w-[520px] rounded-full bg-[#ffca75]/[0.08] blur-[130px]" />
+        <div className="absolute bottom-[-200px] left-1/4 h-[460px] w-[460px] rounded-full bg-[#6a4cff]/[0.10] blur-[130px]" />
+      </div>
+
+      <div className="relative mx-auto w-full max-w-[1120px] px-3 pb-[calc(env(safe-area-inset-bottom)+28px)] pt-[calc(env(safe-area-inset-top)+10px)] sm:px-6">
+        {/* Glass header */}
+        <header className="sticky top-[calc(env(safe-area-inset-top)+8px)] z-20 mb-5 flex items-center gap-3 rounded-[22px] bg-[#140a18]/70 px-2.5 py-2 ring-1 ring-white/[0.07] backdrop-blur-xl">
           <button
             onClick={roomId || mode ? () => onNavigate() : onBack}
             aria-label="Back"
-            className="grid h-11 w-11 place-items-center rounded-full bg-white/10"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[0.07] transition hover:bg-white/[0.12]"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#ff9bdd]">
-              Zero Games · Strategy
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] text-[#3a2006] shadow-[0_8px_20px_-8px_rgba(255,202,117,0.8)]" style={{ background: "linear-gradient(145deg,#ffe7a3,#ffca75 50%,#d99a2b)" }}>
+            <Crown className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-[17px] font-bold leading-tight tracking-tight">Zero Draught</h1>
+            <p className="truncate text-[11.5px] text-white/50">
+              {isSolo ? `Versus Zero Bot · ${DIFFS.find((d) => d.v === difficulty)?.label || "Balanced"}` : roomId ? (spectator ? "Watching live" : data?.room.status === "waiting" ? "Friend match · waiting" : "Friend match · live") : "Strategy · Zero Games"}
             </p>
-            <h1 className="font-display text-xl font-bold">Zero Draught</h1>
           </div>
-          <Crown className="h-7 w-7 text-[#ffca75]" />
+          {!isSolo && roomId && data?.room.status === "active" && (
+            <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-emerald-300/20">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> Live
+            </span>
+          )}
         </header>
+
+        {/* ───────────── Lobby ───────────── */}
         {!roomId && !mode && (
           <>
-            <div className="grid gap-6 py-5 lg:grid-cols-2 lg:gap-10">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#ff9bdd]">
-                  Think ahead. Make your move.
+            <section className="grid items-center gap-8 pb-4 pt-2 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
+              <div className="order-2 lg:order-1">
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#ffca75] ring-1 ring-white/10">
+                  <Crown className="h-3.5 w-3.5" /> Think ahead. Make your move.
                 </p>
-                <h2 className="mt-4 font-display text-4xl font-bold leading-tight">
-                  A classic game.
+                <h2 className="mt-4 font-display text-[38px] font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-[52px]">
+                  The classic,
                   <br />
-                  Your next challenge.
+                  <span className="bg-gradient-to-r from-[#ff8bd7] via-[#ffca75] to-[#ff8bd7] bg-clip-text text-transparent">beautifully played.</span>
                 </h2>
-                <p className="mt-4 text-sm leading-relaxed text-white/60">
-                  Play a thoughtful game against Zero Bot, or invite a friend for a live match. Your
-                  pieces wear your avatar. Your strategy wins the board.
+                <p className="mt-4 max-w-[460px] text-[15px] leading-relaxed text-white/60">
+                  Your pieces wear your face. Outthink Zero Bot, or challenge a friend to a live match others can watch and cheer on.
                 </p>
-                <div className="mt-6 flex items-center gap-4">
-                  <GameAvatar id={you.id} name={you.name} photo={you.photo} className="h-16 w-16" />
-                  <span className="text-white/40">vs</span>
-                  <GameAvatar id={bot.id} name={bot.name} className="h-16 w-16" />
+                <div className="mt-6 flex items-center gap-3">
+                  <span className="inline-flex rounded-full p-[2px]" style={{ background: "linear-gradient(135deg,#ff8fcf,#a71862)" }}>
+                    <GameAvatar id={you.id} name={you.name} photo={you.photo} className="h-14 w-14 ring-2 ring-[#09050d]" />
+                  </span>
+                  <span className="font-display text-[13px] font-bold uppercase tracking-[0.2em] text-white/35">vs</span>
+                  <span className="inline-flex rounded-full p-[2px]" style={{ background: "linear-gradient(135deg,#8b7aa8,#1c1426)" }}>
+                    <GameAvatar id={bot.id} name={bot.name} className="h-14 w-14 ring-2 ring-[#09050d]" />
+                  </span>
                 </div>
               </div>
-              <div className="space-y-4">
-                <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-                  <h3 className="text-lg font-bold">Single player</h3>
-                  <label className="my-3 flex items-center justify-between gap-3 text-sm text-white/60">
-                    Computer strength
-                    <CardSelect
-                      aria-label="Computer strength"
-                      value={difficulty}
-                      onChange={(e) => setDifficulty(Number(e.target.value))}
-                      className="rounded-xl bg-[#2d1b31] p-2 text-white"
-                    >
-                      <option value={1}>Easy</option>
-                      <option value={3}>Balanced</option>
-                      <option value={4}>Challenging</option>
-                    </CardSelect>
-                  </label>
-                  <button
-                    onClick={() => onNavigate(undefined, "solo")}
-                    className={`${primary} w-full`}
-                  >
-                    {solo.ply || solo.forced !== null ? "Resume solo game" : "Play Zero Bot"}
+              {/* Tilted board preview */}
+              <div className="order-1 mx-auto w-full max-w-[400px] lg:order-2" style={{ perspective: "1200px" }}>
+                <div className="zd-float pointer-events-none" style={{ transform: "rotateX(22deg) rotateZ(-6deg)" }}>
+                  <DraughtBoard board={initialDraught().board} moves={[]} side={1} players={{ red: you, black: bot }} disabled onMove={() => {}} />
+                </div>
+              </div>
+            </section>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {/* Zero Bot */}
+              <section className="relative overflow-hidden rounded-[28px] p-[1px]" style={{ background: "linear-gradient(150deg,rgba(255,79,195,0.5),rgba(255,255,255,0.06) 45%,rgba(255,255,255,0.03))" }}>
+                <div className="relative h-full rounded-[27px] bg-[#130a17] p-5 sm:p-6">
+                  <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff4fc3]/20 blur-3xl" />
+                  <div className="relative flex items-center gap-3">
+                    <GameAvatar id={bot.id} name={bot.name} className="h-12 w-12" />
+                    <div>
+                      <h3 className="font-display text-[19px] font-bold tracking-tight">Play Zero Bot</h3>
+                      <p className="text-[12.5px] text-white/50">Practise anytime · your game is saved</p>
+                    </div>
+                  </div>
+                  <p className="relative mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/40">Strength</p>
+                  <div className="relative mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Computer strength">
+                    {DIFFS.map((d) => (
+                      <button
+                        key={d.v}
+                        type="button"
+                        role="radio"
+                        aria-checked={difficulty === d.v}
+                        onClick={() => setDifficulty(d.v)}
+                        className={`rounded-2xl px-2 py-2.5 text-left transition active:scale-[0.97] ${difficulty === d.v ? "bg-white text-[#140a1c] shadow-[0_10px_24px_-12px_rgba(255,255,255,0.6)]" : "bg-white/[0.05] text-white ring-1 ring-white/10 hover:bg-white/[0.08]"}`}
+                      >
+                        <span className="block text-[13px] font-bold">{d.label}</span>
+                        <span className={`block text-[11px] ${difficulty === d.v ? "text-[#140a1c]/60" : "text-white/45"}`}>{d.note}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => onNavigate(undefined, "solo")} className={`${primary} relative mt-5 w-full`}>
+                    <Play className="h-4 w-4 fill-current" />
+                    {solo.ply || solo.forced !== null ? "Resume your game" : "Start playing"}
                   </button>
-                </section>
-                <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-                  <h3 className="text-lg font-bold">Play with a friend</h3>
-                  <p className="my-3 text-sm text-white/55">
-                    Private match · 10 minutes per player · others can watch
-                  </p>
-                  <StakePicker value={stake} onChange={setStake} />
+                </div>
+              </section>
+
+              {/* Friend */}
+              <section className="relative overflow-hidden rounded-[28px] p-[1px]" style={{ background: "linear-gradient(150deg,rgba(255,202,117,0.45),rgba(255,255,255,0.06) 45%,rgba(255,255,255,0.03))" }}>
+                <div className="relative h-full rounded-[27px] bg-[#130a17] p-5 sm:p-6">
+                  <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ffca75]/15 blur-3xl" />
+                  <div className="relative flex items-center gap-3">
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-[#ffca75]/15 text-[#ffca75] ring-1 ring-[#ffca75]/30"><Users className="h-5 w-5" /></span>
+                    <div>
+                      <h3 className="font-display text-[19px] font-bold tracking-tight">Challenge a friend</h3>
+                      <p className="text-[12.5px] text-white/50">Live · 10 min each · others can watch</p>
+                    </div>
+                  </div>
+                  <div className="relative"><StakePicker value={stake} onChange={setStake} /></div>
                   <button
                     disabled={busy || !profile?.id}
                     onClick={() => void act("create", stake > 0 ? { stake } : {})}
-                    className={`${stake > 0 ? primary : secondary} w-full`}
+                    className={`${stake > 0 ? gold : secondary} relative mt-4 w-full`}
                   >
-                    {stake > 0 ? <Coins className="h-4 w-4" /> : <Users className="h-4 w-4" />}
-                    {stake > 0 ? `Create match · stake ${stake} ZP` : "Create match"}
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : stake > 0 ? <Coins className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+                    {stake > 0 ? `Create match · stake ${stake} ZP` : "Create a match"}
                   </button>
+                  <div className="relative my-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/30">
+                    <span className="h-px flex-1 bg-white/10" /> or join with a code <span className="h-px flex-1 bg-white/10" />
+                  </div>
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
                       void act("join", inviteStake > 0 ? { code: inviteCode, accept_stake: inviteStake } : { code: inviteCode });
                     }}
-                    className="mt-4 flex gap-2"
+                    className="relative flex gap-2"
                   >
                     <input
                       aria-label="Draught invite code"
-                      placeholder="12-character invite code"
+                      placeholder="12-character code"
                       maxLength={12}
                       value={inviteCode}
-                      onChange={(e) =>
-                        setInviteCode(e.target.value.replace(/[^a-f0-9]/gi, "").toUpperCase())
-                      }
-                      className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2 font-mono text-sm"
+                      onChange={(e) => setInviteCode(e.target.value.replace(/[^a-f0-9]/gi, "").toUpperCase())}
+                      className="min-h-11 min-w-0 flex-1 rounded-full bg-white/[0.06] px-4 font-mono text-[14px] tracking-[0.18em] text-white outline-none ring-1 ring-white/10 placeholder:tracking-normal placeholder:text-white/30 focus:ring-[#ffca75]/50"
                     />
-                    <button
-                      disabled={busy || !profile?.id || inviteCode.length !== 12}
-                      className={inviteStake > 0 ? primary : secondary}
-                    >
+                    <button disabled={busy || !profile?.id || inviteCode.length !== 12} className={inviteStake > 0 ? gold : secondary}>
                       {inviteStake > 0 ? `Accept ${inviteStake} ZP` : "Join"}
                     </button>
                   </form>
                   {invite.data && inviteCode.length === 12 && (
-                    <div className="mt-3 flex items-center gap-3 rounded-2xl bg-white/[0.05] p-3 ring-1 ring-white/10">
+                    <div className="relative mt-3 flex items-center gap-3 rounded-2xl bg-white/[0.04] p-3 ring-1 ring-white/10">
                       <GameAvatar id={invite.data.host.id} name={invite.data.host.name} photo={invite.data.host.photo} className="h-9 w-9" />
                       <p className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/70">
                         {!invite.data.open ? (
@@ -393,193 +485,177 @@ export function ZeroDraught({
                       </p>
                     </div>
                   )}
-                  {!profile?.id && (
-                    <p className="mt-3 text-xs text-white/45">
-                      Sign in to save multiplayer matches.
-                    </p>
-                  )}
-                </section>
-              </div>
+                  {!profile?.id && <p className="relative mt-3 text-xs text-white/45">Sign in to play friends and save matches.</p>}
+                </div>
+              </section>
             </div>
+
             {home.error && (
-              <p role="alert" className="my-4 text-sm text-white/60">
-                {draughtError(home.error)}
-              </p>
+              <p role="alert" className="my-4 text-sm text-white/60">{draughtError(home.error)}</p>
             )}
+
             <LiveMatches onWatch={(room) => onNavigate(room)} />
-            <section className="my-6">
-              <h2 className="mb-3 text-lg font-bold">Your matches</h2>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {home.data?.map((match) => (
-                  <button
-                    key={match.id}
-                    className={`${secondary} justify-between rounded-2xl p-4 text-left`}
-                    onClick={() => onNavigate(match.id)}
-                  >
-                    <span>Match {match.code.slice(0, 6)}</span>
-                    <span className="text-xs text-white/50">
-                      {match.status === "active"
-                        ? "Resume"
-                        : match.status === "waiting"
-                          ? "Invite a friend"
-                          : "View result"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </section>
+
+            {Boolean(home.data?.length) && (
+              <section className="my-8">
+                <h2 className="mb-3 font-display text-lg font-bold">Your matches</h2>
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  {home.data!.map((match) => {
+                    const live = match.status === "active";
+                    const waiting = match.status === "waiting";
+                    const mine = match.winner === profile?.id;
+                    return (
+                      <button
+                        key={match.id}
+                        className="group flex items-center gap-3 rounded-2xl bg-white/[0.04] p-4 text-left ring-1 ring-white/[0.08] transition hover:bg-white/[0.07] hover:ring-white/[0.14] active:scale-[0.99]"
+                        onClick={() => onNavigate(match.id)}
+                      >
+                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${live ? "bg-emerald-400/15 text-emerald-300" : waiting ? "bg-[#ffca75]/15 text-[#ffca75]" : mine ? "bg-[#ff4fc3]/15 text-[#ff8bd7]" : "bg-white/[0.06] text-white/50"}`}>
+                          {live ? <Play className="h-4 w-4 fill-current" /> : waiting ? <Users className="h-4 w-4" /> : <Trophy className="h-4 w-4" />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[14px] font-semibold">Match {match.code.slice(0, 6)}</span>
+                          <span className="block text-[12px] text-white/45">
+                            {live ? "In progress · tap to resume" : waiting ? "Waiting for your friend" : match.status === "cancelled" ? "Closed" : !match.winner ? "Draw" : mine ? "You won" : "You lost"}
+                          </span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-white/30 transition group-hover:translate-x-0.5" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+            <Rules />
           </>
         )}
+
         {roomId && detail.isPending && (
-          <p role="status" className="flex items-center justify-center gap-2 py-20">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Opening your match…
+          <p role="status" className="flex items-center justify-center gap-2 py-24 text-white/60">
+            <Loader2 className="h-5 w-5 animate-spin" /> Setting up the board…
           </p>
         )}
         {roomId && detail.error && (
-          <div role="alert" className="rounded-2xl bg-white/5 p-5">
-            <p>{draughtError(detail.error)}</p>
-            <button onClick={() => void detail.refetch()} className={`${secondary} mt-4`}>
-              Try again
-            </button>
+          <div role="alert" className="mx-auto max-w-[460px] rounded-[24px] bg-white/[0.04] p-6 text-center ring-1 ring-white/10">
+            <p className="text-white/80">{draughtError(detail.error)}</p>
+            <button onClick={() => void detail.refetch()} className={`${secondary} mt-4`}>Try again</button>
           </div>
         )}
+
+        {/* ───────────── Match ───────────── */}
         {board && (isSolo || data) && (
-          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,620px)_1fr]">
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,620px)_1fr] lg:gap-7">
             <section className="min-w-0">
               {(spectator || stakeLine) && (
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
                   {spectator && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-semibold">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3 py-1.5 text-[12px] font-semibold ring-1 ring-white/10">
                       <Eye className="h-3.5 w-3.5 text-[#ff9bdd]" /> Watching live
                     </span>
                   )}
                   {stakeLine && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffca75]/15 px-3 py-1.5 text-[12px] font-bold text-[#ffca75] ring-1 ring-[#ffca75]/25">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffca75]/12 px-3 py-1.5 text-[12px] font-bold text-[#ffca75] ring-1 ring-[#ffca75]/25">
                       <Coins className="h-3.5 w-3.5" /> {stakeLine}
                     </span>
                   )}
                 </div>
               )}
-              <PlayerCard
-                player={mySide === 1 ? black : red}
+              <PlayerBar
+                player={opponent}
+                side={(-mySide) as Side}
                 clock={!isSolo ? clock(-mySide as Side) : undefined}
                 active={turn === -mySide && !ended}
+                captured={capturedBy((-mySide) as Side)}
+                label={isSolo ? `Computer · ${DIFFS.find((d) => d.v === difficulty)?.label || "Balanced"}` : spectator ? undefined : "Opponent"}
               />
-              <DraughtBoard
-                board={board}
-                moves={moves}
+              <div className="relative my-3">
+                <DraughtBoard
+                  board={board}
+                  moves={moves}
+                  side={mySide}
+                  players={{ red, black }}
+                  onMove={move}
+                  disabled={spectator || busy || ended || turn !== mySide || (!isSolo && data?.room.status !== "active")}
+                />
+                {/* Result over the board */}
+                {ended && (
+                  <div className="zd-rise absolute inset-0 z-10 grid place-items-center rounded-[26px] bg-[#09050d]/55 backdrop-blur-[3px] sm:rounded-[30px]">
+                    <div className="mx-6 rounded-[26px] bg-[#150b19]/95 px-7 py-6 text-center shadow-[0_30px_70px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
+                      <span className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[#3a2006] shadow-[0_14px_36px_-10px_rgba(255,202,117,0.9)]" style={{ background: won ? "linear-gradient(145deg,#ffe7a3,#ffca75 45%,#d99a2b)" : drawn ? "linear-gradient(145deg,#e2e8f0,#94a3b8)" : "linear-gradient(145deg,#6c5a85,#2b2236)" }}>
+                        {won ? <Trophy className="h-8 w-8" /> : drawn ? <Users className="h-7 w-7" /> : <Flag className="h-7 w-7 text-white/80" />}
+                      </span>
+                      <h2 className="mt-4 font-display text-[26px] font-extrabold tracking-tight">{result}</h2>
+                      <p className="mt-1 text-[13px] text-white/55">{statusHint}</p>
+                      {stakeLine && <p className="mt-2 text-[13px] font-bold text-[#ffca75]">{stakeLine}</p>}
+                      <button className={`${primary} mt-5 w-full`} onClick={() => (isSolo ? setSolo(initialDraught()) : onNavigate())}>
+                        {spectator ? "Back to Zero Draught" : "Play again"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <PlayerBar
+                player={meSide}
                 side={mySide}
-                players={{ red, black }}
-                onMove={move}
-                disabled={
-                  spectator || busy || ended || turn !== mySide || (!isSolo && data?.room.status !== "active")
-                }
-              />
-              <PlayerCard
-                player={mySide === 1 ? red : black}
                 clock={!isSolo ? clock(mySide) : undefined}
                 active={turn === mySide && !ended}
+                captured={capturedBy(mySide)}
+                label={spectator ? undefined : "You"}
               />
             </section>
+
             <aside className="min-w-0 space-y-4">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-                {ended ? (
-                  <>
-                    <Trophy className="mb-3 h-8 w-8 text-[#ffca75]" />
-                    <h2 className="text-2xl font-bold">{result}</h2>
-                    <p className="mt-2 text-sm text-white/50">
-                      {isSolo
-                        ? "Every move is a chance to learn."
-                        : `Result: ${data?.room.reason?.replace(/_/g, " ") || "complete"}`}
-                    </p>
-                    {stakeLine && <p className="mt-2 text-sm font-semibold text-[#ffca75]">{stakeLine}</p>}
-                    <button
-                      className={`${primary} mt-4`}
-                      onClick={() => (isSolo ? setConfirmation("restart") : onNavigate())}
-                    >
-                      {spectator ? "Back to Zero Draught" : "Play again"}
+              <div className="overflow-hidden rounded-[26px] bg-white/[0.035] ring-1 ring-white/[0.08]">
+                <div className={`flex items-center gap-3 px-5 py-4 ${myTurn ? "bg-[linear-gradient(110deg,rgba(255,79,195,0.18),transparent_70%)]" : ""}`}>
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${myTurn ? "bg-[#ff4fc3] text-white shadow-[0_0_24px_-4px_rgba(255,79,195,0.9)]" : "bg-white/[0.07] text-white/60"}`}>
+                    {ended ? <Trophy className="h-5 w-5" /> : myTurn ? <Play className="h-4 w-4 fill-current" /> : <Loader2 className={`h-4 w-4 ${data?.room.status === "waiting" ? "" : "animate-spin"}`} />}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="truncate font-display text-[19px] font-bold tracking-tight">{statusTitle}</h2>
+                    <p className="text-[13px] leading-snug text-white/55">{statusHint}</p>
+                  </div>
+                </div>
+
+                {data?.room.status === "waiting" && !ended && (
+                  <div className="border-t border-white/[0.06] px-5 py-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/40">Invite code</p>
+                    <p className="mt-1.5 break-all font-mono text-[24px] font-bold tracking-[0.2em] text-[#ffca75]">{data.room.code}</p>
+                    <button onClick={() => void copy()} className={`${primary} mt-3`}>
+                      <Copy className="h-4 w-4" /> Copy invite link
                     </button>
-                  </>
-                ) : data?.room.status === "waiting" ? (
-                  <>
-                    <h2 className="text-lg font-bold">Invite your opponent</h2>
-                    <p className="my-3 break-all font-mono text-xl tracking-widest">
-                      {data.room.code}
-                    </p>
-                    <button onClick={() => void copy()} className={primary}>
-                      <Copy className="h-4 w-4" />
-                      Copy invite
-                    </button>
-                    <p className="mt-3 text-xs text-white/45">
-                      The match starts when your friend joins. Red moves first.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-xl font-bold">
-                      {spectator
-                        ? `${(turn === 1 ? red : black).name.split(" ")[0]} to move`
-                        : turn === mySide
-                        ? "Your move"
-                        : isSolo
-                          ? "Zero Bot is thinking…"
-                          : "Your opponent’s move"}
-                    </h2>
-                    <p className="mt-3 text-sm leading-relaxed text-white/60">
-                      {spectator
-                        ? "You're watching live. Moves appear as they're played. Join the chat below."
-                        : turn !== mySide
-                        ? "Your opponent is considering their next move."
-                        : moves.some((move) => move.capture !== null)
-                          ? "A capture is available. You must take a jump."
-                          : "Select one of your pieces, then a highlighted destination."}
-                      {turn === mySide && (isSolo ? solo.forced : data?.room.forced) != null
-                        ? " Keep jumping with the same piece."
-                        : ""}
-                    </p>
-                    {!isSolo && !spectator && (
-                      <p className="mt-3 text-xs text-white/40">
-                        {connection}. Your clock keeps running when you leave the screen.
-                      </p>
-                    )}
-                    {!isSolo && !spectator && data?.room.status === "active" && (
-                      <button type="button" onClick={() => void shareWatch()} className={`${secondary} mt-4`}>
-                        <Share2 className="h-4 w-4" /> Invite people to watch
-                      </button>
-                    )}
-                  </>
+                  </div>
                 )}
+
+                {!isSolo && !spectator && !ended && (
+                  <p className="border-t border-white/[0.06] px-5 py-2.5 text-[11.5px] text-white/40">
+                    {connection} · your clock keeps running when you leave the screen.
+                  </p>
+                )}
+
                 {!ended && !spectator && (
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <button
-                      className={secondary}
-                      onClick={() => setConfirmation(isSolo ? "restart" : "resign")}
-                      disabled={busy}
-                    >
+                  <div className="flex flex-wrap gap-2 border-t border-white/[0.06] px-5 py-4">
+                    <button className={secondary} onClick={() => setConfirmation(isSolo ? "restart" : "resign")} disabled={busy}>
                       <Flag className="h-4 w-4" />
-                      {isSolo
-                        ? "New game"
-                        : data?.room.status === "waiting"
-                          ? "Cancel invite"
-                          : "Resign"}
+                      {isSolo ? "New game" : data?.room.status === "waiting" ? "Cancel invite" : "Resign"}
                     </button>
                     {!isSolo && data?.room.status === "active" && !data.room.draw_offer && (
-                      <button
-                        className={secondary}
-                        onClick={() => void act("offer_draw")}
-                        disabled={busy}
-                      >
+                      <button className={secondary} onClick={() => void act("offer_draw")} disabled={busy}>
                         Offer draw
+                      </button>
+                    )}
+                    {!isSolo && data?.room.status === "active" && (
+                      <button type="button" onClick={() => void shareWatch()} className={secondary}>
+                        <Share2 className="h-4 w-4" /> Invite watchers
                       </button>
                     )}
                   </div>
                 )}
+
                 {confirmation && (
-                  <div className="mt-4 rounded-2xl bg-white/5 p-4">
-                    <p className="text-sm">
+                  <div className="zd-rise border-t border-white/[0.06] bg-white/[0.03] px-5 py-4">
+                    <p className="text-[14px] font-semibold">
                       {confirmation === "restart"
-                        ? "Start a new solo game? This replaces the saved board."
+                        ? "Start a new game? This replaces your saved board."
                         : data?.room.status === "waiting"
                           ? "Cancel this invitation?"
                           : "Resign this match? Your opponent wins."}
@@ -587,106 +663,111 @@ export function ZeroDraught({
                     <div className="mt-3 flex gap-2">
                       <button
                         disabled={busy}
-                        className={primary}
+                        className={confirmation === "restart" ? primary : danger}
                         onClick={async () => {
                           if (confirmation === "restart") setSolo(initialDraught());
                           else await act("resign");
                           setConfirmation(null);
                         }}
                       >
-                        Confirm
+                        {confirmation === "restart" ? "Start over" : data?.room.status === "waiting" ? "Cancel invite" : "Resign"}
                       </button>
-                      <button className={secondary} onClick={() => setConfirmation(null)}>
-                        Keep playing
-                      </button>
+                      <button className={secondary} onClick={() => setConfirmation(null)}>Keep playing</button>
                     </div>
                   </div>
                 )}
+
                 {!ended && data?.room.draw_offer && (
-                  <div className="mt-4 rounded-2xl bg-white/5 p-4">
-                    <p className="text-sm">
-                      {data.room.draw_offer === profile?.id
-                        ? "Draw offered. Waiting for your opponent."
-                        : "Your opponent offered a draw."}
+                  <div className="zd-rise border-t border-white/[0.06] bg-[#ffca75]/[0.06] px-5 py-4">
+                    <p className="text-[14px] font-semibold">
+                      {data.room.draw_offer === profile?.id ? "Draw offered. Waiting for your opponent." : spectator ? "A draw has been offered." : "Your opponent offers a draw."}
                     </p>
-                    {data.room.draw_offer !== profile?.id && (
+                    {data.room.draw_offer !== profile?.id && !spectator && (
                       <div className="mt-3 flex gap-2">
-                        <button
-                          disabled={busy}
-                          className={primary}
-                          onClick={() => void act("accept_draw")}
-                        >
-                          Accept draw
-                        </button>
-                        <button
-                          disabled={busy}
-                          className={secondary}
-                          onClick={() => void act("decline_draw")}
-                        >
-                          Decline
-                        </button>
+                        <button disabled={busy} className={gold} onClick={() => void act("accept_draw")}>Accept draw</button>
+                        <button disabled={busy} className={secondary} onClick={() => void act("decline_draw")}>Decline</button>
                       </div>
                     )}
                   </div>
                 )}
               </div>
+
               {!isSolo && roomId && data && data.room.status !== "waiting" && (
-                <MatchComments
-                  roomId={roomId}
-                  myId={profile?.id}
-                  playerIds={[data.room.red_id, data.room.black_id || ""]}
-                />
+                <MatchComments roomId={roomId} myId={profile?.id} playerIds={[data.room.red_id, data.room.black_id || ""]} />
               )}
               <Rules />
             </aside>
           </div>
         )}
-        {!board && <Rules />}
       </div>
     </div>
   );
 }
-function PlayerCard({
+
+function PlayerBar({
   player,
+  side,
   clock,
   active,
+  captured,
+  label,
 }: {
   player: DraughtPlayer;
+  side: Side;
   clock?: string;
   active: boolean;
+  captured: number;
+  label?: string;
 }) {
+  const red = side === 1;
+  const low = clock ? Number(clock.split(":")[0]) === 0 && Number(clock.split(":")[1]) <= 30 : false;
   return (
-    <div
-      className={`my-3 flex min-w-0 items-center gap-3 rounded-2xl border p-3 ${active ? "border-[#ff4fc3]/60 bg-[#ff4fc3]/10" : "border-white/10 bg-white/[0.03]"}`}
-    >
-      <GameAvatar id={player.id} name={player.name} photo={player.photo} />
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{player.name}</span>
-      {clock && <span className="shrink-0 font-mono text-xl font-bold tabular-nums">{clock}</span>}
+    <div className={`flex min-w-0 items-center gap-3 rounded-[20px] px-3 py-2.5 transition ${active ? "bg-white/[0.07] ring-1 ring-white/15" : "bg-white/[0.025] ring-1 ring-white/[0.05]"}`}>
+      <span
+        className={`relative inline-flex shrink-0 rounded-full p-[2px] ${active ? "shadow-[0_0_22px_-4px_rgba(255,79,195,0.9)]" : ""}`}
+        style={{ background: red ? "linear-gradient(135deg,#ff8fcf,#a71862)" : "linear-gradient(135deg,#8b7aa8,#1c1426)" }}
+      >
+        <GameAvatar id={player.id} name={player.name} photo={player.photo} className="h-10 w-10 ring-2 ring-[#09050d]" />
+        {active && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-[#09050d]" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14.5px] font-semibold">{player.name}</p>
+        <p className="flex items-center gap-1.5 text-[11.5px] text-white/45">
+          {label && <span>{label}</span>}
+          {label && <span>·</span>}
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: red ? "radial-gradient(circle at 35% 30%,#ff8fcf,#a71862)" : "radial-gradient(circle at 35% 30%,#6c5a85,#1c1426)" }} />
+            {captured > 0 ? `${captured} captured` : red ? "Red" : "Black"}
+          </span>
+        </p>
+      </div>
+      {clock && (
+        <span className={`shrink-0 rounded-xl px-3 py-1.5 font-mono text-[18px] font-bold tabular-nums ${active ? (low ? "bg-red-500/20 text-red-300" : "bg-white text-[#140a1c]") : "bg-white/[0.06] text-white/70"}`}>
+          {clock}
+        </span>
+      )}
     </div>
   );
 }
+
 function Rules() {
   return (
-    <details className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-      <summary className="cursor-pointer text-sm font-bold">How to play</summary>
-      <ul className="mt-3 space-y-2 text-sm leading-relaxed text-white/60">
+    <details className="group rounded-[22px] bg-white/[0.03] ring-1 ring-white/[0.07] [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-4 text-[14px] font-bold">
+        <Crown className="h-4 w-4 text-[#ffca75]" /> How to play
+        <ChevronRight className="ml-auto h-4 w-4 text-white/40 transition group-open:rotate-90" />
+      </summary>
+      <ul className="space-y-2.5 px-5 pb-5 text-[13.5px] leading-relaxed text-white/60">
         <li>8×8 draughts with flying kings. Red starts.</li>
         <li>
-          Ordinary pieces move diagonally forward and can capture both forwards and backwards.
-          Kings move any distance along a clear diagonal.
-          To capture, cross one opponent and land on an empty square beyond it. Kings cannot
-          cross friendly pieces or two opponents in one jump.
+          Ordinary pieces move diagonally forward and can capture both forwards and backwards. Kings move any
+          distance along a clear diagonal. To capture, cross one opponent and land on an empty square beyond it.
+          Kings cannot cross friendly pieces or two opponents in one jump.
         </li>
-        <li>
-          Captures are mandatory. Continue a chain with the same piece when another jump is
-          available.
-        </li>
+        <li>Captures are mandatory. Continue a chain with the same piece when another jump is available.</li>
         <li>Reach the far row to become a king. Crowning ends that turn.</li>
         <li>Win by capturing all pieces or leaving your opponent without a legal move.</li>
-        <li>
-          Three repeated positions, or 40 full moves without a capture or a man moving, produce a
-          draw.
-        </li>
+        <li>Three repeated positions, or 40 full moves without a capture or a man moving, produce a draw.</li>
       </ul>
     </details>
   );

@@ -1,8 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Crown } from "@/components/icons/glyphs";
 import { GameAvatar } from "../GameAvatar";
 import type { DraughtMove, Side } from "./engine";
 import type { DraughtPlayer } from "./api";
+
+/**
+ * The Zero Draught board.
+ *
+ * A framed board with coordinates, glossy stacked discs that carry each
+ * player's avatar, and quiet guidance while it's your turn: pieces that can
+ * move glow softly, a capture you must take is marked, the last move stays
+ * tinted so you can see what just happened, and a piece pops as it lands.
+ */
+
+const BOARD_CSS = `
+@keyframes zd-land { 0% { transform: translateY(-14%) scale(1.12); } 60% { transform: translateY(2%) scale(.97); } 100% { transform: none; } }
+@keyframes zd-breathe { 0%,100% { box-shadow: 0 0 0 0 rgba(255,202,117,0); } 50% { box-shadow: 0 0 0 3px rgba(255,202,117,.55); } }
+@keyframes zd-must { 0%,100% { box-shadow: 0 0 0 2px rgba(255,107,107,.95), 0 0 18px 2px rgba(255,107,107,.45); } 50% { box-shadow: 0 0 0 3px rgba(255,107,107,1), 0 0 26px 4px rgba(255,107,107,.65); } }
+@keyframes zd-dot { 0%,100% { transform: scale(.85); opacity: .75; } 50% { transform: scale(1.05); opacity: 1; } }
+.zd-land { animation: zd-land .38s cubic-bezier(.2,.8,.2,1); }
+.zd-breathe { animation: zd-breathe 1.8s ease-in-out infinite; }
+.zd-must { animation: zd-must 1.1s ease-in-out infinite; }
+.zd-dot { animation: zd-dot 1.4s ease-in-out infinite; }
+`;
 
 export function DraughtBoard({
   board,
@@ -20,63 +40,163 @@ export function DraughtBoard({
   onMove: (from: number, to: number) => void;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const key = board.join(",");
+
+  /* What changed since the last board: where a piece left and where it landed. */
+  const previous = useRef<number[] | null>(null);
+  const [lastMove, setLastMove] = useState<{ from: number[]; to: number[] }>({ from: [], to: [] });
   useEffect(() => {
     setSelected(null);
-  }, [board.join(",")]);
+    const before = previous.current;
+    previous.current = board;
+    if (!before || before.length !== board.length) return;
+    const from: number[] = [];
+    const to: number[] = [];
+    board.forEach((piece, i) => {
+      if (piece === before[i]) return;
+      if (piece !== 0 && Math.sign(piece) !== Math.sign(before[i])) to.push(i);
+      else if (piece !== 0) to.push(i); // crowned in place is not a move, but harmless
+      else if (before[i] !== 0) from.push(i);
+    });
+    // Captured pieces also disappear; keep only the mover's start square.
+    if (to.length === 1) {
+      const mover = Math.sign(board[to[0]]);
+      setLastMove({ from: from.filter((i) => Math.sign(before[i]) === mover), to });
+    } else setLastMove({ from: [], to: [] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const movable = useMemo(() => new Set(moves.map((m) => m.from)), [moves]);
+  const mustCapture = moves.some((m) => m.capture !== null);
   const destinations = moves.filter((move) => move.from === selected);
   const squares = Array.from({ length: 64 }, (_, i) => (side === 1 ? 63 - i : i));
+  const files = side === 1 ? "hgfedcba" : "abcdefgh";
+  const ranks = side === 1 ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
+
   const choose = (square: number) => {
     if (disabled) return;
     const target = destinations.find((move) => move.to === square);
     if (target && selected !== null) onMove(selected, square);
-    else setSelected(moves.some((move) => move.from === square) ? square : null);
+    else setSelected(movable.has(square) ? square : null);
   };
+
   return (
-    <div
-      className="mx-auto aspect-square w-full max-w-[600px] overflow-hidden rounded-2xl border-4 border-[#513044] bg-[#241725] shadow-2xl sm:border-8"
-      role="group"
-      aria-label="Draught board"
-    >
-      <div className="grid h-full grid-cols-8 grid-rows-8">
-        {squares.map((square) => {
-          const dark = (Math.floor(square / 8) + (square % 8)) % 2 === 1;
-          const piece = board[square],
-            target = destinations.some((move) => move.to === square);
-          const owner = piece > 0 ? players.red : players.black;
-          const coordinate = `${"abcdefgh"[square % 8]}${8 - Math.floor(square / 8)}`;
-          return (
-            <button
-              type="button"
-              key={square}
-              onClick={() => choose(square)}
-              disabled={disabled || !dark}
-              aria-label={`${coordinate}${piece ? `, ${piece > 0 ? "red" : "black"} ${Math.abs(piece) === 2 ? "king" : "piece"}` : target ? ", legal destination" : ", empty"}`}
-              aria-pressed={selected === square}
-              className={`relative grid min-h-0 min-w-0 place-items-center outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#ffca75] ${dark ? "bg-[#563347]" : "bg-[#c5a4ad]"} ${selected === square ? "!bg-[#a56d93]" : target ? "!bg-[#727455]" : ""}`}
-            >
-              {piece !== 0 && (
-                <span
-                  className={`relative grid h-[82%] w-[82%] place-items-center rounded-full border-[3px] shadow-[0_3px_0_#0005] ${piece > 0 ? "border-[#ff80bc] bg-[#a71f63]" : "border-[#aaa2c1] bg-[#23172d]"}`}
-                >
-                  <GameAvatar
-                    id={owner.id}
-                    name={owner.name}
-                    photo={owner.photo}
-                    className="h-[83%] w-[83%]"
-                  />
-                  {Math.abs(piece) === 2 && (
-                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full bg-[#ffca75] p-0.5 text-[#331d12]">
-                      <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </span>
-                  )}
-                </span>
-              )}
-              {!piece && target && (
-                <span className="h-3 w-3 rounded-full bg-[#d7f7b0] sm:h-4 sm:w-4" />
-              )}
-            </button>
-          );
-        })}
+    <div className="relative mx-auto w-full max-w-[620px]">
+      <style>{BOARD_CSS}</style>
+      {/* Frame */}
+      <div
+        className="rounded-[26px] p-[7px] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)] sm:rounded-[30px] sm:p-[9px]"
+        style={{ background: "linear-gradient(145deg,#3a1d35 0%,#1d0f1e 45%,#2b1428 100%)" }}
+      >
+        <div
+          className="relative rounded-[20px] p-[18px] sm:rounded-[23px] sm:p-[22px]"
+          style={{
+            background: "linear-gradient(160deg,#2a1427,#170b18)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,202,117,0.16)",
+          }}
+        >
+          {/* Coordinates on the frame */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-[18px] bottom-[3px] grid grid-cols-8 text-center text-[9px] font-semibold uppercase tracking-wide text-[#ffca75]/45 sm:inset-x-[22px] sm:bottom-[5px] sm:text-[10px]">
+            {files.split("").map((f) => <span key={f}>{f}</span>)}
+          </div>
+          <div aria-hidden className="pointer-events-none absolute inset-y-[18px] left-[5px] grid grid-rows-8 items-center text-[9px] font-semibold text-[#ffca75]/45 sm:inset-y-[22px] sm:left-[7px] sm:text-[10px]">
+            {ranks.map((r) => <span key={r}>{r}</span>)}
+          </div>
+
+          <div
+            className="aspect-square w-full overflow-hidden rounded-[10px] ring-1 ring-black/40"
+            role="group"
+            aria-label="Draught board"
+          >
+            <div className="grid h-full grid-cols-8 grid-rows-8">
+              {squares.map((square) => {
+                const dark = (Math.floor(square / 8) + (square % 8)) % 2 === 1;
+                const piece = board[square];
+                const targetMove = destinations.find((move) => move.to === square);
+                const owner = piece > 0 ? players.red : players.black;
+                const coordinate = `${"abcdefgh"[square % 8]}${8 - Math.floor(square / 8)}`;
+                const isSelected = selected === square;
+                const canMove = !disabled && movable.has(square);
+                const wasFrom = lastMove.from.includes(square);
+                const wasTo = lastMove.to.includes(square);
+                const red = piece > 0;
+                return (
+                  <button
+                    type="button"
+                    key={square}
+                    onClick={() => choose(square)}
+                    disabled={disabled || !dark}
+                    aria-label={`${coordinate}${piece ? `, ${red ? "red" : "black"} ${Math.abs(piece) === 2 ? "king" : "piece"}` : targetMove ? ", legal destination" : ", empty"}`}
+                    aria-pressed={isSelected}
+                    className="relative grid min-h-0 min-w-0 place-items-center outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#ffca75]"
+                    style={{
+                      background: dark
+                        ? "linear-gradient(145deg,#5a2a4f 0%,#43203d 100%)"
+                        : "linear-gradient(145deg,#f1e2e4 0%,#e2cbd0 100%)",
+                    }}
+                  >
+                    {/* Last move tint */}
+                    {(wasFrom || wasTo) && (
+                      <span aria-hidden className="absolute inset-0" style={{ background: wasTo ? "rgba(255,202,117,0.30)" : "rgba(255,202,117,0.16)" }} />
+                    )}
+                    {/* Selected square glow */}
+                    {isSelected && <span aria-hidden className="absolute inset-0 bg-[#ff4fc3]/25 shadow-[inset_0_0_0_2px_rgba(255,79,195,0.85)]" />}
+
+                    {piece !== 0 && (
+                      <span
+                        key={wasTo ? `land-${key}` : "still"}
+                        className={`relative z-[1] grid h-[84%] w-[84%] place-items-center rounded-full transition-transform duration-200 ${wasTo ? "zd-land" : ""} ${isSelected ? "-translate-y-[6%] scale-[1.07]" : ""}`}
+                      >
+                        {/* Shadow under the disc */}
+                        <span aria-hidden className="absolute inset-x-[6%] -bottom-[7%] h-[30%] rounded-[50%] bg-black/45 blur-[3px]" />
+                        {/* Edge of the stacked disc */}
+                        <span
+                          aria-hidden
+                          className="absolute inset-0 translate-y-[6%] rounded-full"
+                          style={{ background: red ? "linear-gradient(180deg,#8c1550,#5b0c34)" : "linear-gradient(180deg,#2b2236,#120c18)" }}
+                        />
+                        {/* Face */}
+                        <span
+                          className={`relative grid h-full w-full place-items-center rounded-full ${canMove && !isSelected ? (mustCapture ? "zd-must" : "zd-breathe") : ""}`}
+                          style={{
+                            background: red
+                              ? "radial-gradient(circle at 32% 26%,#ff8fcf 0%,#e1328f 38%,#a71862 100%)"
+                              : "radial-gradient(circle at 32% 26%,#6c5a85 0%,#3a2d4c 42%,#1c1426 100%)",
+                            boxShadow: red
+                              ? "inset 0 0 0 2px rgba(255,214,236,0.55), inset 0 -3px 6px rgba(0,0,0,0.35)"
+                              : "inset 0 0 0 2px rgba(214,204,236,0.38), inset 0 -3px 6px rgba(0,0,0,0.45)",
+                          }}
+                        >
+                          {/* Inner groove ring */}
+                          <span aria-hidden className="absolute inset-[9%] rounded-full" style={{ boxShadow: red ? "0 0 0 1.5px rgba(255,210,235,0.35)" : "0 0 0 1.5px rgba(200,190,230,0.25)" }} />
+                          <GameAvatar id={owner.id} name={owner.name} photo={owner.photo} className="h-[68%] w-[68%] ring-1 ring-black/30" />
+                          {/* Gloss */}
+                          <span aria-hidden className="pointer-events-none absolute left-[18%] top-[10%] h-[26%] w-[46%] rounded-full bg-white/25 blur-[2px]" />
+                        </span>
+                        {Math.abs(piece) === 2 && (
+                          <span
+                            className="absolute -top-[16%] left-1/2 z-[2] grid h-[42%] w-[42%] -translate-x-1/2 place-items-center rounded-full text-[#3a2006] shadow-[0_3px_8px_rgba(0,0,0,0.5)] ring-2 ring-black/20"
+                            style={{ background: "linear-gradient(145deg,#ffe7a3,#ffca75 45%,#d99a2b)" }}
+                          >
+                            <Crown className="h-[62%] w-[62%]" />
+                          </span>
+                        )}
+                      </span>
+                    )}
+
+                    {!piece && targetMove && (
+                      targetMove.capture !== null ? (
+                        <span aria-hidden className="zd-dot relative z-[1] h-[58%] w-[58%] rounded-full border-[3px] border-[#ff8a8a] bg-[#ff6b6b]/15" />
+                      ) : (
+                        <span aria-hidden className="zd-dot relative z-[1] h-[30%] w-[30%] rounded-full bg-[#ffca75] shadow-[0_0_14px_rgba(255,202,117,0.8)]" />
+                      )
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
