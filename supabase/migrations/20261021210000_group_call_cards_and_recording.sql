@@ -1,3 +1,5 @@
+-- DO NOT APPLY: superseded. Recording went live separately (set_group_call_recording_v2) and the card fix
+-- went live as 20261022040000_group_call_single_card.sql. Applying this would undo newer recording logic.
 -- NOT YET APPLIED (the apply was cancelled on 2026-10-21). Apply to project
 -- tiyifgfsuzhcvdvntjmp to switch on: one chat card per group call (rewritten to
 -- "Group call · N min · started by …" however the call ends) and call recording

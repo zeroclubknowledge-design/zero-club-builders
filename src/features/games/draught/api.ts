@@ -67,9 +67,15 @@ export function draughtError(error: unknown) {
 
 export type DraughtStakeInfo = { zp: number; stakeable: number; cap: number; account_ready: boolean };
 export type DraughtInvite = {
+  /** Present on newer servers: lets a full or running match open for watching. */
+  room_id?: string;
   status: DraughtRoom["status"];
   stake: number;
   open: boolean;
+  /** You are one of the two players. */
+  player?: boolean;
+  /** The match is live or finished and anyone can watch it. */
+  watchable?: boolean;
   host: DraughtPlayer;
 };
 export type DraughtLiveMatch = {
@@ -106,8 +112,18 @@ export async function draughtComments(room: string) {
     .from("zero_draught_comments" as never)
     .select("id, room_id, profile_id, body, created_at, author:profiles!zero_draught_comments_profile_id_fkey(id, full_name, username, avatar_url)")
     .eq("room_id", room)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(200);
   if (error) throw error;
-  return (data || []) as unknown as DraughtComment[];
+  return ((data || []) as unknown as DraughtComment[]).reverse();
+}
+
+/** A plain message for when watching or match chat fails. */
+export function draughtWatchError(error: unknown, kind: "watch" | "chat" = "watch") {
+  if (isMissingFeature(error))
+    return kind === "chat" ? "Match chat isn't switched on yet." : "Watching live matches isn't switched on yet.";
+  const message = (error as { message?: string })?.message || "";
+  if (/fetch|network|timeout/i.test(message)) return "Connection interrupted. Check your internet and try again.";
+  if (message && !/PGRST|schema|function|relation|syntax/i.test(message)) return message;
+  return kind === "chat" ? "Couldn't load the match chat. Please try again." : "Couldn't load live matches. Please try again.";
 }

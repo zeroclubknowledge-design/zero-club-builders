@@ -7,7 +7,7 @@ import type { DraughtPlayer } from "./api";
 /**
  * The Zero Draught board.
  *
- * A framed board with coordinates, glossy stacked discs that carry each
+ * A clean, edge-to-edge board with glossy stacked discs that carry each
  * player's avatar, and quiet guidance while it's your turn: pieces that can
  * move glow softly, a capture you must take is marked, the last move stays
  * tinted so you can see what just happened, and a piece pops as it lands.
@@ -70,8 +70,6 @@ export function DraughtBoard({
   const mustCapture = moves.some((m) => m.capture !== null);
   const destinations = moves.filter((move) => move.from === selected);
   const squares = Array.from({ length: 64 }, (_, i) => (side === 1 ? 63 - i : i));
-  const files = side === 1 ? "hgfedcba" : "abcdefgh";
-  const ranks = side === 1 ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
 
   const choose = (square: number) => {
     if (disabled) return;
@@ -81,33 +79,14 @@ export function DraughtBoard({
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-[620px]">
+    <div className="relative mx-auto w-full max-w-[760px]">
       <style>{BOARD_CSS}</style>
-      {/* Frame */}
+      {/* Just the board: no frame or coordinates, so it takes all the room it has. */}
       <div
-        className="rounded-[26px] p-[7px] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)] sm:rounded-[30px] sm:p-[9px]"
-        style={{ background: "linear-gradient(145deg,#3a1d35 0%,#1d0f1e 45%,#2b1428 100%)" }}
+        className="aspect-square w-full overflow-hidden rounded-[14px] shadow-[0_30px_70px_-28px_rgba(0,0,0,0.9)] ring-1 ring-black/40 sm:rounded-[18px]"
+        role="group"
+        aria-label="Draught board"
       >
-        <div
-          className="relative rounded-[20px] p-[18px] sm:rounded-[23px] sm:p-[22px]"
-          style={{
-            background: "linear-gradient(160deg,#2a1427,#170b18)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,202,117,0.16)",
-          }}
-        >
-          {/* Coordinates on the frame */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-[18px] bottom-[3px] grid grid-cols-8 text-center text-[9px] font-semibold uppercase tracking-wide text-[#ffca75]/45 sm:inset-x-[22px] sm:bottom-[5px] sm:text-[10px]">
-            {files.split("").map((f) => <span key={f}>{f}</span>)}
-          </div>
-          <div aria-hidden className="pointer-events-none absolute inset-y-[18px] left-[5px] grid grid-rows-8 items-center text-[9px] font-semibold text-[#ffca75]/45 sm:inset-y-[22px] sm:left-[7px] sm:text-[10px]">
-            {ranks.map((r) => <span key={r}>{r}</span>)}
-          </div>
-
-          <div
-            className="aspect-square w-full overflow-hidden rounded-[10px] ring-1 ring-black/40"
-            role="group"
-            aria-label="Draught board"
-          >
             <div className="grid h-full grid-cols-8 grid-rows-8">
               {squares.map((square) => {
                 const dark = (Math.floor(square / 8) + (square % 8)) % 2 === 1;
@@ -195,8 +174,6 @@ export function DraughtBoard({
                 );
               })}
             </div>
-          </div>
-        </div>
       </div>
     </div>
   );

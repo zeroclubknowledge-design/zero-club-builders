@@ -74,7 +74,7 @@ grant execute on function public.portfolio_article_candidates() to authenticated
 
 create or replace function public.get_public_portfolio(p_username text)
 returns jsonb language plpgsql stable security definer set search_path to 'public' as $function$
-declare prof public.profiles; pf public.portfolios; is_owner boolean;
+declare prof public.profiles; pf public.portfolios; is_owner boolean; premium boolean; rc jsonb;
 begin
   select * into prof from public.profiles where lower(username) = lower(btrim(p_username)) and coalesce(account_status,'active') <> 'suspended' limit 1;
   if not found then return jsonb_build_object('found', false); end if;
@@ -82,6 +82,12 @@ begin
   is_owner := auth.uid() is not null and auth.uid() = prof.id;
   if not found or (pf.status <> 'published' and not is_owner) then
     return jsonb_build_object('found', false);
+  end if;
+  -- Rate card (applied 2026-10-22): visitors of a non-PRO portfolio see tier 1 only.
+  premium := public.portfolio_premium_allowed(prof.id);
+  rc := pf.rate_card;
+  if rc is not null and not premium and jsonb_array_length(coalesce(rc->'tiers','[]'::jsonb)) > 0 then
+    rc := jsonb_set(rc, '{tiers}', jsonb_build_array((rc->'tiers'->0) - 'highlight'));
   end if;
   return jsonb_build_object(
     'found', true, 'is_owner', is_owner,
@@ -94,7 +100,8 @@ begin
                         and not public.portfolio_premium_allowed(prof.id) then 'minimal' else pf.template end,
       'stored_template', pf.template,
       'premium_active', public.portfolio_premium_allowed(prof.id),
-      'show_branding', not (coalesce(pf.hide_branding, false) and public.portfolio_premium_allowed(prof.id))),
+      'show_branding', not (coalesce(pf.hide_branding, false) and public.portfolio_premium_allowed(prof.id)),
+      'rate_card', case when is_owner then pf.rate_card else rc end),
     'shipped', coalesce((
       select jsonb_agg(jsonb_build_object('id', po.id, 'content', po.content, 'media_urls', po.media_urls,
           'likes_count', po.likes_count, 'comments_count', po.comments_count, 'created_at', po.created_at,

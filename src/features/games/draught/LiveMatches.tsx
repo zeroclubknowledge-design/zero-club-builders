@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Coins, Eye, MessageCircle } from "@/components/icons/glyphs";
 import { GameAvatar } from "../GameAvatar";
-import { draughtLive, isMissingFeature } from "./api";
+import { draughtLive, draughtWatchError } from "./api";
 
 /** Matches being played right now that anyone can watch. */
 export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
   const live = useQuery({ queryKey: ["draught-live"], queryFn: draughtLive, retry: false, refetchInterval: 15_000 });
-  if (live.error && isMissingFeature(live.error)) return null;
 
   return (
     <section className="my-8">
@@ -23,7 +22,12 @@ export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
         </div>
         {live.data && live.data.length > 0 && <span className="text-xs text-white/40">{live.data.length} playing</span>}
       </div>
-      {!live.data?.length ? (
+      {live.error ? (
+        <div role="alert" className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-sm text-white/60">
+          <p>{draughtWatchError(live.error)}</p>
+          <button type="button" disabled={live.isFetching} onClick={() => void live.refetch()} className="mt-3 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#ff9bdd] disabled:opacity-40">Try again</button>
+        </div>
+      ) : !live.data?.length ? (
         <p className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-white/45">
           {live.isPending ? "Looking for live matches…" : "No matches are being played right now. Start one and others can watch."}
         </p>

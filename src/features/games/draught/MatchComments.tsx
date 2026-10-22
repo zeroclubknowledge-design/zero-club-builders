@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Loader2, MessageCircle, Send } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { GameAvatar } from "../GameAvatar";
-import { draughtComment, draughtComments, draughtError, isMissingFeature, type DraughtComment } from "./api";
+import { draughtComment, draughtComments, draughtWatchError, type DraughtComment } from "./api";
 
 /**
  * Live comments under a match: players and spectators talk while it plays.
@@ -13,14 +13,15 @@ import { draughtComment, draughtComments, draughtError, isMissingFeature, type D
  */
 export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myId?: string; playerIds: string[] }) {
   const client = useQueryClient();
-  const key = ["draught-comments", roomId];
-  const comments = useQuery({ queryKey: key, queryFn: () => draughtComments(roomId), retry: false });
+  const key = ["draught-comments", roomId, myId];
+  const comments = useQuery({ queryKey: key, queryFn: () => draughtComments(roomId), enabled: Boolean(myId), retry: false, refetchInterval: 10_000 });
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const list = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
 
   useEffect(() => {
+    if (!myId) return;
     const channel = supabase
       .channel(`draught-comments:${roomId}:${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "zero_draught_comments", filter: `room_id=eq.${roomId}` }, () =>
@@ -29,14 +30,12 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
       .subscribe();
     return () => void supabase.removeChannel(channel);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, client]);
+  }, [roomId, myId, client]);
 
   useEffect(() => {
     const el = list.current;
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
   }, [comments.data?.length]);
-
-  if (comments.error && isMissingFeature(comments.error)) return null;
 
   const send = async () => {
     const body = text.trim();
@@ -49,7 +48,7 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
       client.setQueryData<DraughtComment[]>(key, (old) => (old?.some((c) => c.id === saved.id) ? old : [...(old || []), saved]));
       void client.invalidateQueries({ queryKey: key });
     } catch (error) {
-      toast.error(draughtError(error));
+      toast.error(draughtWatchError(error, "chat"));
     } finally {
       setSending(false);
     }
@@ -71,7 +70,12 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
         }}
         className="no-scrollbar max-h-[320px] min-h-[120px] space-y-3 overflow-y-auto px-4 py-3"
       >
-        {comments.isPending ? (
+        {comments.error ? (
+          <div role="alert" className="py-4 text-center text-[12.5px] text-white/60">
+            <p>{draughtWatchError(comments.error, "chat")}</p>
+            <button type="button" disabled={comments.isFetching} onClick={() => void comments.refetch()} className="mt-2 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#ff9bdd] disabled:opacity-40">Try again</button>
+          </div>
+        ) : comments.isPending ? (
           <p className="flex justify-center py-6 text-white/40"><Loader2 className="h-4 w-4 animate-spin" /></p>
         ) : !comments.data?.length ? (
           <p className="py-6 text-center text-[12.5px] text-white/40">No comments yet. Cheer on a player or call the next move.</p>
@@ -111,7 +115,7 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
         />
         <button
           type="submit"
-          disabled={!text.trim() || sending}
+          disabled={!myId || !text.trim() || sending || Boolean(comments.error)}
           aria-label="Send comment"
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#ff4fc3,#c02a8f)] text-white transition active:scale-95 disabled:opacity-35"
         >

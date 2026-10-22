@@ -95,6 +95,18 @@ export function ZeroDraught({
     retry: false,
   });
   const inviteStake = invite.data?.open ? invite.data.stake : 0;
+  /* Opened a match link after the match filled up: go straight in to watch
+     (or back to your own seat if you're one of the players). */
+  const opened = useRef(false);
+  useEffect(() => {
+    const info = invite.data;
+    if (!code || opened.current || !info?.room_id || info.open) return;
+    if (info.player || info.watchable) {
+      opened.current = true;
+      if (!info.player) toast.message("This match is already being played. You're watching live.");
+      onNavigate(info.room_id);
+    }
+  }, [code, invite.data, onNavigate]);
   const spectator = data?.viewer === "spectator";
   const delta = useMemo(
     () => (data ? Date.parse(data.server_now) - Date.now() : 0),
@@ -330,7 +342,7 @@ export function ZeroDraught({
         <div className="absolute bottom-[-200px] left-1/4 h-[460px] w-[460px] rounded-full bg-[#6a4cff]/[0.10] blur-[130px]" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-[1120px] px-3 pb-[calc(env(safe-area-inset-bottom)+28px)] pt-[calc(env(safe-area-inset-top)+10px)] sm:px-6">
+      <div className="relative mx-auto w-full max-w-[1240px] px-2 pb-[calc(env(safe-area-inset-bottom)+28px)] pt-[calc(env(safe-area-inset-top)+10px)] sm:px-6">
         {/* Glass header */}
         <header className="sticky top-[calc(env(safe-area-inset-top)+8px)] z-20 mb-5 flex items-center gap-3 rounded-[22px] bg-[#140a18]/70 px-2.5 py-2 ring-1 ring-white/[0.07] backdrop-blur-xl">
           <button
@@ -472,7 +484,16 @@ export function ZeroDraught({
                       <GameAvatar id={invite.data.host.id} name={invite.data.host.name} photo={invite.data.host.photo} className="h-9 w-9" />
                       <p className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/70">
                         {!invite.data.open ? (
-                          "This match is full or has ended."
+                          invite.data.watchable && invite.data.room_id ? (
+                            <>
+                              This match is already being played.{" "}
+                              <button type="button" onClick={() => onNavigate(invite.data!.room_id)} className="font-semibold text-[#ffca75] underline-offset-4 hover:underline">
+                                Watch it live
+                              </button>
+                            </>
+                          ) : (
+                            "This match is full or has ended."
+                          )
                         ) : invite.data.stake > 0 ? (
                           <>
                             <b className="text-white">{invite.data.host.name}</b> staked <b className="text-[#ffca75]">{invite.data.stake} ZP</b>. Joining holds the same from your ZP. Winner takes {(invite.data.stake * 2).toLocaleString()} ZP.
@@ -544,7 +565,7 @@ export function ZeroDraught({
 
         {/* ───────────── Match ───────────── */}
         {board && (isSolo || data) && (
-          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,620px)_1fr] lg:gap-7">
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,760px)_minmax(320px,1fr)] lg:gap-7">
             <section className="min-w-0">
               {(spectator || stakeLine) && (
                 <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -579,7 +600,7 @@ export function ZeroDraught({
                 />
                 {/* Result over the board */}
                 {ended && (
-                  <div className="zd-rise absolute inset-0 z-10 grid place-items-center rounded-[26px] bg-[#09050d]/55 backdrop-blur-[3px] sm:rounded-[30px]">
+                  <div className="zd-rise absolute inset-0 z-10 grid place-items-center rounded-[14px] bg-[#09050d]/55 backdrop-blur-[3px] sm:rounded-[18px]">
                     <div className="mx-6 rounded-[26px] bg-[#150b19]/95 px-7 py-6 text-center shadow-[0_30px_70px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
                       <span className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[#3a2006] shadow-[0_14px_36px_-10px_rgba(255,202,117,0.9)]" style={{ background: won ? "linear-gradient(145deg,#ffe7a3,#ffca75 45%,#d99a2b)" : drawn ? "linear-gradient(145deg,#e2e8f0,#94a3b8)" : "linear-gradient(145deg,#6c5a85,#2b2236)" }}>
                         {won ? <Trophy className="h-8 w-8" /> : drawn ? <Users className="h-7 w-7" /> : <Flag className="h-7 w-7 text-white/80" />}

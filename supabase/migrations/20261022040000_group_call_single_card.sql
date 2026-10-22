@@ -1,0 +1,14 @@
+-- APPLIED 2026-10-22 (migration name: group_call_single_card).
+-- One card per group call. Supersedes the card part of
+-- 20261021210000_group_call_cards_and_recording.sql (recording was already live
+-- via set_group_call_recording_v2, applied elsewhere, so that file should NOT be applied).
+--
+-- chat_groups.call_message_id remembers the "X started a group call" card.
+-- A BEFORE UPDATE trigger (chat_groups_close_call_card → group_call_close_card())
+-- rewrites that card to "Group call · N min · started by X" whenever
+-- call_active_since goes from set to null — so it covers end for everyone,
+-- last person leaving and the sweep without changing those functions.
+-- start_chat_group_call stores call_message_id; end_chat_group_call no longer
+-- posts a separate "Group call ended" message.
+-- Tested in a rolled-back transaction: 1 card, second start joins, end rewrites
+-- the card to "Group call · 5 min · started by …", no extra message.

@@ -1,5 +1,6 @@
--- NOT YET APPLIED. Apply to project tiyifgfsuzhcvdvntjmp (Supabase SQL editor or MCP) before
--- shipping the rate card; until then the builder saves everything except the rate card.
+-- APPLIED 2026-10-22 (migration name: portfolio_rate_card). The applied version adds the
+-- constraint and trigger only when missing ("if not exists" blocks) instead of re-creating them;
+-- the result is the same on this database.
 --
 -- Portfolio rate card:
 -- 1. portfolios.rate_card jsonb — { currency, note, tiers: [{ id, name, price, unit, from, custom,
