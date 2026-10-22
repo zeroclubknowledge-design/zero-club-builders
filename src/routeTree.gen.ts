@@ -68,6 +68,7 @@ import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$c
 import { Route as ApiZeroAiCallsRouteImport } from './routes/api.zero-ai.calls'
 import { Route as ApiZeroAiChatRouteImport } from './routes/api.zero-ai.chat'
 import { Route as ApiZeroAiVoiceRouteImport } from './routes/api.zero-ai.voice'
+import { Route as ApiZeroWordsExtractRouteImport } from './routes/api.zero-words.extract'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
 import { Route as AppBootcampsIdRouteImport } from './routes/app.bootcamps.$id'
@@ -132,11 +133,14 @@ import { Route as AppChatGNewRouteImport } from './routes/app.chat.g.new'
 import { Route as AppClubsQuizzesClubIdRouteImport } from './routes/app.clubs.quizzes.$clubId'
 import { Route as AppGamesPlayGameRouteImport } from './routes/app.games.play.$game'
 import { Route as AppGamesTIdRouteImport } from './routes/app.games.t.$id'
+import { Route as AppGamesWordsIndexRouteImport } from './routes/app.games.words.index'
+import { Route as AppGamesWordsReviewRouteImport } from './routes/app.games.words.review'
 import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit'
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
 import { Route as AppChatGGroupIdCallRouteImport } from './routes/app.chat.g.$groupId_.call'
+import { Route as AppGamesWordsPackPackIdRouteImport } from './routes/app.games.words.pack.$packId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -432,6 +436,11 @@ const ApiZeroAiChatRoute = ApiZeroAiChatRouteImport.update({
 const ApiZeroAiVoiceRoute = ApiZeroAiVoiceRouteImport.update({
   id: '/api/zero-ai/voice',
   path: '/api/zero-ai/voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroWordsExtractRoute = ApiZeroWordsExtractRouteImport.update({
+  id: '/api/zero-words/extract',
+  path: '/api/zero-words/extract',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
@@ -757,6 +766,16 @@ const AppGamesTIdRoute = AppGamesTIdRouteImport.update({
   path: '/games/t/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesWordsIndexRoute = AppGamesWordsIndexRouteImport.update({
+  id: '/games/words/',
+  path: '/games/words/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesWordsReviewRoute = AppGamesWordsReviewRouteImport.update({
+  id: '/games/words/review',
+  path: '/games/words/review',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotesIdEditRoute = AppNotesIdEditRouteImport.update({
   id: '/notes_/$id/edit',
   path: '/notes/$id/edit',
@@ -781,6 +800,11 @@ const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
 const AppChatGGroupIdCallRoute = AppChatGGroupIdCallRouteImport.update({
   id: '/chat/g/$groupId_/call',
   path: '/chat/g/$groupId/call',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesWordsPackPackIdRoute = AppGamesWordsPackPackIdRouteImport.update({
+  id: '/games/words/pack/$packId',
+  path: '/games/words/pack/$packId',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -844,6 +868,7 @@ export interface FileRoutesByFullPath {
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
+  '/api/zero-words/extract': typeof ApiZeroWordsExtractRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
@@ -908,11 +933,14 @@ export interface FileRoutesByFullPath {
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
+  '/app/games/words/review': typeof AppGamesWordsReviewRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/games/words/': typeof AppGamesWordsIndexRoute
   '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
+  '/app/games/words/pack/$packId': typeof AppGamesWordsPackPackIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -968,6 +996,7 @@ export interface FileRoutesByTo {
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
+  '/api/zero-words/extract': typeof ApiZeroWordsExtractRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
@@ -1032,11 +1061,14 @@ export interface FileRoutesByTo {
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
+  '/app/games/words/review': typeof AppGamesWordsReviewRoute
   '/app/notes/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/games/words': typeof AppGamesWordsIndexRoute
   '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
+  '/app/games/words/pack/$packId': typeof AppGamesWordsPackPackIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1099,6 +1131,7 @@ export interface FileRoutesById {
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
+  '/api/zero-words/extract': typeof ApiZeroWordsExtractRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
   '/app/challenge/$id': typeof AppChallengeIdRoute
@@ -1163,11 +1196,14 @@ export interface FileRoutesById {
   '/app/clubs/quizzes/$clubId': typeof AppClubsQuizzesClubIdRoute
   '/app/games/play/$game': typeof AppGamesPlayGameRoute
   '/app/games/t/$id': typeof AppGamesTIdRoute
+  '/app/games/words/review': typeof AppGamesWordsReviewRoute
   '/app/notes_/$id/edit': typeof AppNotesIdEditRoute
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/app/games/words/': typeof AppGamesWordsIndexRoute
   '/app/chat/g/$groupId_/call': typeof AppChatGGroupIdCallRoute
+  '/app/games/words/pack/$packId': typeof AppGamesWordsPackPackIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1231,6 +1267,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
+    | '/api/zero-words/extract'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
     | '/app/challenge/$id'
@@ -1295,11 +1332,14 @@ export interface FileRouteTypes {
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
+    | '/app/games/words/review'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/games/words/'
     | '/app/chat/g/$groupId/call'
+    | '/app/games/words/pack/$packId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1355,6 +1395,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
+    | '/api/zero-words/extract'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
     | '/app/challenge/$id'
@@ -1419,11 +1460,14 @@ export interface FileRouteTypes {
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
+    | '/app/games/words/review'
     | '/app/notes/$id/edit'
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/games/words'
     | '/app/chat/g/$groupId/call'
+    | '/app/games/words/pack/$packId'
   id:
     | '__root__'
     | '/'
@@ -1485,6 +1529,7 @@ export interface FileRouteTypes {
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
     | '/api/zero-ai/voice'
+    | '/api/zero-words/extract'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
     | '/app/challenge/$id'
@@ -1549,11 +1594,14 @@ export interface FileRouteTypes {
     | '/app/clubs/quizzes/$clubId'
     | '/app/games/play/$game'
     | '/app/games/t/$id'
+    | '/app/games/words/review'
     | '/app/notes_/$id/edit'
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/app/games/words/'
     | '/app/chat/g/$groupId_/call'
+    | '/app/games/words/pack/$packId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1590,6 +1638,7 @@ export interface RootRouteChildren {
   ApiZeroAiCallsRoute: typeof ApiZeroAiCallsRouteWithChildren
   ApiZeroAiChatRoute: typeof ApiZeroAiChatRoute
   ApiZeroAiVoiceRoute: typeof ApiZeroAiVoiceRoute
+  ApiZeroWordsExtractRoute: typeof ApiZeroWordsExtractRoute
   ApiOgKindIdRoute: typeof ApiOgKindIdRoute
   ApiZeroAiVapiSessionRoute: typeof ApiZeroAiVapiSessionRoute
   ApiZeroAiVapiWebhookRoute: typeof ApiZeroAiVapiWebhookRoute
@@ -2008,6 +2057,13 @@ declare module '@tanstack/react-router' {
       path: '/api/zero-ai/voice'
       fullPath: '/api/zero-ai/voice'
       preLoaderRoute: typeof ApiZeroAiVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-words/extract': {
+      id: '/api/zero-words/extract'
+      path: '/api/zero-words/extract'
+      fullPath: '/api/zero-words/extract'
+      preLoaderRoute: typeof ApiZeroWordsExtractRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/admin/': {
@@ -2458,6 +2514,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGamesTIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/words/': {
+      id: '/app/games/words/'
+      path: '/games/words'
+      fullPath: '/app/games/words/'
+      preLoaderRoute: typeof AppGamesWordsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/words/review': {
+      id: '/app/games/words/review'
+      path: '/games/words/review'
+      fullPath: '/app/games/words/review'
+      preLoaderRoute: typeof AppGamesWordsReviewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notes_/$id/edit': {
       id: '/app/notes_/$id/edit'
       path: '/notes/$id/edit'
@@ -2491,6 +2561,13 @@ declare module '@tanstack/react-router' {
       path: '/chat/g/$groupId/call'
       fullPath: '/app/chat/g/$groupId/call'
       preLoaderRoute: typeof AppChatGGroupIdCallRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/games/words/pack/$packId': {
+      id: '/app/games/words/pack/$packId'
+      path: '/games/words/pack/$packId'
+      fullPath: '/app/games/words/pack/$packId'
+      preLoaderRoute: typeof AppGamesWordsPackPackIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -2656,10 +2733,13 @@ interface AppRouteChildren {
   AppClubsQuizzesClubIdRoute: typeof AppClubsQuizzesClubIdRoute
   AppGamesPlayGameRoute: typeof AppGamesPlayGameRoute
   AppGamesTIdRoute: typeof AppGamesTIdRoute
+  AppGamesWordsReviewRoute: typeof AppGamesWordsReviewRoute
   AppNotesIdEditRoute: typeof AppNotesIdEditRoute
   AppProfileIdNetworkRoute: typeof AppProfileIdNetworkRoute
   AppWalletTransactionIdRoute: typeof AppWalletTransactionIdRoute
+  AppGamesWordsIndexRoute: typeof AppGamesWordsIndexRoute
   AppChatGGroupIdCallRoute: typeof AppChatGGroupIdCallRoute
+  AppGamesWordsPackPackIdRoute: typeof AppGamesWordsPackPackIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -2730,10 +2810,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppClubsQuizzesClubIdRoute: AppClubsQuizzesClubIdRoute,
   AppGamesPlayGameRoute: AppGamesPlayGameRoute,
   AppGamesTIdRoute: AppGamesTIdRoute,
+  AppGamesWordsReviewRoute: AppGamesWordsReviewRoute,
   AppNotesIdEditRoute: AppNotesIdEditRoute,
   AppProfileIdNetworkRoute: AppProfileIdNetworkRoute,
   AppWalletTransactionIdRoute: AppWalletTransactionIdRoute,
+  AppGamesWordsIndexRoute: AppGamesWordsIndexRoute,
   AppChatGGroupIdCallRoute: AppChatGGroupIdCallRoute,
+  AppGamesWordsPackPackIdRoute: AppGamesWordsPackPackIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -2810,6 +2893,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiZeroAiCallsRoute: ApiZeroAiCallsRouteWithChildren,
   ApiZeroAiChatRoute: ApiZeroAiChatRoute,
   ApiZeroAiVoiceRoute: ApiZeroAiVoiceRoute,
+  ApiZeroWordsExtractRoute: ApiZeroWordsExtractRoute,
   ApiOgKindIdRoute: ApiOgKindIdRoute,
   ApiZeroAiVapiSessionRoute: ApiZeroAiVapiSessionRoute,
   ApiZeroAiVapiWebhookRoute: ApiZeroAiVapiWebhookRoute,
@@ -2817,13 +2901,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

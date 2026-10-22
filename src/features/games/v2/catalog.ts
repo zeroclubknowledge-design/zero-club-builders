@@ -38,8 +38,8 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
   words: {
     key: "words",
     name: "Zero Words",
-    tagline: "Find the words of your craft.",
-    blurb: "Trace professional terms hidden in a letter board. Every word counts, finishing fast counts more.",
+    tagline: "Learn the language of your field.",
+    blurb: "Paste anything from your field. Zero AI picks the key terms; you find them, match their meanings and recall them, and your Word Bank brings them back until they stick.",
     from: "#1a0f14",
     to: "#5a1838",
     accent: "#ffb547",

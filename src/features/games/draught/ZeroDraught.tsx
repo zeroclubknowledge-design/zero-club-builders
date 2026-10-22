@@ -255,6 +255,33 @@ export function ZeroDraught({
               : `You lost your ${roomStake} ZP stake`
           : `${((data.pot ?? roomStake) || roomStake).toLocaleString()} ZP on the line · winner takes all`
       : null;
+  /* The host is on the waiting screen when their friend joins: say so at once,
+     with a short chime and a buzz, instead of leaving them to notice the board change. */
+  const lastStatus = useRef<string | null>(null);
+  useEffect(() => {
+    const status = data?.room.status || null;
+    const before = lastStatus.current;
+    lastStatus.current = status;
+    if (before !== "waiting" || status !== "active" || spectator || data?.room.red_id !== profile?.id) return;
+    const friend = data?.players.find((p) => p.id === data.room.black_id)?.name || "Your friend";
+    toast.success(`${friend.split(" ")[0]} joined. You play red, so it's your move!`);
+    try { navigator.vibrate?.([60, 40, 60]); } catch { /* not supported */ }
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      [660, 880].forEach((hz, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.frequency.value = hz;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.14);
+        gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + i * 0.14 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.14 + 0.22);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.14);
+        osc.stop(ctx.currentTime + i * 0.14 + 0.24);
+      });
+      window.setTimeout(() => void ctx.close(), 800);
+    } catch { /* sound unavailable */ }
+  }, [data?.room.status, data?.room.black_id, data?.room.red_id, data?.players, spectator, profile?.id]);
+
   const shareWatch = async () => {
     try {
       await navigator.clipboard.writeText(`${location.origin}/app/games/draught?room=${roomId}`);

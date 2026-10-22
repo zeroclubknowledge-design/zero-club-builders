@@ -28,7 +28,12 @@ export const Route = createFileRoute("/app/games/play/$game")({
     t: typeof search.t === "string" ? search.t : undefined,
     code: typeof search.code === "string" ? search.code : undefined,
   }),
-  beforeLoad: ({ params }) => { if (params.game === "sudoku" || params.game === "draught") throw redirect({ to: "/app/games/draught", search: { mode: "solo", room: undefined, code: undefined } }); },
+  beforeLoad: ({ params, search }) => {
+    if (params.game === "sudoku" || params.game === "draught") throw redirect({ to: "/app/games/draught", search: { mode: "solo", room: undefined, code: undefined } });
+    // Zero Words practice now lives in its own studio (paste → Find, Match, Recall → Word Bank).
+    // Tournament runs (?t=) keep the classic timed board.
+    if (params.game === "words" && !search.t) throw redirect({ to: "/app/games/words" });
+  },
   component: PlayGame,
 });
 

@@ -1,0 +1,12 @@
+-- APPLIED 2026-10-22 (migration name: game_join_notifications).
+-- Rule (user request): always notify a player when someone joins them in a multiplayer game.
+--
+-- zero_draught_rooms: AFTER UPDATE OF black_id → notify_draught_opponent_joined()
+--   tells the host (red) "<name> joined your Zero Draught match[ (N ZP on the line)]. You play red, so it's your move!"
+--   type 'game_buzz', link /app/games/draught?room=<id>, entity_id = room.
+-- zero_tournament_players: AFTER INSERT → notify_tournament_player_joined()
+--   tells a member host "<name> joined your tournament "<title>" · N players", link /app/games/t/<id>.
+--   Not for the host joining their own tournament, and not for Zero Club-sponsored tournaments.
+-- Both go out as push too (on_notification_inserted_send_push). A failed notification never blocks a join.
+-- Tested in a rolled-back transaction: create + join → host notification with the right link and text.
+-- App: ZeroDraught.tsx also shows an in-app toast + chime + vibration when the host is on the waiting screen.
