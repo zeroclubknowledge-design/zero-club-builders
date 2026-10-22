@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 320" width="1180" height="320">
+<defs>
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#CD2190"/><stop offset="1" stop-color="#9C1569"/>
+  </linearGradient>
+  <filter id="sh" x="-25%" y="-25%" width="150%" height="155%">
+    <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#4E0A34" flood-opacity="0.26"/>
+  </filter>
+</defs>
+<g transform="translate(0,16) scale(0.5625)"><rect width="512" height="512" rx="114" fill="url(#g)"/>
+<g filter="url(#sh)"><rect x="118" y="96" width="276" height="320" rx="34" fill="#FFFFFF"/><g fill="#CD2190"><rect x="170.62" y="136.00" width="14.76" height="68.00" transform="rotate(21 178 170)"/><rect x="170.62" y="136.00" width="14.76" height="68.00" transform="rotate(66 178 170)"/><rect x="170.62" y="136.00" width="14.76" height="68.00" transform="rotate(111 178 170)"/><rect x="170.62" y="136.00" width="14.76" height="68.00" transform="rotate(156 178 170)"/></g><rect x="226" y="158" width="130" height="24" rx="12.0" fill="#CD2190" opacity="1.0"/><rect x="156" y="232" width="200" height="22" rx="11.0" fill="#CD2190" opacity="0.28"/><rect x="156" y="282" width="200" height="22" rx="11.0" fill="#CD2190" opacity="0.28"/><rect x="156" y="332" width="124" height="22" rx="11.0" fill="#CD2190" opacity="0.28"/></g></g>
+<text x="340" y="184" font-family="Poppins" font-weight="600" font-size="112" fill="#141418" letter-spacing="-3">Zero Form</text>
+<text x="346" y="242" font-family="Poppins" font-weight="500" font-size="35" fill="#CD2190" letter-spacing="7">REGISTRATION MADE SIMPLE</text>
+</svg>

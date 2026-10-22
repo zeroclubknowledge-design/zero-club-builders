@@ -1,0 +1,26 @@
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
+import { AuthSheet } from "@/components/auth/AuthSheet";
+
+/** Avatar when signed in (to your page), "Sign in" otherwise — opens the account sheet in place. */
+export function AccountChip({ to = "/received" }: { to?: string }) {
+  const { session, profile } = useAuth();
+  const [open, setOpen] = useState(false);
+  if (session) {
+    const letter = (profile?.full_name || profile?.username || "?").charAt(0).toUpperCase();
+    return (
+      <Link to={to} aria-label="Your account" className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] ring-2 ring-transparent transition hover:ring-border">
+        {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : <span className="text-[14px] font-bold">{letter}</span>}
+      </Link>
+    );
+  }
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 shrink-0 items-center rounded-full bg-foreground px-4 text-[13px] font-semibold text-background transition active:scale-[0.98]">
+        Sign in
+      </button>
+      <AuthSheet open={open} initialMode="signin" onClose={() => setOpen(false)} />
+    </>
+  );
+}

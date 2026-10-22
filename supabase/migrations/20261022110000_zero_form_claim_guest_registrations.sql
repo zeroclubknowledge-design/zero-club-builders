@@ -1,0 +1,4 @@
+-- APPLIED to project tiyifgfsuzhcvdvntjmp as zero_form_claim_guest_registrations (2026-10-22). Record only.
+-- claim_guest_zero_form_registrations(): links guest Zero Form registrations made with the caller's
+-- verified email to their account (skips forms they already registered for) and enrols confirmed
+-- paid places via zero_form_enrol. Granted to authenticated only. Used by the Zero Form app.

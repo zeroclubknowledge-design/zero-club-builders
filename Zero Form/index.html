@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f8f7f5" />
+    <title>Zero Form — registration forms that fill seats</title>
+    <meta name="description" content="Build beautiful registration forms, waitlists and paid sign-ups. Respondents get a free Zero Club account to track their place." />
+    <meta property="og:title" content="Zero Form — registration forms that fill seats" />
+    <meta property="og:description" content="Build beautiful registration forms, waitlists and paid sign-ups. Respondents get a free Zero Club account to track their place." />
+    <script>
+      (function () {
+        try {
+          var t = JSON.parse(localStorage.getItem("zero-theme") || "null");
+          if (!t) return;
+          var dark = t.mode === "on" || (t.mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark", t.theme || "lights-out");
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/brand/zero-form/zero-form-icon-compact.svg" />
+    <link rel="apple-touch-icon" href="/brand/zero-form/zero-form-icon-256.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

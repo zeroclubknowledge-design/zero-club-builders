@@ -215,7 +215,10 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   const { localMicrophoneTrack, error: micError } = useLocalMicrophoneTrack(micReady, { AEC: true, ANS: true, AGC: true });
   const retryMic = () => { setMicReady(false); window.setTimeout(() => setMicReady(true), 150); };
   useEffect(() => { localMicrophoneTrack?.setMuted(!micOn).catch(() => {}); }, [localMicrophoneTrack, micOn]);
-  const { localCameraTrack, error: cameraError } = useLocalCameraTrack(camOn, { facingMode: facing, encoderConfig: "480p_1" });
+  /* The track opens on the side last used; flipping switches the live track in place (see switchCamera). */
+  const facingRef = useRef(facing);
+  facingRef.current = facing;
+  const { localCameraTrack, error: cameraError } = useLocalCameraTrack(camOn, { facingMode: facingRef.current, encoderConfig: "480p_1" });
   usePublish([localMicrophoneTrack, localCameraTrack]);
   const remoteUsers = useRemoteUsers();
 
@@ -469,15 +472,44 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     navigate({ to: "/app/chat/g/$groupId", params: { groupId }, replace: true });
   };
 
+  /*
+   * Flip between front and back cameras on the live track. Turning the
+   * camera off and on with a new facingMode didn't work: the track was
+   * re-created with its first settings, and phones treat facingMode as a
+   * hint, so it kept showing the front camera. Now we switch the device in
+   * place, check which way the camera really faces, and fall back to picking
+   * the camera by its label or simply the next camera.
+   */
+  const [flipping, setFlipping] = useState(false);
   const switchCamera = async () => {
+    const track = localCameraTrack;
+    if (!track || flipping) return;
+    const next: "user" | "environment" = facing === "user" ? "environment" : "user";
+    setFlipping(true);
+    const facesNow = () => track.getMediaStreamTrack()?.getSettings?.().facingMode as string | undefined;
+    const deviceNow = () => track.getMediaStreamTrack()?.getSettings?.().deviceId as string | undefined;
     try {
-      const cams = await AgoraRTC.getCameras();
-      if (cams.length < 2) { toast.message("Only one camera found"); return; }
-      setFacing((f) => (f === "user" ? "environment" : "user"));
-      setCamOn(false);
-      window.setTimeout(() => setCamOn(true), 150);
+      const before = deviceNow();
+      let switched = false;
+      try {
+        await track.setDevice({ facingMode: next });
+        const faces = facesNow();
+        switched = faces ? faces === next : deviceNow() !== before;
+      } catch { /* not supported here, try by device below */ }
+      if (!switched) {
+        const cams = await AgoraRTC.getCameras(true);
+        if (cams.length < 2) { toast.message("Only one camera found"); return; }
+        const current = deviceNow();
+        const wanted = next === "environment" ? /back|rear|environment|world|facing back/i : /front|user|facing front|selfie/i;
+        const byLabel = cams.find((c) => wanted.test(c.label) && c.deviceId !== current);
+        const target = byLabel || cams[(cams.findIndex((c) => c.deviceId === current) + 1) % cams.length];
+        await track.setDevice(target.deviceId);
+      }
+      setFacing(next);
     } catch {
       toast.error("Couldn't switch camera");
+    } finally {
+      setFlipping(false);
     }
   };
 

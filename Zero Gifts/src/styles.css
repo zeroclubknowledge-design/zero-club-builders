@@ -1,0 +1,1963 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-canvas: var(--canvas);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  /* Trying Montserrat across the whole app — body text, headlines and
+     buttons. The old setup (system font for reading, Inter Tight for
+     headlines) is kept below, commented out, to switch back in one edit.
+  --font-display: "Inter Tight", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  */
+  --font-display: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-button: var(--font-sans);
+}
+
+:root {
+  --radius: 1.25rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
+
+  /* Zero Club Theme */
+  color-scheme: light;
+  /* The page colour, and the only definition of it.
+   *
+   * Pages hardcoded `bg-[#f8f7f5]` while this token said oklch(96.5% 0.008 75)
+   * — 1.1% darker and three times as saturated. Anything painted with
+   * `bg-background` over one of those pages therefore showed as a faint band,
+   * which is exactly what the composer overlay on the post page was: not a
+   * layout bug, two colours both claiming to be the background.
+   *
+   * This is #f8f7f5 expressed in oklch, so the token and the pages finally
+   * agree and the band has nowhere to come from. */
+  --background: oklch(97.6% 0.003 85);
+  /* The surface behind a list of cards: the feed, search, a profile's
+     sections. Cards are --card on top of it, so the gaps between them read
+     as separation without a border on every card. */
+  --canvas: oklch(93.4% 0.006 75);
+  --foreground: oklch(18% 0.005 260);
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(18% 0.005 260);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(18% 0.005 260);
+
+  /* Primary is Ink */
+  --primary: oklch(18% 0.005 260);
+  --primary-foreground: oklch(100% 0 0);
+  --primary-glow: color-mix(in oklab, oklch(18% 0.005 260) 24%, transparent);
+
+  --secondary: oklch(98.2% 0.004 75);
+  --secondary-foreground: oklch(18% 0.005 260);
+  --muted: oklch(98.2% 0.004 75);
+  --muted-foreground: oklch(48% 0.012 260);
+
+  /* Accent is Zero Club pink. */
+  --accent: #cc208f;
+  --accent-foreground: oklch(100% 0 0);
+
+  --destructive: #b42318;
+  --destructive-foreground: oklch(100% 0 0);
+  --success: oklch(68% 0.16 155);
+  --success-foreground: oklch(100% 0 0);
+  /* Brand warnings use Zero Club pink instead of the former brown accent. */
+  --warning: #cc208f;
+  --warning-foreground: oklch(100% 0 0);
+  
+  --border: oklch(18% 0.005 260 / 0.06);
+  --border-strong: oklch(18% 0.005 260 / 0.16);
+  --hairline: oklch(18% 0.005 260 / 0.06);
+  /* The page colour sitting behind a video. A playing video is handed to a
+     hardware overlay plane that ignores every CSS clip, so rounded corners
+     have to be painted ON TOP in the surrounding colour.
+     It follows --background, as the dark theme already did; it only held its
+     own hex while pages disagreed with the token about the page colour. */
+  --zc-media-surface: var(--background);
+  --input: oklch(18% 0.005 260 / 0.07);
+  --ring: oklch(58% 0.22 350 / 0.55);
+
+  --gradient-primary: linear-gradient(135deg, oklch(18% 0.005 260), oklch(14% 0.005 260));
+  --gradient-hero: radial-gradient(circle at top right, oklch(58% 0.22 350 / 0.08), transparent 68%);
+  --gradient-card: linear-gradient(160deg, oklch(100% 0 0), oklch(98.2% 0.004 75));
+  --shadow-glow: 0 8px 28px -14px color-mix(in oklab, oklch(18% 0.005 260) 36%, transparent);
+  --shadow-soft: 0 1px 2px color-mix(in oklab, oklch(18% 0.005 260) 4%, transparent), 0 8px 24px -14px color-mix(in oklab, oklch(18% 0.005 260) 18%, transparent);
+  --shadow-lift: 0 1px 2px color-mix(in oklab, oklch(18% 0.005 260) 6%, transparent), 0 12px 32px -12px color-mix(in oklab, oklch(18% 0.005 260) 22%, transparent);
+}
+
+/* The height of the fixed app header.
+   Every sticky sub-header on a page — the feed tabs above all — pins directly
+   beneath it, and they used to each hard-code 66px + the safe area. When the
+   real header came out any taller, a transparent band opened between the two
+   and posts scrolled through it. AppLayout measures the header and overwrites
+   this at runtime; the value here is only what the first paint uses. */
+:root {
+  --zc-header-h: calc(56px + env(safe-area-inset-top));
+
+  /* The lift under every card in the app. Two shadows: a tight one that keeps
+     the card's edge crisp, and a wide soft one that does the popping. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 22px -12px rgb(0 0 0 / 0.22);
+}
+
+.dark {
+  /* Shadows do almost nothing on a dark page, so the lift comes from the card
+     being lighter than the background and the shadow being much deeper. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.55), 0 14px 32px -14px rgb(0 0 0 / 0.85);
+}
+
+@media (min-width: 768px) {
+  :root { --zc-header-h: 60px; }
+}
+
+.dark {
+  color-scheme: dark;
+  /* In the dark themes cards are already lighter than the page. */
+  --canvas: var(--background);
+
+  /* Dark Theme */
+  --background: oklch(16% 0.02 330);
+  --foreground: oklch(98% 0 0);
+  --card: oklch(19% 0.02 330);
+  --card-foreground: oklch(98% 0 0);
+  --popover: oklch(17% 0.02 330);
+  --popover-foreground: oklch(98% 0 0);
+
+  /* Primary inverse in dark mode (white) */
+  --primary: oklch(98% 0 0);
+  --primary-foreground: oklch(16% 0.02 330);
+  --primary-glow: color-mix(in oklab, oklch(98% 0 0) 24%, transparent);
+
+  --secondary: oklch(22% 0.02 330);
+  --secondary-foreground: oklch(98% 0 0);
+  --muted: oklch(22% 0.02 330);
+  --muted-foreground: oklch(70% 0 0);
+
+  --accent: #cc208f;
+  --accent-foreground: oklch(100% 0 0);
+
+  /* Keep attention states unmistakably on-brand in every dark variant. */
+  --warning: #cc208f;
+  --warning-foreground: oklch(100% 0 0);
+
+  --border: oklch(100% 0 0 / 8%);
+  --border-strong: oklch(100% 0 0 / 14%);
+  --hairline: oklch(100% 0 0 / 5%);
+  --input: oklch(100% 0 0 / 8%);
+  --zc-media-surface: var(--background);
+  --ring: oklch(78% 0.12 350 / 0.6);
+
+  --gradient-hero: radial-gradient(circle at top right, oklch(78% 0.12 350 / 0.10), transparent 68%),
+                   radial-gradient(circle at bottom left, oklch(78% 0.12 350 / 0.04), transparent 60%);
+  --gradient-card: linear-gradient(160deg, oklch(21% 0.02 330), oklch(18% 0.02 330));
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.4), 0 10px 30px -14px oklch(0 0 0 / 0.6);
+  --shadow-lift: 0 1px 2px oklch(0 0 0 / 0.5), 0 14px 36px -12px oklch(0 0 0 / 0.7);
+}
+
+.dark.lights-out {
+  /* Pure Black Theme */
+  --background: oklch(0 0 0);
+  --card: oklch(0.08 0.01 330);
+  --popover: oklch(0.05 0.01 330);
+  --secondary: oklch(0.12 0.01 330);
+  --muted: oklch(0.08 0.01 330);
+  --border: oklch(1 0 0 / 15%);
+  
+  --gradient-card: linear-gradient(160deg, oklch(0.1 0.01 330), oklch(0.05 0 0));
+}
+
+.dark.dim {
+  /* Slightly more blueish/grayish dark */
+  --background: oklch(0.22 0.04 250);
+  --card: oklch(0.26 0.04 250);
+  --popover: oklch(0.24 0.04 250);
+}
+
+/* Rose Noir — black lifted with the Zero Club pink.
+   Unlike Black and Dim, which only retint flat surfaces, this one paints an
+   actual gradient behind the app. The token below stays a solid near-black so
+   that anything which does not pick the gradient up still looks deliberate
+   rather than broken. */
+.dark.rose-noir {
+  --background: oklch(0.09 0.035 350);
+  --card: oklch(0.145 0.042 348);
+  --popover: oklch(0.12 0.04 348);
+  --secondary: oklch(0.185 0.045 348);
+  --muted: oklch(0.17 0.04 348);
+  --muted-foreground: oklch(0.75 0.03 350);
+
+  /* The one dark theme where primary is the brand colour rather than white —
+     pink on black is the whole point of it. */
+  --primary: #cc208f;
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: color-mix(in oklab, #cc208f 42%, transparent);
+
+  --accent: #cc208f;
+  --accent-foreground: oklch(1 0 0);
+
+  --border: oklch(0.72 0.16 350 / 18%);
+  --border-strong: oklch(0.72 0.16 350 / 30%);
+  --hairline: oklch(0.72 0.16 350 / 12%);
+  --input: oklch(1 0 0 / 8%);
+  --ring: oklch(0.72 0.18 350 / 65%);
+
+  --gradient-card: linear-gradient(160deg, oklch(0.175 0.05 348), oklch(0.1 0.03 350));
+  --gradient-hero: radial-gradient(circle at top right, oklch(0.72 0.18 350 / 0.16), transparent 66%);
+  --shadow-glow: 0 10px 34px -14px color-mix(in oklab, #cc208f 55%, transparent);
+
+  /* Two blooms of the SAME brand pink at different depths, not two different
+     hues. The corner bloom used to be #7a2bff, a blue-violet — it gave the
+     wash tonal range by leaving the brand altogether, which read as a stray
+     purple glow in the bottom corner of every page. A deeper magenta gets the
+     same depth from lightness instead of from hue. */
+  --zc-noir-veil:
+    radial-gradient(115% 80% at 50% -12%, rgba(204, 32, 143, 0.34) 0%, rgba(204, 32, 143, 0.10) 34%, transparent 64%),
+    radial-gradient(95% 65% at 105% 105%, rgba(163, 26, 118, 0.20) 0%, transparent 62%),
+    linear-gradient(180deg, #150710 0%, #0a0409 48%, #000000 100%);
+}
+
+/* Pinned to the viewport, so two stacked full-bleed panels continue one wash
+   instead of each restarting the gradient at its own top edge.
+   Alpha variants (bg-background/95 and friends) are deliberately left alone —
+   sticky headers still need to blur what is behind them. */
+.dark.rose-noir body,
+.dark.rose-noir .bg-background {
+  background-color: transparent;
+  background-image: var(--zc-noir-veil);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Panels that float over the page — the menu card, bottom sheets, drawers —
+   need their own gradient rather than a slice of the page's.
+   The page veil is pinned to the viewport so that stacked full-height surfaces
+   line up, but that means a panel anchored to the bottom of the screen only
+   ever shows the bottom of the sweep, which is pure black. So these carry a
+   self-contained gradient sized to the panel: the pink reads wherever the
+   panel happens to sit. */
+.dark.rose-noir .zc-noir-surface {
+  background-color: transparent;
+  background-image:
+    radial-gradient(125% 150% at 10% 0%, rgba(204, 32, 143, 0.40) 0%, rgba(204, 32, 143, 0.13) 38%, transparent 70%),
+    radial-gradient(90% 120% at 100% 100%, rgba(163, 26, 118, 0.22) 0%, transparent 65%),
+    linear-gradient(158deg, #1d0c17 0%, #120810 48%, #0a0509 100%);
+  background-attachment: scroll;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* Rose Noir sidebar — the panel itself is solid, so nothing from the page
+   shows through and every label reads cleanly. The design laid over it is
+   what's translucent: a soft pink glow from the top corner, a fine diagonal
+   sheen, a faint glow at the foot, and a large Zero mark watermark in the
+   lower corner, all at low opacity so they sit behind the text. A thin pink
+   light runs down the edge that faces the page. */
+.dark.rose-noir .zc-noir-sidebar {
+  background-color: #0d050b;
+  background-image:
+    radial-gradient(120% 50% at 0% 0%, rgba(204, 32, 143, 0.26) 0%, rgba(204, 32, 143, 0.07) 45%, transparent 72%),
+    linear-gradient(125deg, transparent 38%, rgba(255, 79, 195, 0.045) 50%, transparent 62%),
+    radial-gradient(90% 38% at 100% 100%, rgba(163, 26, 118, 0.20) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23cc208f' fill-opacity='0.10' fill-rule='evenodd' d='M41.02 1.32 L21.91 9.27 L30.27 30.27 L9.27 21.91 L1.32 41.02 L22.07 50.00 L1.32 58.98 L9.27 78.09 L30.27 69.72 L21.91 90.72 L41.02 98.68 L50.00 77.92 L58.98 98.68 L78.09 90.72 L69.72 69.72 L90.72 78.09 L98.68 58.98 L77.92 50.00 L98.68 41.02 L90.72 21.91 L69.72 30.27 L78.09 9.27 L58.98 1.32 L50.00 22.07Z M43.81 16.82 L50.00 30.82 L56.19 16.82 L69.16 22.21 L63.54 36.46 L77.79 30.84 L83.18 43.81 L69.17 50.00 L83.18 56.19 L77.79 69.16 L63.54 63.54 L69.16 77.79 L56.19 83.18 L50.00 69.17 L43.81 83.18 L30.84 77.79 L36.46 63.54 L22.21 69.16 L16.82 56.19 L30.82 50.00 L16.82 43.81 L22.21 30.84 L36.46 36.46 L30.84 22.21Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 300px 300px;
+  background-position: 0 0, 0 0, 0 0, calc(100% + 90px) calc(100% + 70px);
+  background-attachment: scroll;
+  border-color: rgba(204, 32, 143, 0.28);
+  box-shadow: inset -1px 0 0 rgba(255, 79, 195, 0.22), 18px 0 60px -30px rgba(204, 32, 143, 0.55);
+}
+.dark.rose-noir .zc-noir-sidebar .border-border { border-color: rgba(204, 32, 143, 0.18); }
+
+.premium {
+  /* Premium Ivory Theme — #f7f8ef */
+  color-scheme: light;
+  --background: #f7f8ef;
+  --canvas: oklch(0.9 0.02 100);
+  --foreground: oklch(0.15 0.02 70);
+  --card: oklch(0.95 0.02 100);
+  --card-foreground: oklch(0.15 0.02 70);
+  --popover: oklch(0.96 0.02 105);
+  --popover-foreground: oklch(0.15 0.02 70);
+
+  --primary: oklch(0.52 0.22 330);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.93 0.02 100);
+  --secondary-foreground: oklch(0.15 0.02 70);
+  --muted: oklch(0.93 0.03 100);
+  --muted-foreground: oklch(0.45 0.03 80);
+
+  --accent: oklch(0.52 0.22 330);
+  --accent-foreground: oklch(1 0 0);
+
+  --destructive: oklch(0.5 0.2 25);
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.7 0.15 150);
+  --success-foreground: oklch(0.02 0.01 85);
+  --warning: oklch(0.52 0.22 330);
+  --warning-foreground: oklch(1 0 0);
+
+  --border: oklch(0.3 0.02 80 / 12%);
+  --input: oklch(0.3 0.02 80 / 6%);
+  --ring: oklch(0.52 0.22 330);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.52 0.22 330), oklch(0.42 0.18 330));
+  --gradient-hero: radial-gradient(circle at top right, oklch(0.52 0.22 330 / 0.06), transparent 70%),
+                   radial-gradient(circle at bottom left, oklch(0.6 0.12 90 / 0.06), transparent 60%);
+  --gradient-card: linear-gradient(160deg, oklch(0.96 0.02 100), oklch(0.94 0.02 105));
+  --shadow-glow: 0 10px 40px -10px oklch(0.52 0.22 330 / 0.25);
+  --shadow-soft: 0 10px 30px -10px oklch(0.3 0.02 80 / 0.12);
+}
+
+/* App-wide text scale — see zcFontScale in vite.config.ts. 0.94 is "a little
+   smaller" everywhere; 1 restores the original sizes. */
+:root {
+  --zc-fs: 0.94;
+  /* Also set here, outside @theme, so var(--font-sans) always resolves. */
+  --font-sans: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-display: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --font-button: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
+/* The bottom tab bar was already sized down on its own; keep it as it is. */
+[data-zc-bottom-nav] { --zc-fs: 1; }
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overflow-x: clip; width: 100%; position: relative; font-optical-sizing: auto; }
+  body { background-image: var(--gradient-hero); background-attachment: fixed; min-height: 100vh; }
+  h1, h2, h3, h4 { font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; letter-spacing: -0.022em; text-wrap: balance; }
+  h1 { letter-spacing: -0.035em; }
+  button, .button, input, textarea, select { font-family: "Montserrat", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; font-weight: 600; letter-spacing: 0.005em; }
+
+  /* Editorial focus ring — visible only on keyboard navigation */
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection { background: color-mix(in oklab, var(--primary) 24%, transparent); color: var(--foreground); }
+}
+
+@layer utilities {
+  .text-gradient { background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-card { background: var(--gradient-card); border: 1px solid var(--border); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-lift { box-shadow: var(--shadow-lift); }
+
+  .glass {
+    background: color-mix(in oklab, var(--card) 78%, transparent);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid var(--border);
+  }
+  .glass-magenta {
+    background: color-mix(in oklab, var(--primary) 7%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+
+  /* Editorial hairline separator — 1px, softer than border */
+  .hairline { border-color: var(--hairline); }
+  .divide-hairline > * + * { border-color: var(--hairline); }
+
+  /* Editorial tap target — subtle scale on active, no ugly ring */
+  .tap { transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out); }
+  .tap:active { transform: scale(0.97); }
+
+  /* Editorial motion helpers */
+  .transition-editorial { transition: all var(--duration-base) var(--ease-out); }
+  .ease-out-expo { transition-timing-function: var(--ease-out); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+
+  /* Scroll arrival. Paired with useReveal.
+     Transform and opacity only — both are compositor properties, so a long
+     page of these costs nothing to animate. The distance is small on purpose:
+     22px reads as the section settling into place, where 60px reads as the
+     page being assembled in front of you. */
+  /* Only once the page is interactive (useReveal adds .reveal-ready): the
+     server HTML must never ship invisible content. */
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  .reveal-ready [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    /* Released once the animation is done: leaving will-change on hundreds of
+       elements keeps each one on its own layer for the life of the page. */
+    will-change: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* A dark surface that reads as a physical object.
+   *
+   * The showcase cards were a flat fill with a 1px ring, which is why they
+   * looked like rectangles rather than screens. Three things do the work here,
+   * and it is the combination that sells it: a hairline of light along the top
+   * edge only — where a real bevel would catch it — a soft inner glow so the
+   * middle is not dead flat, and two shadows rather than one, a tight contact
+   * shadow plus a wide ambient one. */
+  .zc-surface {
+    position: relative;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.28),
+      0 18px 40px -18px rgb(0 0 0 / 0.55),
+      0 42px 90px -40px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+  /* No cast shadow on dark — see .dark .zc-surface-light for the reasoning.
+     The lit top edge and the hairline ring are what make this read as an
+     object; the three black shadows only muddied the page beneath it. */
+  .dark .zc-surface {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  .zc-surface::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* The catch of light across the top third. Very low opacity: at anything
+       stronger it stops looking like a surface and starts looking like a
+       gradient someone applied. */
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, transparent 42%);
+  }
+
+  /* The same idea on a light card, where the light comes from above and the
+     edge that catches it is the top one.
+     The dark rule lives here rather than as a `dark:` variant in the markup,
+     because Tailwind variants only compose with Tailwind utilities —
+     `dark:zc-surface` silently does nothing. */
+  .zc-surface-light {
+    box-shadow:
+      0 1px 2px rgb(23 23 23 / 0.06),
+      0 14px 32px -14px rgb(23 23 23 / 0.16),
+      0 32px 70px -34px rgb(23 23 23 / 0.18),
+      inset 0 1px 0 rgb(255 255 255 / 0.9);
+  }
+  /* No cast shadow on dark.
+   *
+   * Three stacked black shadows under a card on a near-black page cannot read
+   * as depth — there is nothing darker than the background for them to be. All
+   * they produced was a murky halo below every card, which is what looked like
+   * a shadow that should not have been there. On dark, a card separates by
+   * being lighter than the page and by the hairline along its top edge, which
+   * is what the two insets are for. */
+  .dark .zc-surface-light {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  /* ── Landing hero motion ────────────────────────────────────────
+     Replaces the video the spec called for. Long, offset durations so
+     the field never visibly loops, and transform-only movement so it
+     runs on the compositor rather than repainting behind the text. */
+  @keyframes zc-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(6%, 4%, 0) scale(1.12); }
+  }
+  @keyframes zc-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
+    50%      { transform: translate3d(-5%, -6%, 0) scale(1); }
+  }
+  @keyframes zc-line {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes zc-rise {
+    from { opacity: 0; transform: translateY(22px) scale(0.98); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  /* Fine grain. Gradients this wide band into visible steps on 6-bit
+     panels, which is most budget Android hardware; noise breaks the
+     steps up. An inline SVG so there is no image to request. */
+  .zc-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  /* Motion is decoration here, so it goes entirely rather than being
+     slowed down. The final state is the designed state. */
+  @media (prefers-reduced-motion: reduce) {
+    [class*="zc-drift"],
+    [class*="zc-line"],
+    [class*="zc-rise"] {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+
+  .reveal-ready [data-reveal="left"]  { transform: translateX(-26px); }
+  .reveal-ready [data-reveal="right"] { transform: translateX(26px); }
+  .reveal-ready [data-reveal="zoom"]  { transform: scale(0.965); }
+  .reveal-ready [data-reveal="left"].is-in,
+  .reveal-ready [data-reveal="right"].is-in,
+  .reveal-ready [data-reveal="zoom"].is-in { transform: none; }
+  /* ZeroNotes article typography.
+   *
+   * Tailwind's prose defaults are tuned for documentation — tight headings,
+   * even spacing, a rule that looks like a table border. An article wants
+   * headings that are obviously ranked, more air above a heading than below
+   * it (so it belongs to what follows, not what precedes), and a section break
+   * that reads as a pause rather than a divider. */
+  .zc-note-prose h1 {
+    font-size: 1.9em;
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    line-height: 1.15;
+    margin: 0.9em 0 0.35em;
+  }
+  .zc-note-prose h2 {
+    font-size: 1.45em;
+    font-weight: 700;
+    letter-spacing: -0.016em;
+    line-height: 1.25;
+    margin: 0.85em 0 0.3em;
+  }
+  .zc-note-prose h3 {
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    margin: 0.8em 0 0.25em;
+  }
+  .zc-note-prose h1:first-child,
+  .zc-note-prose h2:first-child,
+  .zc-note-prose h3:first-child { margin-top: 0; }
+
+  /* Three dots, centred — the typographic mark for a scene break. A full-width
+     hairline in the middle of an article reads as the end of the page. */
+  .zc-note-prose hr {
+    border: 0;
+    margin: 2em 0;
+    text-align: center;
+    overflow: visible;
+  }
+  .zc-note-prose hr::after {
+    content: "· · ·";
+    display: inline-block;
+    color: color-mix(in oklab, var(--foreground) 45%, transparent);
+    font-size: 1.1em;
+    letter-spacing: 0.5em;
+    /* The letter-spacing adds a trailing gap, which would sit the dots left
+       of centre without this. */
+    text-indent: 0.5em;
+  }
+
+  /* Highlights need breathing room or the colour clips the letterforms, and a
+     little rounding so a run of highlighted words reads as one band. */
+  .zc-note-prose [style*="background-color"] {
+    padding: 0.08em 0.12em;
+    border-radius: 0.18em;
+    /* Highlight colours are pale by design, so text on them must stay dark
+       even when the reader is in the dark theme. */
+    color: #171218;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* The crop editor's sliders.
+     A native range input is styled differently by every browser and none of
+     them match a dark editor, so the track and thumb are drawn here. The thumb
+     is deliberately larger than it looks: 22px of touch target under a 14px
+     dot, because these get dragged with a thumb on a phone. */
+  .zc-crop-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .zc-crop-range::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .zc-crop-range::-moz-range-track {
+    height: 3px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .zc-crop-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5.5px;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .zc-crop-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
+  }
+  .zc-crop-range:active::-webkit-slider-thumb { transform: scale(1.25); }
+
+  @keyframes progress {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(-30%); }
+    100% { transform: translateX(0%); }
+  }
+  .animate-progress {
+    animation: progress 2s ease-out infinite;
+    width: 100%;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--foreground) 6%, transparent), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s var(--ease-in-out) infinite;
+  }
+
+  @keyframes zc-activity-rail {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-50% - 0.5rem)); }
+  }
+  .zc-activity-rail { animation: zc-activity-rail 22s linear infinite; }
+
+  @keyframes zc-showcase-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  .zc-showcase-float { animation: zc-showcase-float 5s ease-in-out infinite; }
+  .zc-showcase-float-delayed { animation: zc-showcase-float 5s ease-in-out 1.1s infinite; }
+
+  /* Live room reactions. Drifts up and sideways rather than straight up, so a
+     burst of the same emoji reads as several reactions instead of one column. */
+  @keyframes zc-reaction-float {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    12%  { opacity: 1; transform: translateY(-14px) scale(1.1); }
+    28%  { transform: translateY(-42px) translateX(6px) scale(1); }
+    60%  { opacity: 1; transform: translateY(-110px) translateX(-8px) scale(1); }
+    100% { opacity: 0; transform: translateY(-190px) translateX(4px) scale(0.85); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-activity-rail,
+    .zc-showcase-float,
+    .zc-showcase-float-delayed { animation: none; }
+
+    /* Reactions still need to appear and clear themselves, so this fades
+       rather than disabling the animation outright. */
+    @keyframes zc-reaction-float {
+      0%   { opacity: 0; }
+      15%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  }
+}
+
+/* ── Landing kit ────────────────────────────────────────────────────────────
+ *
+ * In @layer components, NOT utilities, and that placement is the whole point.
+ *
+ * These classes were in the utilities layer alongside Tailwind's own. Same
+ * layer means source order decides, and this file is imported after Tailwind —
+ * so `.zc-glow-card { position: relative }` silently beat Tailwind's `sticky`
+ * on the two card stacks that use both. Those cards also carry a `top` offset
+ * for their sticky behaviour, so as relative elements they were pushed ~100px
+ * down and straight out of their own section.
+ *
+ * Components always lose to utilities. Now `sticky`, `bg-*` and `rounded-*`
+ * win wherever a caller sets them, and everything here is only a default.
+ * ─────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* ── Landing kit ────────────────────────────────────────────────────────
+   *
+   * The look the reference sells is one trick used consistently: light appears
+   * to come FROM the brand colour rather than being painted on in it. A card
+   * is not "a card with a pink border" — it is a dark object with pink light
+   * catching one edge and blooming softly behind it.
+   *
+   * Everything below is that one idea at different scales: an eyebrow pill, a
+   * card edge, a section bloom, a spotlight cone. All in #cc208f, because the
+   * reference's orange is its brand and this one is ours.
+   */
+
+  /* The small outlined chip above each section heading. In the reference it is
+     what turns a wall of sections into a table of contents you read on the way
+     past — each one names the section before the headline has to. */
+  .zc-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a8156f;
+    background: rgb(204 32 143 / 0.07);
+    box-shadow: inset 0 0 0 1px rgb(204 32 143 / 0.22);
+  }
+  .dark .zc-eyebrow {
+    color: #ff86cd;
+    background: rgb(204 32 143 / 0.10);
+    box-shadow:
+      inset 0 0 0 1px rgb(204 32 143 / 0.30),
+      0 0 22px -6px rgb(204 32 143 / 0.45);
+  }
+
+  /* The signature card.
+   *
+   * Two layers do the work. ::before is a gradient ring — brand pink at the
+   * top-left corner fading to nothing — which reads as an edge catching light
+   * rather than a border someone drew. ::after is the pointer bloom: a soft
+   * radial that follows the cursor, driven by --mx/--my set in JS.
+   *
+   * The bloom sits at opacity 0 until hover, so a page of these is completely
+   * still until you actually reach for one. */
+  /* Deliberately sets neither background nor border-radius.
+   *
+   * Both would be utility-layer declarations competing with Tailwind's own
+   * bg-* and rounded-* on the same element, where the winner is decided by
+   * source order rather than by intent — the kind of conflict that works until
+   * a build reorders something. The caller owns its fill and its corners; the
+   * ring below inherits whatever radius it is given. */
+  .zc-glow-card {
+    position: relative;
+    isolation: isolate;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .zc-glow-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.55) 0%,
+      rgb(204 32 143 / 0.12) 26%,
+      rgb(23 23 23 / 0.08) 55%
+    );
+    /* Ring, not fill: mask out the middle so only the 1px padding shows. */
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+  /* Fades to nothing rather than to a white tint.
+   *
+   * The old stop was rgb(255 255 255 / 0.06) at 60%, which meant the ring kept
+   * a faint pale line all the way along the bottom and right edges. On a
+   * near-black page that reads as a second outline sitting just under the
+   * card — a shadow, effectively, which is exactly what it looked like.
+   * The light should come from one corner and stop. */
+  .dark .zc-glow-card::before {
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.75) 0%,
+      rgb(204 32 143 / 0.18) 28%,
+      rgb(204 32 143 / 0) 58%
+    );
+  }
+  .zc-glow-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    background: radial-gradient(
+      380px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(204 32 143 / 0.16),
+      transparent 62%
+    );
+    z-index: -1;
+  }
+  .zc-glow-card:hover::after { opacity: 1; }
+  .dark .zc-glow-card::after {
+    background: radial-gradient(
+      380px circle at var(--mx, 50%) var(--my, 0%),
+      rgb(204 32 143 / 0.26),
+      transparent 62%
+    );
+  }
+  /* Lift only — no box-shadow.
+   *
+   * These cards are used alongside zc-surface-light, which carries its own
+   * carefully built shadow stack. A box-shadow here does not add to that, it
+   * REPLACES it, so hovering flattened the card at the exact moment it was
+   * meant to feel more physical. The pink bloom already arrives via ::after;
+   * the lift is all the hover needs to add. */
+  .zc-glow-card:hover { transform: translateY(-3px); }
+  /* There used to be a `.zc-glow-card > * { position: relative; z-index: 3 }`
+   * here, to lift content above the two decorative layers. It was a bad way to
+   * solve it and it broke the page.
+   *
+   * `position: relative` on EVERY direct child overrode `absolute` on the ones
+   * that were deliberately positioned — the corner wash on the learning cards,
+   * the spotlight and both blooms in the closing band. Those are large
+   * elements; dropped into normal flow they took up real space and pushed
+   * everything around them out of place.
+   *
+   * The layering is now done by painting order instead. The card isolates, so
+   * its ::before and ::after sit at z-index -1: above the card's own
+   * background, below its content, and touching nothing else. No child is told
+   * anything about its own position. */
+
+  /* The one card in a row that is the point — the middle pricing tier in the
+     reference. Same object, more light. */
+  .zc-glow-card.is-featured::before {
+    background: linear-gradient(
+      145deg,
+      rgb(204 32 143 / 0.95) 0%,
+      rgb(204 32 143 / 0.35) 34%,
+      rgb(204 32 143 / 0.12) 70%
+    );
+  }
+  .zc-glow-card.is-featured {
+    box-shadow: 0 30px 70px -30px rgb(204 32 143 / 0.5);
+  }
+  .zc-glow-card.is-featured::after { opacity: 0.65; }
+
+  /* A wash of brand light behind a section. Sized and placed by the caller;
+     this only carries the colour and the blur so the values stay in one file. */
+  .zc-bloom {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgb(204 32 143 / 0.55) 0%, rgb(204 32 143 / 0.16) 38%, transparent 70%);
+    filter: blur(60px);
+    opacity: 0.5;
+  }
+  .dark .zc-bloom { opacity: 0.75; }
+
+  /* The horizon glow under the hero — the reference's most recognisable move.
+     A wide, shallow ellipse sitting just below the fold so the section looks
+     lit from underneath rather than decorated. */
+  .zc-horizon {
+    position: absolute;
+    left: 50%;
+    bottom: -42%;
+    width: 150%;
+    height: 62%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      rgb(204 32 143 / 0.42) 0%,
+      rgb(204 32 143 / 0.16) 34%,
+      transparent 68%
+    );
+    filter: blur(48px);
+  }
+  .dark .zc-horizon {
+    background: radial-gradient(
+      ellipse at center,
+      rgb(255 61 176 / 0.55) 0%,
+      rgb(204 32 143 / 0.24) 32%,
+      transparent 68%
+    );
+  }
+
+  /* A cone of light falling from the top edge, for the closing CTA band. */
+  .zc-spotlight {
+    position: absolute;
+    left: 50%;
+    top: -1px;
+    width: 78%;
+    height: 68%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 60% 100% at 50% 0%,
+      rgb(204 32 143 / 0.30) 0%,
+      rgb(204 32 143 / 0.08) 40%,
+      transparent 72%
+    );
+    filter: blur(26px);
+  }
+
+  /* A hairline that fades out at both ends, for section seams. A full-width
+     rule reads as a table border; this reads as a horizon. */
+  .zc-seam {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(204 32 143 / 0.28) 22%,
+      rgb(204 32 143 / 0.28) 78%,
+      transparent
+    );
+  }
+
+  /* Directional arrivals. The base [data-reveal] rises; these come from the
+     side, so an alternating text/visual row assembles toward its own centre
+     instead of every element sliding the same way. */
+
+  /* Scroll-linked drift, set by useParallax as a fraction of section progress.
+     Transform only, so it stays on the compositor. */
+  .zc-parallax { transform: translate3d(0, var(--py, 0px), 0); }
+
+  /* ── Partner marquee ────────────────────────────────────────────────────
+   *
+   * The track holds the list twice and slides exactly one copy's width, so the
+   * moment it reaches -50% it is pixel-identical to where it started and the
+   * loop is invisible. Animating a transform keeps the whole thing on the
+   * compositor — a marquee that repaints every frame is the classic way a
+   * landing page starts dropping frames on a mid-range phone.
+   */
+  .zc-marquee {
+    display: flex;
+    width: max-content;
+    animation: zc-marquee-slide 34s linear infinite;
+  }
+  @keyframes zc-marquee-slide {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+  }
+  /* Pausing on hover lets someone actually read a name they recognised. */
+  .zc-marquee-wrap:hover .zc-marquee { animation-play-state: paused; }
+
+  /* Fades the track into the page at both ends instead of cutting it off. */
+  .zc-marquee-wrap {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-marquee { animation: none; }
+    /* Standing still, a max-content track would overflow; let it wrap. */
+    .zc-marquee-wrap { -webkit-mask-image: none; mask-image: none; }
+    .zc-marquee { width: 100%; flex-wrap: wrap; justify-content: center; }
+  }
+
+  /* ── Notched panel ──────────────────────────────────────────────────────
+   *
+   * The clipped-corner card from the timeline reference. Two corners cut on
+   * the diagonal, a bracket of brand light on the cut, and a dashed tick along
+   * the bottom edge. It is a heavier treatment than .zc-glow-card, so it is
+   * for the few places that are meant to feel like a readout rather than a
+   * card — the step panels on signup, not every tile on the page.
+   */
+  .zc-notch {
+    position: relative;
+    /* Top-left and bottom-right cut. Two, not four: cutting every corner
+       reads as a decorative frame, cutting two reads as a direction. */
+    clip-path: polygon(
+      18px 0, 100% 0, 100% calc(100% - 18px),
+      calc(100% - 18px) 100%, 0 100%, 0 18px
+    );
+  }
+  /* The bracket sitting in the cut, drawn as two borders on a small square
+     rotated into the corner. */
+  .zc-notch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 26px;
+    height: 26px;
+    border-top: 1.5px solid rgb(204 32 143 / 0.85);
+    border-left: 1.5px solid rgb(204 32 143 / 0.85);
+    transform: rotate(-45deg) translate(-9px, -1px);
+    transform-origin: top left;
+    pointer-events: none;
+  }
+  .zc-notch::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 26px;
+    height: 26px;
+    border-bottom: 1.5px solid rgb(204 32 143 / 0.85);
+    border-right: 1.5px solid rgb(204 32 143 / 0.85);
+    transform: rotate(-45deg) translate(9px, 1px);
+    transform-origin: bottom right;
+    pointer-events: none;
+  }
+
+  /* The numbered node from the timeline: a lit ring with the number inside. */
+  .zc-node {
+    position: relative;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #120d11;
+    color: #ff86cd;
+    box-shadow:
+      0 0 0 1.5px rgb(204 32 143 / 0.9),
+      0 0 26px -4px rgb(204 32 143 / 0.75),
+      inset 0 0 18px -6px rgb(204 32 143 / 0.55);
+  }
+  .zc-node.is-done {
+    background: #cc208f;
+    color: #fff;
+    box-shadow:
+      0 0 0 1.5px rgb(255 134 205 / 0.9),
+      0 0 30px -4px rgb(204 32 143 / 0.9);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zc-glow-card { transition: none; }
+    .zc-glow-card:hover { transform: none; }
+    .zc-glow-card::after { display: none; }
+    .zc-parallax { transform: none !important; }
+  }
+
+}
+
+
+/* Hide global scrollbar — mobile-app feel */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+body::-webkit-scrollbar { display: none; }
+
+/* TipTap Editor Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground) / 0.5);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Ensure formatting tags inherit text color when used with TipTap Color extension */
+.prose strong, .prose em, .prose s {
+  color: inherit;
+}
+
+@media (min-width: 1024px) {
+  .zc-app-shell {
+    min-height: 100vh;
+    background:
+      linear-gradient(90deg, color-mix(in oklab, var(--background) 92%, var(--card)) 0%, var(--background) 42%, color-mix(in oklab, var(--background) 86%, var(--primary)) 100%);
+  }
+
+  .zc-app-main {
+    min-width: 0;
+    background: color-mix(in oklab, var(--background) 88%, var(--card));
+  }
+
+  .zc-desktop-content {
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+/* Feed cards meet the desktop column edges; keep rounding inside cards for
+   quoted posts and media, rather than cutting holes along the outer frame. */
+@media (min-width: 768px) {
+  .zc-feed-content > article {
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-zc-bottom-nav] {
+    display: none !important;
+  }
+
+  [data-zc-drawer-variant="dialog"] {
+    inset: auto !important;
+    left: 50% !important;
+    top: 50% !important;
+    width: min(680px, calc(100vw - 48px)) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 48px) !important;
+    transform: translate(-50%, -50%) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 24px 80px -28px rgb(0 0 0 / 0.55);
+  }
+
+  [data-zc-drawer-variant="panel"] {
+    inset: 0 0 0 auto !important;
+    width: min(560px, calc(100vw - 304px)) !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    transform: none !important;
+    border: 0 !important;
+    border-left: 1px solid hsl(var(--border)) !important;
+    border-radius: 8px 0 0 8px !important;
+    box-shadow: -24px 0 70px -34px rgb(0 0 0 / 0.5);
+  }
+}
+
+/* Flex distributes the remaining space after the real sidebar widths. A
+   separate viewport calculation or reading cap leaves gaps between columns. */
+.zc-app-main {
+  max-width: none;
+}
+
+/* Android density overrides can push a portrait phone across desktop width
+   breakpoints. Keep the touch layout fluid instead of reserving side columns.
+   Mouse-driven desktops retain their normal multi-column layout. */
+@media (min-width: 768px) and (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  .zc-app-shell {
+    display: block;
+  }
+
+  .zc-app-main,
+  .zc-app-main:not(.zc-institution-main),
+  .zc-feed-tabs,
+  .zc-feed-content {
+    width: 100%;
+    max-width: none !important;
+    margin-inline: 0;
+    border-inline: 0;
+  }
+
+  .zc-desktop-sidebar,
+  .zc-workspace-rail {
+    display: none;
+  }
+
+  .zc-app-header {
+    position: fixed;
+    height: calc(56px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .zc-mobile-menu,
+  [data-zc-bottom-nav] {
+    display: block !important;
+  }
+
+  .zc-content-with-header {
+    padding-top: var(--zc-header-h);
+  }
+
+  /* Fixed chat panels bypass the app's flex layout. Reset the offsets for
+     sidebars that are hidden in this mode, including loading/error panels. */
+  .zc-chat-panel {
+    left: 0;
+    right: 0;
+    max-width: none;
+    margin-inline: 0;
+    border-inline: 0;
+  }
+}
+
+/* Page frames fill their column at every screen width. Keep this explicit
+   and scoped: dialog portals, message bubbles and text retain their sizing. */
+.zc-desktop-content .zc-page-width {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin-inline: 0;
+}
+
+@media (min-width: 768px) {
+  .zc-desktop-content .zc-page-width.bg-card,
+  .zc-desktop-content .zc-page-width > :is(article, section).bg-card {
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Cards are elevated, never outlined.
+
+   Done in CSS rather than by editing three hundred files, so it holds for
+   pages written later too.
+
+   What counts as a card: a rounded box with a full neutral border or ring.
+   What is deliberately left alone:
+
+     • rules on some sides only (border-b, border-t, border-x, border-y …) —
+       those are headers, dividers and column separators, not boxes;
+     • anything rounded-full — pills, avatars, icon buttons, toggles;
+     • inputs, textareas and selects — strip the outline off a field and it
+       disappears into whatever it sits on;
+     • coloured borders — a red edge on a destructive card or a pink one on a
+       selected item is carrying meaning.
+
+   Boxes that had a stroke and no fill of their own also get the card colour,
+   because a box with neither stroke nor fill is not a card, it is nothing.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@layer components {
+  .bg-card,
+  .bg-popover,
+  :is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class*=":border-border"]):not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
+  :is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*=":ring-border"]):not([class*="rounded-full"]) {
+    box-shadow: var(--shadow-card);
+  }
+
+  /* A card inside a card would stack two shadows and read as a smudge. The
+     inner one keeps the fill and drops the lift. */
+  .bg-card .bg-card {
+    box-shadow: none;
+  }
+}
+
+/* Unlayered: this has to beat the utility that draws the stroke. */
+:is(div, section, article, aside, main, li, a, button, label, span)[class*="border-border"]:not([class*=":border-border"]):not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]),
+:is(div, section, article, aside, main, li, a, button, label, span)[class*="ring-border"]:not([class*=":ring-border"]):not([class*="rounded-full"]) {
+  border-color: transparent;
+  --tw-ring-color: transparent;
+}
+
+/* Had a stroke, has no fill of its own — give it the card surface. */
+:is(div, section, article, aside, li, a, button, label)[class*="border-border"]:not([class*=":border-border"]):not([class~="border-b"]):not([class~="border-t"]):not([class~="border-l"]):not([class~="border-r"]):not([class~="border-x"]):not([class~="border-y"]):not([class~="border-l-2"]):not([class~="border-l-3"]):not([class~="border-t-2"]):not([class~="border-b-2"]):not([class*="rounded-full"]):not([class*="bg-"]),
+:is(div, section, article, aside, li, a, button, label)[class*="ring-border"]:not([class*=":ring-border"]):not([class*="rounded-full"]):not([class*="bg-"]) {
+  background-color: var(--card);
+}
+
+/* The Home and Learn tab icons are Solar line drawings at 1.5px, which is a
+   hairline on a phone at 20px. Just enough weight to hold together. */
+.zc-icon [stroke-width="1.5"] {
+  stroke-width: 1.75;
+}
+
+/* One typeface everywhere: the app shell, sheets and drawers all read in Montserrat. */
+.zc-app-shell {
+  font-family: var(--font-sans);
+}
+
+
+
+/* Join-club sheet: the banner settles in slowly, the logo pops, the text rises. */
+@keyframes zc-join-banner {
+  from { opacity: 0; transform: scale(1.14); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes zc-join-pop {
+  0% { opacity: 0; transform: translateY(12px) scale(0.8); }
+  70% { opacity: 1; transform: translateY(-2px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes zc-join-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.zc-join-banner { animation: zc-join-banner 1.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.zc-join-pop { animation: zc-join-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 80ms both; }
+.zc-join-rise { animation: zc-join-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .zc-join-banner, .zc-join-pop, .zc-join-rise { animation: none; }
+}
+
+/* Sign-in / sign-up: the page, html and body are one colour, and the page
+   does not rubber-band, so resizing browser chrome never reveals anything. */
+html.zc-auth-page,
+html.zc-auth-page body {
+  background: #f8f6f1;
+  background-image: none;
+  overscroll-behavior-y: none;
+}
+html.dark.zc-auth-page,
+html.dark.zc-auth-page body {
+  background: #0b0a0d;
+}
+
+/* Zero Club for Business pages are always dark, whatever the app theme. */
+html.zc-biz-page,
+html.zc-biz-page body {
+  background: #07060a;
+  background-image: none;
+  color-scheme: dark;
+  overscroll-behavior-y: none;
+}
+
+/* ── In-app pop card (incoming notifications & messages) ─────────────── */
+.zc-pop-host {
+  position: fixed;
+  inset-inline: 0;
+  top: calc(8px + env(safe-area-inset-top));
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  padding-inline: 10px;
+  pointer-events: none;
+}
+.zc-pop {
+  --zc-pop-bg: var(--card);
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  min-height: 64px;
+  padding: 10px 12px 10px 12px;
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--zc-pop-bg) 94%, transparent);
+  color: var(--foreground);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 7%, transparent) inset,
+    0 18px 40px -14px rgb(0 0 0 / 0.5),
+    0 4px 12px -6px rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1), opacity 260ms ease;
+  animation: zc-pop-in 460ms cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards;
+  will-change: transform, opacity;
+}
+.dark .zc-pop {
+  --zc-pop-bg: color-mix(in oklab, var(--card) 84%, var(--foreground) 16%);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 18px 44px -12px rgb(0 0 0 / 0.75);
+}
+.zc-pop:active:not(.zc-pop--dragging) { scale: 0.985; }
+.zc-pop--dragging { transition: none; }
+.zc-pop--leaving { pointer-events: none; }
+.zc-pop:focus-visible { outline: 2px solid var(--ring, var(--foreground)); outline-offset: 2px; }
+.zc-pop.zc-pop--buzz,
+.dark .zc-pop.zc-pop--buzz {
+  box-shadow:
+    0 0 0 1.5px rgb(251 191 36 / 0.75),
+    0 18px 40px -14px rgb(0 0 0 / 0.5),
+    0 0 28px -6px rgb(251 191 36 / 0.45);
+  animation: zc-pop-in 460ms cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards, zc-pop-shake 600ms 480ms ease-in-out 2;
+}
+
+.zc-pop-avatar { position: relative; flex: none; width: 44px; height: 44px; }
+.zc-pop-avatar-img,
+.zc-pop-avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.zc-pop-avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #cc208f, #6d28d9);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.zc-pop-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 9999px;
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow: 0 0 0 2.5px var(--zc-pop-bg);
+  animation: zc-pop-badge 520ms 180ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.zc-pop-badge--like { background: #f43f7a; color: white; }
+.zc-pop-badge--reply { background: #1d9bf0; color: white; }
+.zc-pop-badge--follow { background: #8b5cf6; color: white; }
+.zc-pop-badge--repost { background: #00ba7c; color: white; }
+.zc-pop-badge--mention { background: #f59e0b; color: #1a1205; }
+.zc-pop-badge--buzz { background: #fbbf24; color: #1a1205; }
+
+.zc-pop-title,
+.zc-pop-sub {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.zc-pop-title { font-size: 15px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+.zc-pop-sub {
+  margin-top: 1px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+}
+
+.zc-pop-grip {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-self: flex-start;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+.zc-pop-grip i {
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--foreground) 22%, transparent);
+}
+
+@keyframes zc-pop-in {
+  0% { transform: translate3d(0, calc(-100% - 24px), 0) scale(0.94); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+@keyframes zc-pop-badge {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+@keyframes zc-pop-shake {
+  0%, 100% { rotate: 0deg; }
+  20% { rotate: -1.4deg; }
+  40% { rotate: 1.4deg; }
+  60% { rotate: -1deg; }
+  80% { rotate: 1deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-pop, .zc-pop--buzz, .zc-pop-badge { animation: zc-pop-fade 200ms ease both; }
+  @keyframes zc-pop-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+@media (min-width: 768px) {
+  .zc-pop-host { justify-content: flex-end; padding-inline: 20px; top: 16px; }
+  .zc-pop { max-width: 380px; }
+}
+
+/* ── Zero Club loader: the mark's eight blocks light up clockwise ─────── */
+.zc-loader-seg {
+  animation: zc-loader-seg 0.96s linear infinite;
+  transform-origin: 50px 50px;
+}
+@keyframes zc-loader-seg {
+  0% { opacity: 1; }
+  12% { opacity: 1; }
+  100% { opacity: 0.14; }
+}
+.zc-loader { animation: zc-loader-breathe 1.92s ease-in-out infinite; }
+@keyframes zc-loader-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.94); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-loader { animation: none; }
+  .zc-loader-seg { animation-duration: 2.4s; }
+}
+
+/* Share sheet: the Zero Club mark, large and faint, behind the targets. */
+.zc-share-mark { opacity: 0.07; transform: rotate(14deg); }
+.dark .zc-share-mark { opacity: 0.12; }
+
+/* ── Tutor application ─────────────────────────────────────────────── */
+.zc-apply-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.45;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.zc-apply-input::placeholder { color: color-mix(in oklab, var(--foreground) 38%, transparent); }
+.zc-apply-input:focus,
+.zc-apply-input:focus-within {
+  border-color: #cc208f;
+  box-shadow: 0 0 0 4px color-mix(in oklab, #cc208f 16%, transparent);
+}
+textarea.zc-apply-input { resize: vertical; }
+.zc-apply-step { animation: zc-apply-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes zc-apply-in {
+  from { opacity: 0; transform: translate3d(14px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .zc-apply-step { animation: none; } }
+
+/* Focused flows (e.g. the Tutor application) hide the floating tab bar. */
+html[data-zc-focus-flow] [data-zc-bottom-nav] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* MentionField: the field's own glyphs are transparent (a mirror draws them,
+   with @tags in pink). Placeholders must stay visible. */
+.zc-mention-field::placeholder {
+  -webkit-text-fill-color: currentColor;
+}
+.zc-mention-field::selection {
+  -webkit-text-fill-color: transparent;
+}
+
+/* Profile photo: a slow ring of Zero Club light around the picture. */
+@property --zc-ring-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.zc-avatar-ring {
+  background: conic-gradient(from var(--zc-ring-angle), #cc208f, #ff7ac8, #7a1e66, #f06ac3, #cc208f);
+  animation: zc-ring-spin 6s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(204, 32, 143, 0.35));
+}
+@keyframes zc-ring-spin { to { --zc-ring-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .zc-avatar-ring { animation: none; }
+}
+
+/* Room under the page for the minimised live-class bar (phones). */
+@media (max-width: 767px) {
+  body { padding-bottom: var(--zc-live-bar-h, 0px); }
+}
+
+/* ── Drawer speed ──────────────────────────────────────────────
+   vaul's default is a slow 0.5s both ways. Native sheets open in about a
+   third of a second and get out of the way in under a quarter: closing
+   (the X, a tap outside, or a swipe down) now takes 0.2s and accelerates
+   away, opening is a quick 0.3s settle. A swipe continues from wherever
+   the finger let go, because the close animation has no start frame. */
+[data-vaul-drawer][data-state="open"] {
+  animation-duration: 0.3s !important;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+[data-vaul-drawer][data-state="closed"] {
+  animation-duration: 0.2s !important;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1) !important;
+}
+[data-vaul-overlay][data-state="open"] {
+  animation-duration: 0.25s !important;
+}
+[data-vaul-overlay][data-state="closed"] {
+  animation-duration: 0.18s !important;
+  animation-timing-function: ease-in !important;
+}
+
+/* On desktop the sheets become a centred dialog or a side panel whose
+   position is pinned, so the slide never showed: the sheet just sat there
+   for half a second before vanishing. They get their own quick fade. */
+@keyframes zc-dialog-in {
+  from { opacity: 0; scale: 0.97; }
+  to { opacity: 1; scale: 1; }
+}
+@keyframes zc-dialog-out {
+  to { opacity: 0; scale: 0.97; }
+}
+@keyframes zc-panel-in {
+  from { opacity: 0; translate: 32px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes zc-panel-out {
+  to { opacity: 0; translate: 32px 0; }
+}
+@media (min-width: 768px) {
+  [data-zc-drawer-variant="dialog"][data-state="open"] {
+    animation: zc-dialog-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  }
+  [data-zc-drawer-variant="dialog"][data-state="closed"] {
+    animation: zc-dialog-out 0.13s ease-in both !important;
+  }
+  [data-zc-drawer-variant="panel"][data-state="open"] {
+    animation: zc-panel-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both !important;
+  }
+  [data-zc-drawer-variant="panel"][data-state="closed"] {
+    animation: zc-panel-out 0.15s ease-in both !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-vaul-drawer],
+  [data-vaul-overlay] {
+    animation-duration: 0.01s !important;
+  }
+}
+
+/* ── Instant taps ─────────────────────────────────────────────
+   Tells the phone every button and link is tap-only (no double-tap zoom to
+   wait for), so the press registers on touch, and drops the grey Android
+   tap flash in favour of each control's own pressed state. */
+a,
+button,
+summary,
+label,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A quick pop when a post is liked. */
+@keyframes zc-like-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.32) rotate(-8deg); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.zc-like-pop {
+  animation: zc-like-pop 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-like-pop { animation: none; }
+}
+
+/* WhatsApp-style "typing" dots. */
+@keyframes zc-typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+.zc-typing-dots > span {
+  display: inline-block;
+  height: 5px;
+  width: 5px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: zc-typing-dot 1.2s infinite ease-in-out;
+}
+.zc-typing-dots > span:nth-child(2) { animation-delay: 0.15s; }
+.zc-typing-dots > span:nth-child(3) { animation-delay: 0.3s; }
+/* Message options remain compact on computers; don't paint a mobile drawer
+   extension underneath a centered dialog. */
+@media (min-width: 768px) {
+  [data-zc-message-actions] {
+    width: min(520px, calc(100vw - 48px)) !important;
+    border-radius: 20px !important;
+  }
+  [data-zc-message-actions="menu"] {
+    width: min(400px, calc(100vw - 48px)) !important;
+  }
+  [data-zc-message-actions]::after { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zc-typing-dots > span { animation: none; opacity: 0.8; }
+}
+
+/* A message you jumped to from Favourites glows pink for a moment. */
+@keyframes zc-message-flash {
+  0%, 100% { background-color: transparent; }
+  20%, 60% { background-color: rgb(204 32 143 / 0.16); }
+}
+.zc-message-flash {
+  animation: zc-message-flash 1.8s ease-in-out;
+  border-radius: 14px;
+}
+
+/* ── Club live room follows the app theme ───────────────────────────────────
+   The room was drawn dark-only (white text and white-tinted panels on near
+   black). In light mode, swap what "white" and "black" mean inside it, and
+   lift its dark surfaces to light ones. Coloured buttons, the red hang-up and
+   the black scrims over video keep their real white/black, so they still read. */
+html:not(.dark) [data-zc-live-room] {
+  --color-white: #17131a;
+  --color-black: #ffffff;
+}
+html:not(.dark) [data-zc-live-room]:is(.bg-\[\#0A0A0C\]),
+html:not(.dark) [data-zc-live-room] .bg-\[\#0A0A0C\] { background-color: #f6f2f6; }
+html:not(.dark) [data-zc-live-room] :is(.bg-\[\#141117\], .bg-\[\#101014\], .bg-\[\#0f0d10\], .bg-\[\#1a1a20\]) { background-color: #ffffff; }
+html:not(.dark) [data-zc-live-room] .bg-\[\#29202e\] { background-color: #f1e7f0; }
+html:not(.dark) [data-zc-live-room] :is(
+  [class*="bg-[#cc208f]"], [class*="bg-[#e0245e]"], [class*="bg-[#c81f53]"], [class*="bg-[#ff4fc3]"],
+  [class*="bg-red-"], [class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-black/"], video
+) {
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
+/* CardSelect: Zero Club's own picker sheet slides up on phones. */
+@keyframes zc-card-select-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.zc-card-select-sheet { animation: zc-card-select-in .28s cubic-bezier(.16, 1, .3, 1) both; }
+
+/* Zero Form: a conditional follow-up slides in under the answer that revealed it. */
+@keyframes zf-followup-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.zf-followup { animation: zf-followup-in .28s ease-out backwards; }
+@media (prefers-reduced-motion: reduce) { .zf-followup { animation: none; } }
+
+/* Portfolio "Selected work": one row that scrolls left and right, whatever
+   grid or column layout the template's own markup asks for. */
+.pf-rail {
+  display: flex !important;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 14px;
+  columns: auto !important;
+  scrollbar-width: thin;
+}
+.pf-rail > * {
+  flex: 0 0 min(84%, 400px);
+  scroll-snap-align: start;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  grid-column: auto !important;
+}
+@container (min-width: 64rem) {
+  .pf-rail > * { flex-basis: min(44%, 440px); }
+}
+
+
+/* ── Desktop sidebar collapsed to an icons-only rail ───────────────────── */
+.zc-rail [data-rail-hide] { display: none !important; }
+.zc-rail nav :is(a, button),
+.zc-rail [data-rail-row] {
+  position: relative;
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.zc-rail nav :is(a, button) > span:not([data-badge]):not([data-rail-keep]),
+.zc-rail [data-rail-row] > span,
+.zc-rail [data-side-foot] :is(a, button) > span,
+.zc-rail nav > p { display: none; }
+.zc-rail nav > div[class*="h-px"] { margin-inline: 12px; }
+.zc-rail nav a[data-premium] {
+  margin-inline: 0;
+  border-color: transparent;
+  background: transparent;
+  padding: 6px 0;
+}
+.zc-rail [data-badge] {
+  position: absolute;
+  top: 5px;
+  right: 12px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  margin: 0;
+}
+.zc-rail [data-side-foot] { flex-direction: column; }
+.zc-rail [data-side-foot] :is(a, button) {
+  width: 100%;
+  flex: none;
+  justify-content: center;
+  padding: 0;
+}
+
+
+/* ── @tags ─────────────────────────────────────────────────────────────────
+   A tag is pink with a soft pink chip, tuned per theme so it never melts into
+   the page: brighter on the dark themes, lighter still on Rose Noir (whose
+   surfaces are pink-tinted), and white on a pink bubble. */
+.zc-mention {
+  color: #cc208f;
+  background-color: rgb(204 32 143 / 0.11);
+  border-radius: 5px;
+  padding: 0 3px;
+  margin: 0 -1px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.15s;
+}
+.zc-mention:hover { background-color: rgb(204 32 143 / 0.2); }
+.dark .zc-mention { color: #ff7dcf; background-color: rgb(255 125 207 / 0.15); }
+.dark.rose-noir .zc-mention {
+  color: #ffd0ee;
+  background-color: rgb(255 125 207 / 0.24);
+  box-shadow: inset 0 -1.5px 0 rgb(255 125 207 / 0.7);
+}
+.zc-mention.zc-mention-on-brand {
+  color: #ffffff !important;
+  background-color: rgb(255 255 255 / 0.24) !important;
+  box-shadow: inset 0 -1.5px 0 rgb(255 255 255 / 0.75) !important;
+}
+.zc-mention.zc-mention-on-brand:hover { background-color: rgb(255 255 255 / 0.32) !important; }
+
+/* In the composer: colour and background only, so the caret stays aligned. */
+.zc-tag-ink { color: #cc208f; background-color: rgb(204 32 143 / 0.1); }
+.zc-tag-ink-text { color: #cc208f; }
+.dark .zc-tag-ink, .zc-tag-ink.zc-tag-ink-dark { color: #ff7dcf; background-color: rgb(255 125 207 / 0.16); }
+.dark .zc-tag-ink-text, .zc-tag-ink-text.zc-tag-ink-dark { color: #ff7dcf; }
+.dark.rose-noir .zc-tag-ink { color: #ffd0ee; background-color: rgb(255 125 207 / 0.26); }
+.dark.rose-noir .zc-tag-ink-text { color: #ffb3e3; }
+
+
+/* ── App toasts, dressed as the in-app pop card ──────────────────────────
+   Every sonner toast ("Reply posted!", "Saved", errors…) uses the same look
+   as the incoming message card: a frosted pill, the Zero Club mark as the
+   avatar with a status badge, "Zero Club" on top, the message under it and
+   the grip on the right. Sonner keeps its own enter/exit and swipe motion. */
+.zc-toast {
+  --zc-pop-bg: var(--card);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 26px 10px 12px;
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--zc-pop-bg) 94%, transparent);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 9%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 7%, transparent) inset,
+    0 18px 40px -14px rgb(0 0 0 / 0.5),
+    0 4px 12px -6px rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-tap-highlight-color: transparent;
+}
+.dark .zc-toast {
+  --zc-pop-bg: color-mix(in oklab, var(--card) 84%, var(--foreground) 16%);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent),
+    0 1px 0 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 18px 44px -12px rgb(0 0 0 / 0.75);
+}
+/* The grip: three small dots, top right, as on the pop card. (On the content,
+   not the toast: sonner uses the toast's own ::after for its hover gap.) */
+.zc-toast [data-content]::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  width: 3px;
+  height: 15px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--foreground) 22%, transparent) 1.5px, transparent 1.6px) 0 -1.5px / 3px 6px repeat-y;
+  pointer-events: none;
+}
+/* Toasts without a status (plain toast("…")) still get the Zero Club avatar.
+   Sonner borrows ::before only while a toast is being swiped away. */
+.zc-toast:not(:has([data-icon])):not([data-swiping="true"])::before {
+  content: "";
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: url("/favicon-192.png") center / cover;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.zc-toast [data-icon].zc-toast-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  flex: none;
+}
+.zc-toast [data-content] { min-width: 0; flex: 1; }
+/* "Zero Club" sits where the sender's name sits on the pop card. */
+.zc-toast [data-content]::before {
+  content: "Zero Club";
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+.zc-toast-title,
+.zc-toast-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 1px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+}
+.zc-toast-description { -webkit-line-clamp: 2; font-size: 12.5px; font-weight: 400; }
+.zc-toast-badge--success { background: #00ba7c; color: white; }
+.zc-toast-badge--error { background: #f43f5e; color: white; }
+.zc-toast-badge--info { background: #1d9bf0; color: white; }
+.zc-toast-badge--warning { background: #f59e0b; color: #1a1205; }
+.zc-toast-badge--loading { background: #cc208f; color: white; }
+.zc-toast-action {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: #cc208f;
+  color: white;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.zc-toast-cancel {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.zc-toast:has(.zc-toast-action, .zc-toast-cancel) { padding-right: 12px; }
+.zc-toast:has(.zc-toast-action, .zc-toast-cancel) [data-content]::after { display: none; }
