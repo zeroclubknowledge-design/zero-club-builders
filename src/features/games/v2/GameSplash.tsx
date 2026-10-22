@@ -6,30 +6,17 @@ import { ZERO_GAMES, type ZeroGameKey } from "./catalog";
 /** Animated emblem for each game — used on the splash and the hub tiles. */
 export function GameEmblem({ game, size = 140 }: { game: ZeroGameKey; size?: number }) {
   const info = ZERO_GAMES[game];
-  if (game === "space") {
-    return (
-      <div className="zg-emblem relative" style={{ width: size, height: size }}>
-        <div className="absolute inset-0 rounded-full" style={{ boxShadow: `0 0 ${size / 3}px ${info.accent}55`, background: `radial-gradient(circle, ${info.accent}22, transparent 70%)` }} />
-        <div className="zg-orbit absolute inset-0">
-          {[0, 120, 240].map((deg) => (
-            <span key={deg} className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full" style={{ background: info.accent, boxShadow: `0 0 12px ${info.accent}`, transform: `rotate(${deg}deg) translate(${size / 2 - 8}px) translate(-50%,-50%)` }} />
-          ))}
-        </div>
-        <div className="zg-float absolute inset-0 grid place-items-center text-white">
-          <ZeroMark size={size * 0.42} style={{ filter: `drop-shadow(0 0 14px ${info.accent})` }} />
-        </div>
-      </div>
-    );
-  }
-  const letters = ["Z", "E", "R", "O", "A", "P", "I", "U", "X"];
-  const lit = new Set([0, 4, 8]);
   return (
-    <div className="grid grid-cols-3 gap-1.5" style={{ width: size, height: size }}>
-      {letters.map((l, i) => (
-        <span key={i} className="zg-pop grid place-items-center rounded-xl font-display font-bold" style={{ fontSize: size / 6, animationDelay: `${i * 80}ms`, background: lit.has(i) ? info.accent : "rgba(255,255,255,0.08)", color: lit.has(i) ? "#1a0f14" : "#fff" }}>
-          {l}
-        </span>
-      ))}
+    <div className="zg-emblem relative" style={{ width: size, height: size }}>
+      <div className="absolute inset-0 rounded-full" style={{ boxShadow: `0 0 ${size / 3}px ${info.accent}55`, background: `radial-gradient(circle, ${info.accent}22, transparent 70%)` }} />
+      <div className="zg-orbit absolute inset-0">
+        {[0, 120, 240].map((deg) => (
+          <span key={deg} className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full" style={{ background: info.accent, boxShadow: `0 0 12px ${info.accent}`, transform: `rotate(${deg}deg) translate(${size / 2 - 8}px) translate(-50%,-50%)` }} />
+        ))}
+      </div>
+      <div className="zg-float absolute inset-0 grid place-items-center text-white">
+        <ZeroMark size={size * 0.42} style={{ filter: `drop-shadow(0 0 14px ${info.accent})` }} />
+      </div>
     </div>
   );
 }

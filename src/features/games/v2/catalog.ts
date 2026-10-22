@@ -2,7 +2,7 @@
  * Zero Games catalogue — one entry per game, used by the hub tiles,
  * the splash screens and the tournament forms.
  */
-export type ZeroGameKey = "space" | "words";
+export type ZeroGameKey = "space";
 
 export type ZeroGameInfo = {
   key: ZeroGameKey;
@@ -35,32 +35,27 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
     ],
     scoring: "10 points per orb × combo, plus a bonus for every second you survive.",
   },
-  words: {
-    key: "words",
-    name: "Zero Words",
-    tagline: "Learn the language of your field.",
-    blurb: "Paste anything from your field. Zero AI picks the key terms; you find them, match their meanings and recall them, and your Word Bank brings them back until they stick.",
-    from: "#1a0f14",
-    to: "#5a1838",
-    accent: "#ffb547",
-    howTo: [
-      { title: "Trace", body: "Drag across letters in a straight line — across, down or diagonal, either direction." },
-      { title: "Find them all", body: "The list shows the words hidden on this board." },
-      { title: "Finish", body: "Tap Finish when you're done. Clearing the whole board earns a speed bonus." },
-    ],
-    scoring: "150 points per word, plus up to 3,000 for clearing the board quickly.",
-  },
 };
 
-export const ZERO_GAME_LIST: ZeroGameInfo[] = [ZERO_GAMES.space, ZERO_GAMES.words];
+export const ZERO_GAME_LIST: ZeroGameInfo[] = [ZERO_GAMES.space];
 
 export function isZeroGameKey(v: unknown): v is ZeroGameKey {
-  return v === "space" || v === "words";
+  return v === "space";
 }
 
-/** Words scoring — mirrors the server cap (total × 150 + 3000). */
-export function wordsScore(found: number, total: number, seconds: number) {
-  const base = found * 150;
-  const bonus = found >= total ? Math.max(0, 3000 - seconds * 5) : 0;
-  return base + bonus;
+/** Shown for tournaments of games that have left Zero Club (Zero Sudoku, Zero Words). */
+export const RETIRED_GAME: Omit<ZeroGameInfo, "key"> = {
+  name: "Retired game",
+  tagline: "This game is no longer on Zero Club.",
+  blurb: "This game is no longer on Zero Club.",
+  from: "#1a1420",
+  to: "#3a3044",
+  accent: "#b9a9c9",
+  howTo: [],
+  scoring: "",
+};
+
+/** Catalogue entry for any stored game_type, including retired games. */
+export function gameInfo(gameType: string | null | undefined): Omit<ZeroGameInfo, "key"> {
+  return isZeroGameKey(gameType) ? ZERO_GAMES[gameType] : RETIRED_GAME;
 }

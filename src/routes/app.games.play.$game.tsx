@@ -3,16 +3,9 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Clock3, RotateCcw, Trophy, X } from "@/components/icons/glyphs";
+import { ArrowLeft, RotateCcw, Trophy, X } from "@/components/icons/glyphs";
 import { ZeroPageLoader } from "@/components/ZeroLoader";
-import { WordsRaceBoard } from "@/features/games/WordsRaceBoard";
-import {
-  formatGameTime,
-  generateWordsPuzzle,
-  ZERO_GAME_PROFESSIONS,
-  type ZeroGameDifficulty,
-} from "@/features/games/zeroGames";
-import { ZERO_GAMES, isZeroGameKey, wordsScore, type ZeroGameKey } from "@/features/games/v2/catalog";
+import { ZERO_GAMES, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameSplash, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { ZeroSpaceGame, type ZeroSpaceResult } from "@/features/games/v2/ZeroSpace";
 import { SpaceMarketplace, SpaceSupplyTray } from "@/features/games/v2/SpaceMarketplace";
@@ -20,7 +13,6 @@ import type { ZeroSpaceControls } from "@/features/games/v2/spaceSupplies";
 import {
   countdown, finishRun, joinTournament, JOIN_REFUSAL, listTournaments, previewPrizeLine, startRun, tournamentDetail,
 } from "@/features/games/v2/api";
-import { CardSelect } from "@/components/CardSelect";
 
 import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/games/play/$game")({
@@ -30,20 +22,14 @@ export const Route = createFileRoute("/app/games/play/$game")({
   }),
   beforeLoad: ({ params, search }) => {
     if (params.game === "sudoku" || params.game === "draught") throw redirect({ to: "/app/games/draught", search: { mode: "solo", room: undefined, code: undefined } });
-    // Zero Words practice now lives in its own studio (paste → Find, Match, Recall → Word Bank).
-    // Tournament runs (?t=) keep the classic timed board.
-    if (params.game === "words" && !search.t) throw redirect({ to: "/app/games/words" });
+    // Retired games (Zero Words, …) go back to the Zero Games home.
+    if (!isZeroGameKey(params.game)) throw redirect({ to: "/app/games", search: { game: undefined } });
   },
   component: PlayGame,
 });
 
 type Phase = "splash" | "playing" | "result";
 type Result = { score: number; best?: number; detail: string; failed?: boolean; newBest?: boolean };
-type Board =
-  | { kind: "space" }
-  | { kind: "words"; letters: string[]; words: string[]; size: number };
-
-const DIFFS: ZeroGameDifficulty[] = ["easy", "medium", "hard"];
 
 const bestKey = (game: ZeroGameKey, variant: string) => `zero-games:v2-best:${game}:${variant}`;
 const readBest = (k: string) => { try { return Number(localStorage.getItem(k)) || 0; } catch { return 0; } };
@@ -58,13 +44,9 @@ function PlayGame() {
   const info = ZERO_GAMES[game];
 
   const [phase, setPhase] = useState<Phase>("splash");
-  const [board, setBoard] = useState<Board | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
-  const [difficulty, setDifficulty] = useState<ZeroGameDifficulty>("easy");
-  const [profession, setProfession] = useState<string>(ZERO_GAME_PROFESSIONS[0]);
   const [runKey, setRunKey] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const runRef = useRef<string | null>(null);
   const startedAt = useRef(0);
@@ -102,12 +84,6 @@ function PlayGame() {
     return () => window.clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    if (phase !== "playing" || game === "space") return;
-    const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000)), 500);
-    return () => window.clearInterval(id);
-  }, [phase, game, runKey]);
-
   // Leaving mid-game shouldn't be a single mis-tap.
   useEffect(() => {
     if (phase !== "playing") return;
@@ -116,22 +92,16 @@ function PlayGame() {
     return () => window.removeEventListener("beforeunload", warn);
   }, [phase]);
 
-  const variant = tournamentId ? `t:${tournamentId}` : game === "words" ? `${difficulty}:${profession}` : "practice";
+  const variant = tournamentId ? `t:${tournamentId}` : "practice";
 
-  const begin = (b: Board) => {
-    setBoard(b);
+  const begin = () => {
     setResult(null);
-    setElapsed(0);
     startedAt.current = Date.now();
     setRunKey((k) => k + 1);
     setPhase("playing");
   };
 
-  const startPractice = () => {
-    if (game === "space") return begin({ kind: "space" });
-    const w = generateWordsPuzzle(profession, difficulty);
-    begin({ kind: "words", letters: w.letters, words: w.words, size: w.size });
-  };
+  const startPractice = () => begin();
 
   const startTournamentRun = async () => {
     if (!t || !tournamentId) return;
@@ -144,12 +114,7 @@ function PlayGame() {
       const r = await startRun(tournamentId);
       if (!r.ok || !r.run_id) throw new Error(JOIN_REFUSAL[r.reason || ""] || "Couldn't start a run.");
       runRef.current = r.run_id;
-      const diff = (r.difficulty as ZeroGameDifficulty) || "medium";
-      if (game === "space") begin({ kind: "space" });
-      else {
-        const w = generateWordsPuzzle(r.profession || ZERO_GAME_PROFESSIONS[0], diff);
-        begin({ kind: "words", letters: w.letters, words: w.words, size: w.size });
-      }
+      begin();
       void queryClient.invalidateQueries({ queryKey: ["zero-tournament", tournamentId] });
     } catch (e) {
       toast.error((e as Error).message);
@@ -189,13 +154,6 @@ function PlayGame() {
 
   const onSpaceOver = (r: ZeroSpaceResult) => {
     void complete(r.score, `${r.orbs} orbs · ${r.seconds}s · ${r.cause === "fuel" ? "ran out of fuel" : "caught by doubt"}`, { orbs: r.orbs, cause: r.cause });
-  };
-
-  const onWords = (found: Array<{ word: string }>) => {
-    if (board?.kind !== "words") return;
-    const seconds = Math.max(1, Math.round((Date.now() - startedAt.current) / 1000));
-    const score = wordsScore(found.length, board.words.length, seconds);
-    void complete(score, `${found.length} of ${board.words.length} words · ${formatGameTime(seconds)}`, { total: board.words.length, found: found.length });
   };
 
   const quit = async () => {
@@ -283,18 +241,6 @@ function PlayGame() {
         secondary={{ label: `${info.name} tournaments`, onClick: () => navigate({ to: "/app/games", search: { game } }) }}
         footer={
           <div className="space-y-3">
-            {game !== "space" && (
-              <div className="flex flex-wrap items-center justify-center gap-1.5">
-                {DIFFS.map((d) => (
-                  <button key={d} onClick={() => setDifficulty(d)} className={`h-8 rounded-full px-3.5 text-[12.5px] font-semibold capitalize ${difficulty === d ? "bg-white text-[#140a1c]" : "bg-white/10 text-white/75"}`}>{d}</button>
-                ))}
-                {game === "words" && (
-                  <CardSelect value={profession} onChange={(e) => setProfession(e.target.value)} className="h-8 max-w-[170px] rounded-full border-0 bg-white/10 px-3 text-[12.5px] font-semibold text-white outline-none">
-                    {ZERO_GAME_PROFESSIONS.map((p) => <option key={p} value={p} className="text-black">{p}</option>)}
-                  </CardSelect>
-                )}
-              </div>
-            )}
             <p>{best > 0 ? `Your best: ${best.toLocaleString()} pts` : "Practice runs don't affect tournaments"}</p>
           </div>
         }
@@ -341,47 +287,14 @@ function PlayGame() {
   }
 
   /* ── playing ── */
-  if (game === "space" || board?.kind === "space") {
-    return (
-      <div className="fixed inset-0 z-[60] bg-[#0b0618]">
-        <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + 80} controls={spaceControls} />}</SafeTop>
-        <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />
-        <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
-          <X className="h-5 w-5" />
-        </button>
-        {marketOpen && <SpaceMarketplace onBack={() => { setMarketOpen(false); spaceControls.current?.pause(false); }} />}{submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-background">
-      <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-background/95 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+8px)] backdrop-blur">
-        <button onClick={quit} aria-label="Leave game" className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.05]"><X className="h-5 w-5" /></button>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold">{info.name}</p>
-          <p className="truncate text-[12px] text-muted-foreground">{t ? t.tournament.title : "Practice"}</p>
-        </div>
-        <span className="flex h-9 items-center gap-1.5 rounded-full bg-foreground/[0.06] px-3 text-[14px] font-bold tabular-nums">
-          <Clock3 className="h-4 w-4" /> {formatGameTime(elapsed)}
-        </span>
-      </header>
-      <main className="zc-page-width mx-auto w-full max-w-[720px] px-3 py-4">
-        {board?.kind === "words" && (
-          <WordsRaceBoard
-            key={runKey}
-            letters={board.letters}
-            words={board.words}
-            size={board.size}
-            submitting={submitting}
-            submitLabel="Finish"
-            wordListTitle="Words to find"
-            wordListHint="Drag across letters in a straight line."
-            wordListFirstOnMobile
-            onSubmit={onWords}
-          />
-        )}
-      </main>
+    <div className="fixed inset-0 z-[60] bg-[#0b0618]">
+      <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + 80} controls={spaceControls} />}</SafeTop>
+      <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />
+      <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
+        <X className="h-5 w-5" />
+      </button>
+      {marketOpen && <SpaceMarketplace onBack={() => { setMarketOpen(false); spaceControls.current?.pause(false); }} />}{submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
     </div>
   );
 }

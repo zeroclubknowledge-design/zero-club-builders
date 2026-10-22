@@ -1,0 +1,5 @@
+-- APPLIED to project tiyifgfsuzhcvdvntjmp as retire_zero_words (2026-10-22). Record only.
+-- 1. Cancelled the live Zero Words tournament ("Light Man Standing (Zero Words) S01") with no prizes (owner's decision) and notified its 11 players.
+-- 2. Triggers zero_tournaments_no_words / zero_tournament_runs_no_words (function zero_words_retired_guard) block new Zero Words tournaments and runs.
+-- 3. Revoked EXECUTE on every word-pack / word-bank RPC from public, anon and authenticated.
+-- Full SQL is in the Supabase migration history under retire_zero_words.

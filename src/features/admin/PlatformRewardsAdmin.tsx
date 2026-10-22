@@ -6,7 +6,7 @@ import { Banknote, Coins, Gift, Loader2, Search, Trophy, X } from "@/components/
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { supabase } from "@/lib/supabase";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { ZERO_GAMES, type ZeroGameKey } from "@/features/games/v2/catalog";
+import { gameInfo } from "@/features/games/v2/catalog";
 
 import { confirmCard } from "@/components/ConfirmCard";
 type RewardRow = {
@@ -31,7 +31,7 @@ type RewardRow = {
 type SponsoredRow = {
   id: string;
   title: string;
-  game_type: ZeroGameKey;
+  game_type: string;
   reward_type: string;
   prize_pool: number;
   status: "upcoming" | "live" | "ended";
@@ -100,8 +100,8 @@ export function PlatformRewardsAdmin() {
               <div className="mt-2 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
                 {d.tournaments.map((t) => (
                   <Link key={t.id} to="/app/games/t/$id" params={{ id: t.id }} search={{ code: undefined }} className="flex items-center gap-3 p-3 hover:bg-foreground/[0.02]">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[11px] font-bold text-white" style={{ background: `linear-gradient(150deg, ${ZERO_GAMES[t.game_type].to}, ${ZERO_GAMES[t.game_type].from})` }}>
-                      {ZERO_GAMES[t.game_type].name.split(" ")[1]?.charAt(0) || "Z"}
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[11px] font-bold text-white" style={{ background: `linear-gradient(150deg, ${gameInfo(t.game_type).to}, ${gameInfo(t.game_type).from})` }}>
+                      {gameInfo(t.game_type).name.split(" ")[1]?.charAt(0) || "Z"}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13.5px] font-semibold">{t.title}</p>

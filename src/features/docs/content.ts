@@ -342,9 +342,8 @@ export const docPages: DocPage[] = [
         bullets: [
           "Zero Space: pilot the Zero craft, collect opportunity orbs to refuel before the fuel ring runs out, and dodge Doubt drones. Shields, Focus and Magnet power-ups and combos raise your score.",
           "Zero Draught: play an 8×8 strategy game against Zero Bot or a friend, with mandatory captures and flying kings that move along clear diagonals.",
-          "Zero Words: trace professional terms hidden in a letter board; clearing the whole board quickly earns a bonus.",
           "Zero Quest: build a shared city with 2–6 players by completing challenges and reviewing teammates' creative briefs. Contributing players earn 100 XP per win, up to three rewarded wins per UTC day.",
-          "Zero Space and Zero Words offer practice and tournaments. Zero Draught offers a computer opponent and private two-player matches. Zero Quest has private cooperative squads.",
+          "Zero Space offers practice and tournaments. Zero Draught offers a computer opponent and private two-player matches. Zero Quest has private cooperative squads.",
           "The Zero Space header has quick-access supplies and a marketplace. Fuel enhancers make fuel last 2×, 3× or 5× longer for the current run, in practice or a tournament. They do not stack; a stronger enhancer replaces a weaker one.",
         ],
       },

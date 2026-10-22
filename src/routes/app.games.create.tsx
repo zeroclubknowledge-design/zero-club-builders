@@ -8,11 +8,10 @@ import {
 } from "@/components/icons/glyphs";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { ZERO_GAME_OFFERS, ZERO_GAME_PROFESSIONS } from "@/features/games/zeroGames";
+import { ZERO_GAME_OFFERS } from "@/features/games/zeroGames";
 import { ZERO_GAMES, ZERO_GAME_LIST, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { createTournament, durationLabel, placeLabel, type TournamentReward } from "@/features/games/v2/api";
-import { CardSelect } from "@/components/CardSelect";
 
 import { MentionField } from "@/components/MentionField";
 export const Route = createFileRoute("/app/games/create")({
@@ -41,8 +40,6 @@ function CreateTournament() {
   const [game, setGame] = useState<ZeroGameKey>(search.game || "space");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [difficulty, setDifficulty] = useState("medium");
-  const [profession, setProfession] = useState<string>(ZERO_GAME_PROFESSIONS[0]);
   const [startMode, setStartMode] = useState<"now" | "later">("now");
   const [startAt, setStartAt] = useState(() => {
     const d = new Date(Date.now() + 60 * 60 * 1000);
@@ -107,8 +104,8 @@ function CreateTournament() {
         game_type: game,
         title: title.trim(),
         description: description.trim(),
-        difficulty: game === "space" ? "medium" : difficulty,
-        profession: game === "words" ? profession : null,
+        difficulty: "medium",
+        profession: null,
         starts_at: startMode === "later" ? new Date(startAt).toISOString() : null,
         duration_minutes: duration,
         max_players: capped ? cap : null,
@@ -158,16 +155,6 @@ function CreateTournament() {
             ))}
           </div>
           <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{info.scoring}</p>
-          {game !== "space" && (
-            <div className="mt-3 space-y-3">
-              <Segmented value={difficulty} onChange={setDifficulty} options={[["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]]} />
-              {game === "words" && (
-                <CardSelect value={profession} onChange={(e) => setProfession(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]">
-                  {ZERO_GAME_PROFESSIONS.map((p) => <option key={p}>{p}</option>)}
-                </CardSelect>
-              )}
-            </div>
-          )}
         </Card>
 
         <Card title="Details">

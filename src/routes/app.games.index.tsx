@@ -127,7 +127,7 @@ function ZeroGamesHub() {
             ))}
           </div>
           <div className="flex gap-1.5 overflow-x-auto px-3 pb-2 pt-2.5 [scrollbar-width:none]">
-            {(["all", "space", "words"] as const).map((g) => (
+            {(["all", "space"] as const).map((g) => (
               <button
                 key={g}
                 onClick={() => setFilter(g)}
