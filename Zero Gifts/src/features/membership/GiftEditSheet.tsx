@@ -7,6 +7,7 @@ import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCa
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { supabase } from "@/lib/supabase";
+import { giftEditError, verifyGiftEdit } from "./giftEdit";
 
 export type EditableGift = {
   id: string;
@@ -43,10 +44,12 @@ export function GiftEditSheet({
   card,
   open,
   onOpenChange,
+  onSaved,
 }: {
   card: EditableGift;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSaved?: (card: EditableGift & { status: string }) => void;
 }) {
   const client = useQueryClient();
   const { details: currency, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
@@ -118,13 +121,14 @@ export function GiftEditSheet({
     if (amountTooLow) return `The amount can only go up — it's ${format(oldAmount)} now.`;
     if (!Number.isInteger(newQuantity) || newQuantity > 10000) return "Choose up to 10,000 people.";
     if (quantityTooLow) return `Claims can only go up — it's ${oldQuantity.toLocaleString()} now.`;
+    if (wasExpired && newQuantity <= claimed) return "Every place has already been claimed. Increase the number of people to reactivate this gift.";
     if (!Number.isFinite(expiry) || expiry <= now) return "Choose a claim-by date in the future.";
     if (expiry > now + 366 * 86400000) return "Choose a claim-by date within one year.";
     if (service === "custom" && !customPurpose.trim()) return "Say what this custom gift is for.";
     if (service === "bootcamps" && limited && !bootcampIds.length) return "Select at least one eligible bootcamp.";
     if (!sponsored && cost > 0 && wallet !== undefined && cost > wallet) return `Add ${format(cost - wallet)} to your wallet to save these changes.`;
     return null;
-  }, [newAmount, amountTooLow, newQuantity, quantityTooLow, expiry, now, service, customPurpose, limited, bootcampIds, sponsored, cost, wallet, format, oldAmount, oldQuantity]);
+  }, [newAmount, amountTooLow, newQuantity, quantityTooLow, expiry, now, wasExpired, claimed, service, customPurpose, limited, bootcampIds, sponsored, cost, wallet, format, oldAmount, oldQuantity]);
 
   const changed =
     newAmount !== oldAmount ||
@@ -137,7 +141,11 @@ export function GiftEditSheet({
     JSON.stringify(service === "bootcamps" && limited ? [...bootcampIds].sort() : []) !== JSON.stringify([...(card.bootcamp_ids || [])].sort());
 
   const save = useMutation({
+    networkMode: "always",
+    retry: false,
     mutationFn: async () => {
+      if (problem) throw new Error(problem);
+      if (typeof navigator !== "undefined" && navigator.onLine === false) throw new Error("You're offline. Reconnect and try again. Your changes are still here.");
       const payload = {
         p_gift: card.id,
         p_amount: newAmount,
@@ -152,29 +160,34 @@ export function GiftEditSheet({
       // Same edit retried = same request id, so it can never be charged twice.
       const signature = JSON.stringify(payload);
       if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
-      const { data, error } = await supabase.rpc("update_gift_campaign" as never, { ...payload, p_request_id: request.current.id } as never);
+      const args = { ...payload, p_request_id: request.current.id };
+      const { data, error } = await supabase.rpc("update_gift_campaign" as never, args as never).abortSignal(AbortSignal.timeout(20_000));
       if (error) throw error;
-      return data;
+      return verifyGiftEdit(data, args) as EditableGift & { status: string };
     },
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      client.setQueriesData({ queryKey: ["unclaimed-gifts"] }, (old: unknown) => Array.isArray(old)
+        ? old.map((gift: EditableGift) => gift.id === updated.id ? { ...gift, ...updated } : gift) : old);
       toast.success(
-        wasExpired
+        wasExpired && updated.status === "active"
           ? `Gift reactivated · collecting claims until ${new Date(expires).toLocaleString()}`
           : cost > 0 && !sponsored ? `Gift updated · ${format(cost)} from your wallet` : "Gift updated",
       );
       for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile", "wallet", "wallet-balance", "gift-edit-wallet"])
         void client.invalidateQueries({ queryKey: [key] });
+      onSaved?.(updated);
       onOpenChange(false);
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(giftEditError(error)),
   });
+  useEffect(() => { if (open) save.reset(); }, [open, card.id]);
 
   const step = (setter: (v: string) => void, value: number, min: number, max: number) => setter(String(Math.max(min, Math.min(max, value))));
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="mx-auto max-h-[94dvh] max-w-[560px]">
-        <DrawerHeader className="text-left">
+        <DrawerHeader className="shrink-0 text-left">
           <DrawerTitle>{wasExpired ? "Edit and reactivate gift" : "Edit gift"}</DrawerTitle>
           <DrawerDescription>
             Change anything about this Zero Card. The amount and number of claims can only go up. People who already
@@ -182,7 +195,7 @@ export function GiftEditSheet({
           </DrawerDescription>
         </DrawerHeader>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 pb-4">
+        <div data-vaul-no-drag className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 pb-4">
           {/* Live preview + design */}
           <div>
             <GiftCardVisual amount={newAmount || oldAmount} service={service} templateId={templateId} code={card.code} message={message} />
@@ -359,8 +372,9 @@ export function GiftEditSheet({
           </p>
         </div>
 
-        <div className="border-t border-border bg-background px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
+        <div data-vaul-no-drag className="shrink-0 border-t border-border bg-background px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
           {problem && (changed || wasExpired) && <p className="mb-2 text-[12.5px] font-medium text-rose-600">{problem}</p>}
+          {Boolean(save.error) && <p role="alert" className="mb-2 text-[12.5px] font-medium text-rose-600">{giftEditError(save.error)}</p>}
           <button
             type="button"
             disabled={!changed || !!problem || save.isPending}
@@ -368,7 +382,7 @@ export function GiftEditSheet({
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white transition hover:bg-[#b41c7e] disabled:opacity-40"
           >
             {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
-            {!changed ? "No changes yet" : cost > 0 && !sponsored ? `${wasExpired ? "Reactivate" : "Save"} · ${format(cost)}` : wasExpired ? "Save and reactivate" : "Save changes"}
+            {save.isPending ? (wasExpired ? "Reactivating…" : "Saving…") : !changed ? "No changes yet" : cost > 0 && !sponsored ? `${wasExpired ? "Reactivate" : "Save"} · ${format(cost)}` : wasExpired ? "Save and reactivate" : "Save changes"}
           </button>
         </div>
       </DrawerContent>

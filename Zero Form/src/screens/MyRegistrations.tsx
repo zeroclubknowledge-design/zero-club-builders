@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight, CalendarDays, ClipboardList, Loader2, LogOut } from "@/components/icons/glyphs";
+import { ArrowUpRight, CalendarDays, ClipboardList, Loader2 } from "@/components/icons/glyphs";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { zc } from "@/lib/config";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { AppShell, PageHead } from "@/components/AppShell";
 import { Brand } from "@/components/Brand";
+import { RegistrationAccount } from "@/components/RegistrationAccount";
 import { NAV } from "./nav";
 
 const STATUS: Record<string, { label: string; tone: string }> = {
@@ -43,21 +44,7 @@ export function MyRegistrations() {
     <AppShell brand={<Brand />} nav={NAV}>
       <PageHead eyebrow="Your account" title="My registrations" sub="Bootcamps, waitlists and sign-ups you've joined with Zero Form." />
 
-      <section className="mb-5 flex flex-wrap items-center gap-3 rounded-[22px] border border-border bg-card p-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] text-[17px] font-bold">
-          {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.full_name || profile?.username || "?").charAt(0).toUpperCase()}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold">{profile?.full_name || profile?.username || "Your account"}</p>
-          <p className="truncate text-[12.5px] text-muted-foreground">@{profile?.username} · Zero Club account</p>
-        </div>
-        <a href={zc("/app")} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background">
-          Open Zero Club <ArrowUpRight className="h-4 w-4" />
-        </a>
-        <button type="button" onClick={() => void signOut()} className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border px-4 text-[13px] font-semibold text-muted-foreground hover:text-foreground">
-          <LogOut className="h-4 w-4" /> Sign out
-        </button>
-      </section>
+      <RegistrationAccount profile={profile} onSignOut={() => void signOut()} />
 
       {regs.isLoading ? (
         <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>

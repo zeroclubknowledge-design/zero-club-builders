@@ -193,6 +193,29 @@ for (const hasRestrictedBalances of [false,true]) test(`gift accounting with ${h
    await db.exec(read('supabase/migrations/20261018120000_admin_sponsored_gift_cards.sql'));
    assert.equal(await value('select funding_source as value from gift_cards where id=$1',[gift.id]),'platform');
   });
+  await t.test('expired campaign edits reopen available claims without extending previously claimed credit',async()=>{
+   await db.exec('reset role');await db.exec(read('supabase/migrations/20261021200000_edit_gift_campaign.sql'));
+   const card=await create({amount:100,quantity:2,service:'universal'});
+   const receipt=await claim(card,alice);
+   await db.exec('reset role');await db.query("update gift_cards set expires_at=now()-interval '1 day' where id=$1 or parent_gift_id=$1",[card.id]);
+   const expiredClaim=await value('select expires_at as value from gift_cards where id=$1',[receipt.id]);
+   const cash=Number(await value('select coins as value from profiles where id=$1',[maker]));
+   await user(maker);const request=crypto.randomUUID();
+   const saved=await value("select to_jsonb(update_gift_campaign($1,100,2,$2,'signature','universal',null,null,'{}',$3)) as value",[card.id,expires,request]);
+   assert.equal(saved.status,'active');assert.equal(Date.parse(saved.expires_at),Date.parse(expires));
+   await claim(saved,bob);
+   await db.exec('reset role');assert.equal(Number(await value('select coins as value from profiles where id=$1',[maker])),cash);
+   assert.equal(new Date(await value('select expires_at as value from gift_cards where id=$1',[receipt.id])).getTime(),new Date(expiredClaim).getTime());
+   await user(alice);assert.equal(Number((await balance(alice,'universal')).available),700);
+  });
+  await t.test('gift edit wallet top-ups are charged once even when saving is retried',async()=>{
+   const card=await create({amount:100,quantity:2,service:'universal'});await db.exec('reset role');
+   const cash=Number(await value('select coins as value from profiles where id=$1',[maker]));
+   await user(maker);const request=crypto.randomUUID();
+   const edit=()=>value("select to_jsonb(update_gift_campaign($1,200,3,$2,'signature','universal',null,null,'{}',$3)) as value",[card.id,expires,request]);
+   assert.equal((await edit()).status,'active');assert.equal((await edit()).quantity,3);
+   await db.exec('reset role');assert.equal(Number(await value('select coins as value from profiles where id=$1',[maker])),cash-400);
+  });
   await t.test('anonymous callers cannot create or redeem and cannot execute internal funding helpers',async()=>{
    await db.exec("reset role;select set_config('test.uid','',false);set role anon");await assert.rejects(value("select create_gift_campaign(1,'signature','support',1,now()+interval '1 day') as value"),/permission denied/);
    await assert.rejects(value("select zero_gift_balance_for_context($1,'bootcamps','{}') as value",[alice]),/permission denied/);

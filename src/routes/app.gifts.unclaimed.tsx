@@ -313,7 +313,7 @@ function GiftCampaignsPage() {
       </main>
 
       {editing && (
-        <GiftEditSheet card={editing} open={!!editing} onOpenChange={(open) => { if (!open) setEditing(null); }} />
+        <GiftEditSheet card={editing} open={!!editing} onSaved={(saved) => setTab(saved.status === "active" ? "collecting" : "past")} onOpenChange={(open) => { if (!open) setEditing(null); }} />
       )}
     </div>
   );
