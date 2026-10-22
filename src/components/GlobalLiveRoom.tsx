@@ -859,6 +859,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * conversation rather than trail it.
    */
   const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  /* The last person other than me who spoke: reactions are sent to them. */
+  const lastSpeakerRef = useRef<string | null>(null);
   useEffect(() => {
     // The mini player does not display speaker rings. Leaving this listener
     // active made the entire live component redraw repeatedly behind club chat.
@@ -874,6 +876,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       );
       // A floor, so room noise does not make the ring flicker between people.
       setActiveSpeaker(loudest && loudest.level > 12 ? String(loudest.uid) : null);
+      const loudestOther = volumes
+        .filter((v) => v.level > 12 && String(v.uid) !== "0" && String(v.uid) !== String(client.uid))
+        .sort((a, b) => b.level - a.level)[0];
+      if (loudestOther) lastSpeakerRef.current = String(loudestOther.uid);
 
       // Agora reports the local user as uid 0. Levels arrive 0–100; the meter
       // wants 0–1.
@@ -926,12 +932,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * fans out instead of stacking into a single opaque blob.
    */
   const [reactions, setReactions] = useState<
-    { id: string; emoji: string; name?: string; left: number }[]
+    { id: string; emoji: string; name?: string; left: number; target?: string; targetName?: string }[]
   >([]);
 
-  const pushReaction = (emoji: string, name?: string) => {
+  /** `target` is the Agora uid of the person it was sent to (whoever spoke last). */
+  const pushReaction = (emoji: string, name?: string, target?: string, targetName?: string) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    setReactions((prev) => [...prev.slice(-14), { id, emoji, name, left: 8 + Math.random() * 62 }]);
+    setReactions((prev) => [...prev.slice(-14), { id, emoji, name, left: 8 + Math.random() * 62, target, targetName }]);
     // Matches the float animation below; removed so the list cannot grow
     // without bound during a long session.
     setTimeout(() => setReactions((prev) => prev.filter((r) => r.id !== id)), 3200);
@@ -939,6 +946,32 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const [showReactionTray, setShowReactionTray] = useState(false);
   const [questionRaised, setQuestionRaised] = useState(false);
+  /*
+   * Everyone with a hand up, visible to the whole room. Built from the same
+   * "question" broadcasts the tutor's alert uses (re-sent every few minutes
+   * while a hand stays up), and cleared by "question_lower". An entry that
+   * stops being refreshed expires on its own.
+   */
+  const [raisedHands, setRaisedHands] = useState<Record<string, { name: string; at: number; seen: number }>>({});
+  const myHandKey = String(profile?.id || client?.uid || "me");
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setRaisedHands((prev) => {
+        const next = Object.fromEntries(Object.entries(prev).filter(([, h]) => now - h.seen < QUESTION_REMINDER_MS + 60_000));
+        return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+      });
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const lowerHandFor = (senderId: string) => {
+    setRaisedHands((prev) => { const next = { ...prev }; delete next[senderId]; return next; });
+    chatChannelRef.current?.send({
+      type: "broadcast",
+      event: "question_lower",
+      payload: { senderId, by: profile?.full_name || profile?.username || "The tutor" },
+    });
+  };
   const [incomingQuestion, setIncomingQuestion] = useState<{ id: string; name: string } | null>(null);
   const lastQuestionBySenderRef = useRef<Map<string, number>>(new Map());
   const questionReminderIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -998,6 +1031,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         clearInterval(questionReminderIntervalRef.current);
         questionReminderIntervalRef.current = null;
       }
+      lowerHandFor(myHandKey);
       toast.info("Your question hand is lowered.");
       return;
     }
@@ -1021,6 +1055,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     }
 
     setQuestionRaised(true);
+    setRaisedHands((prev) => ({ ...prev, [myHandKey]: { name: "You", at: Date.now(), seen: Date.now() } }));
     if (questionReminderIntervalRef.current) clearInterval(questionReminderIntervalRef.current);
     questionReminderIntervalRef.current = setInterval(() => {
       void broadcastQuestionAlert()
@@ -1040,11 +1075,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   }, []);
 
   const sendReaction = (emoji: string) => {
-    pushReaction(emoji, "You");
+    // Sent to whoever spoke last; before anyone has spoken it goes to the room.
+    const target = lastSpeakerRef.current || undefined;
+    const targetName = target ? userNames[target] || undefined : undefined;
+    pushReaction(emoji, "You", target, targetName);
     chatChannelRef.current?.send({
       type: "broadcast",
       event: "reaction",
-      payload: { emoji, name: profile?.username || "Someone" },
+      payload: { emoji, name: profile?.username || "Someone", target, targetName },
     });
     setShowReactionTray(false);
   };
@@ -1059,10 +1097,31 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       if (!chatVisibleRef.current) setUnreadCount((c) => c + 1);
     });
     ch.on("broadcast", { event: "reaction" }, ({ payload }: any) => {
-      if (payload?.emoji) pushReaction(payload.emoji, payload.name);
+      if (payload?.emoji) pushReaction(payload.emoji, payload.name, payload.target ? String(payload.target) : undefined, payload.targetName ? String(payload.targetName) : undefined);
     });
     ch.on("broadcast", { event: "question" }, ({ payload }: any) => {
       notifyTutorOfQuestion(payload);
+      const key = String(payload?.senderId || payload?.name || "");
+      if (!key) return;
+      const now = Date.now();
+      setRaisedHands((prev) => ({
+        ...prev,
+        [key]: { name: String(payload?.name || "A learner"), at: prev[key]?.at ?? Number(payload?.at || now), seen: now },
+      }));
+    });
+    ch.on("broadcast", { event: "question_lower" }, ({ payload }: any) => {
+      const key = String(payload?.senderId || "");
+      if (!key) return;
+      setRaisedHands((prev) => { if (!prev[key]) return prev; const next = { ...prev }; delete next[key]; return next; });
+      const me = String(profile?.id || client?.uid || "");
+      if (key === me) {
+        setQuestionRaised(false);
+        if (questionReminderIntervalRef.current) {
+          clearInterval(questionReminderIntervalRef.current);
+          questionReminderIntervalRef.current = null;
+        }
+        toast.info(`${String(payload?.by || "The tutor")} lowered your hand.`);
+      }
     });
     /*
      * A host asking someone to stop.
@@ -2509,13 +2568,44 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
               >
                 <span className="text-[30px] leading-none drop-shadow-lg">{r.emoji}</span>
                 {r.name && (
-                  <span className="mt-0.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[8.5px] font-semibold text-white/90 backdrop-blur-sm">
+                  <span className="mt-0.5 whitespace-nowrap rounded-full bg-black/60 px-1.5 py-0.5 text-[8.5px] font-semibold text-white/90 backdrop-blur-sm">
                     {r.name}
+                    {r.target && (
+                      <span className="text-[#ff9bdd]">
+                        {" → "}
+                        {r.target === String(client?.uid) ? "you" : (r.targetName || userNames[r.target] || "speaker").split(" ")[0]}
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
             ))}
           </div>
+
+          {/* Raised hands: everyone can see who is waiting to ask. */}
+          {Object.keys(raisedHands).length > 0 && (
+            <div className="absolute left-2.5 right-14 top-9 z-10 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#2a1a00]">
+                ✋ {Object.keys(raisedHands).length}
+              </span>
+              {Object.entries(raisedHands)
+                .sort((a, b) => a[1].at - b[1].at)
+                .map(([key, hand], i) => (
+                  <button
+                    key={key}
+                    type="button"
+                    disabled={!isAdmin && key !== myHandKey}
+                    onClick={() => (key === myHandKey ? void sendQuestionAlert() : lowerHandFor(key))}
+                    title={isAdmin || key === myHandKey ? "Lower this hand" : undefined}
+                    className="flex shrink-0 items-center gap-1 rounded-full bg-black/55 py-0.5 pl-1 pr-2 text-[10px] font-semibold text-white ring-1 ring-amber-300/40 backdrop-blur-md transition enabled:hover:bg-black/70 disabled:cursor-default"
+                  >
+                    <span className="grid h-4 min-w-4 place-items-center rounded-full bg-amber-400 px-0.5 text-[8.5px] font-extrabold text-[#2a1a00]">{i + 1}</span>
+                    <span className="max-w-[90px] truncate">{key === myHandKey ? "You" : hand.name.split(" ")[0]}</span>
+                    {(isAdmin || key === myHandKey) && <X className="h-2.5 w-2.5 text-white/60" />}
+                  </button>
+                ))}
+            </div>
+          )}
 
           {/* Stage overlays */}
           {stageIsLive && (
@@ -2949,6 +3039,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                         key={user.uid}
                         className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
                       >
+                        <ReactionPop reactions={reactions} uid={String(user.uid)} />
                         {findVideo(user.uid) && (
                           <RemoteVideoTrack track={findVideo(user.uid)!} play={true} className="w-full h-full object-cover" />
                         )}
@@ -2998,8 +3089,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     {audioOnlyUsers.map((user) => (
                       <div
                         key={user.uid}
-                        className={`flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
+                        className={`relative flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
                       >
+                        <ReactionPop reactions={reactions} uid={String(user.uid)} />
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar url={userAvatars[user.uid]} name={userNames[user.uid] || "B"} className="w-8 h-8" />
                           <span className="text-[13px] font-medium tracking-tight text-white/90 truncate">
@@ -3128,5 +3220,21 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
     </div>
     </>
+  );
+}
+
+/** The newest reaction sent to this person pops on their tile in the Learners list. */
+function ReactionPop({ reactions, uid }: { reactions: { id: string; emoji: string; target?: string }[]; uid: string }) {
+  const latest = [...reactions].reverse().find((r) => r.target === uid);
+  if (!latest) return null;
+  return (
+    <span
+      key={latest.id}
+      aria-hidden
+      className="pointer-events-none absolute right-2 top-1/2 z-10 -translate-y-1/2 text-[24px] leading-none drop-shadow-lg"
+      style={{ animation: "zc-reaction-float 3.2s ease-out forwards" }}
+    >
+      {latest.emoji}
+    </span>
   );
 }

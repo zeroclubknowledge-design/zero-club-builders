@@ -17,7 +17,8 @@ import { supabase } from "@/lib/supabase";
 export const CALL_REACTIONS = ["👏", "❤️", "😂", "🎉", "👍", "🔥", "😮", "🙌"] as const;
 
 export type RaisedHand = { profileId: string; name: string; avatar: string | null; at: number };
-export type FloatingReaction = { id: string; emoji: string; name: string; mine: boolean; x: number; drift: number };
+/** `target` is the profile the reaction was sent to (the last person who spoke), or null for the whole call. */
+export type FloatingReaction = { id: string; emoji: string; name: string; mine: boolean; x: number; drift: number; target: string | null };
 
 type Presence = { name: string; avatar: string | null; hand: number | null };
 type Me = { id: string; name: string; avatar: string | null };
@@ -34,9 +35,9 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
   const myHandRef = useRef<number | null>(null);
   myHandRef.current = myHand;
 
-  const float = useCallback((emoji: string, name: string, mine: boolean) => {
+  const float = useCallback((emoji: string, name: string, mine: boolean, target: string | null) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const item: FloatingReaction = { id, emoji, name, mine, x: 8 + Math.random() * 74, drift: Math.round((Math.random() - 0.5) * 60) };
+    const item: FloatingReaction = { id, emoji, name, mine, target, x: target ? 18 + Math.random() * 52 : 8 + Math.random() * 74, drift: Math.round((Math.random() - 0.5) * 60) };
     setReactions((list) => [...list.slice(-24), item]);
     window.setTimeout(() => setReactions((list) => list.filter((r) => r.id !== id)), 3200);
   }, []);
@@ -72,7 +73,7 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
       setHands(list);
     })
       .on("broadcast", { event: "react" }, ({ payload }) => {
-        if (payload?.emoji && CALL_REACTIONS.includes(payload.emoji)) float(payload.emoji, String(payload.name || "Member"), false);
+        if (payload?.emoji && CALL_REACTIONS.includes(payload.emoji)) float(payload.emoji, String(payload.name || "Member"), false, typeof payload.target === "string" ? payload.target : null);
       })
       .on("broadcast", { event: "lower" }, ({ payload }) => {
         if (payload?.target === me.id && myHandRef.current) {
@@ -102,13 +103,14 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
 
   const toggleHand = useCallback(() => setMyHand((h) => (h ? null : Date.now())), []);
 
+  /** Send a reaction to `target` (the last person who spoke), or to the whole call. */
   const react = useCallback(
-    (emoji: string) => {
+    (emoji: string, target: string | null = null) => {
       const now = Date.now();
       if (now - lastReaction.current < 350 || !me) return;
       lastReaction.current = now;
-      float(emoji, "You", true);
-      void channel.current?.send({ type: "broadcast", event: "react", payload: { emoji, name: me.name } });
+      float(emoji, "You", true, target);
+      void channel.current?.send({ type: "broadcast", event: "react", payload: { emoji, name: me.name, target } });
     },
     [float, me],
   );

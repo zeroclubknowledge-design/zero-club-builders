@@ -13,7 +13,17 @@ export const CALL_FX_CSS = `
 @keyframes zgc-pop { from { transform: translateY(10px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes zgc-wave { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } }
 @keyframes zgc-speak { 0%,100% { box-shadow: 0 0 0 2px rgba(255,79,195,.9), 0 0 28px -4px rgba(255,79,195,.7); } 50% { box-shadow: 0 0 0 3px rgba(255,79,195,1), 0 0 40px -2px rgba(255,79,195,.9); } }
+@keyframes zgc-tile-rise {
+  0%   { top: 78%; opacity: 0; transform: translateX(-50%) scale(.5); }
+  14%  { opacity: 1; transform: translateX(-50%) scale(1.25); }
+  30%  { transform: translateX(-50%) scale(1); }
+  80%  { opacity: 1; }
+  100% { top: 4%; opacity: 0; transform: translateX(calc(-50% + var(--drift))) scale(.95); }
+}
+@keyframes zgc-tile-flash { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
 .zgc-rise { animation: zgc-rise 3s cubic-bezier(.2,.7,.3,1) forwards; }
+.zgc-tile-rise { animation: zgc-tile-rise 2.8s cubic-bezier(.2,.7,.3,1) forwards; }
+.zgc-tile-flash { animation: zgc-tile-flash 1.4s ease-out forwards; }
 .zgc-pop { animation: zgc-pop .28s cubic-bezier(.2,.8,.2,1) both; }
 .zgc-wave { animation: zgc-wave 1.2s ease-in-out infinite; transform-origin: 70% 90%; display: inline-block; }
 .zgc-speaking { animation: zgc-speak 1.2s ease-in-out infinite; }
@@ -40,6 +50,63 @@ export function ReactionLayer({ reactions }: { reactions: FloatingReaction[] }) 
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * Reactions sent to one person (the last who spoke) rise out of their tile,
+ * with who sent them, and the tile glows briefly.
+ */
+export function TileReactions({ reactions }: { reactions: FloatingReaction[] }) {
+  if (!reactions.length) return null;
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-[inherit]">
+      <div key={reactions[reactions.length - 1].id} className="zgc-tile-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(255,79,195,0.28),transparent_70%)]" />
+      {reactions.map((r) => (
+        <div
+          key={r.id}
+          className="zgc-tile-rise absolute flex flex-col items-center"
+          style={{ left: `${r.x}%`, ["--drift" as string]: `${r.drift}px` }}
+        >
+          <span className="text-[38px] leading-none drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{r.emoji}</span>
+          <span className={`mt-1 max-w-[110px] truncate whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md ${r.mine ? "bg-[#ff4fc3]/85 text-white" : "bg-black/55 text-white/90"}`}>
+            from {r.mine ? "you" : r.name.split(" ")[0]}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Everyone with a hand up, in order, always visible under the call header. */
+export function HandsStrip({ hands, meId, onOpen }: { hands: RaisedHand[]; meId?: string; onOpen: () => void }) {
+  if (!hands.length) return null;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`${hands.length} raised ${hands.length === 1 ? "hand" : "hands"}. Open the list`}
+      className="zgc-pop relative z-10 mx-2 mt-2 flex items-center gap-2 overflow-hidden rounded-[20px] bg-amber-400/[0.09] py-1.5 pl-2.5 pr-1.5 text-left ring-1 ring-amber-300/25 backdrop-blur-xl"
+    >
+      <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold text-amber-300">
+        <span className="zgc-wave text-[15px]">✋</span>
+        <span className="hidden min-[380px]:inline">Hands up</span>
+      </span>
+      <span className="no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+        {hands.map((hand, i) => (
+          <span key={hand.profileId} className="flex shrink-0 items-center gap-1.5 rounded-full bg-black/30 py-0.5 pl-0.5 pr-2.5 ring-1 ring-white/10">
+            <span className="relative">
+              <Avatar className="h-6 w-6 text-[10px]">
+                <AvatarImage src={hand.avatar || undefined} alt="" className="object-cover" />
+                <AvatarFallback>{hand.name.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span className="absolute -bottom-1 -right-1 grid h-[15px] min-w-[15px] place-items-center rounded-full bg-amber-400 px-0.5 text-[9px] font-extrabold text-[#2a1a00] ring-2 ring-[#1a1022]">{i + 1}</span>
+            </span>
+            <span className="max-w-[90px] truncate text-[12px] font-semibold text-white">{hand.profileId === meId ? "You" : hand.name.split(" ")[0]}</span>
+          </span>
+        ))}
+      </span>
+    </button>
   );
 }
 

@@ -22,8 +22,8 @@ import AgoraRTC, {
 import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
 import { callRecordingError, startAnnouncedCallRecording } from "./callRecording";
 import { Circle, Hand, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Smile, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
-import { useCallSignals } from "./callSignals";
-import { CALL_FX_CSS, CallNotice, HandsSheet, ReactionLayer, ReactionTray } from "./CallExtras";
+import { useCallSignals, type FloatingReaction } from "./callSignals";
+import { CALL_FX_CSS, CallNotice, HandsSheet, HandsStrip, ReactionLayer, ReactionTray, TileReactions } from "./CallExtras";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
 import { useOrientationLock } from "@/hooks/useOrientationLock";
@@ -258,8 +258,17 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   /* Who is talking right now: their tile glows. */
   const [speaking, setSpeaking] = useState<Set<string>>(() => new Set());
   useEffect(() => { try { client.enableAudioVolumeIndicator(); } catch { /* already on */ } }, [client]);
+  /* The last person (other than me) who spoke: reactions are sent to them. */
+  const lastSpeaker = useRef<string | null>(null);
   useClientEvent(client, "volume-indicator", (volumes: { uid: string | number; level: number }[]) => {
-    const next = new Set(volumes.filter((v) => v.level > 6).map((v) => String(v.uid)));
+    // Agora reports this device as uid 0.
+    const uidOf = (u: string | number) => (String(u) === "0" ? String(myUid) : String(u));
+    const loud = volumes.filter((v) => v.level > 6);
+    const next = new Set(loud.map((v) => uidOf(v.uid)));
+    const loudestOther = loud
+      .filter((v) => uidOf(v.uid) !== String(myUid) && !isScreenUid(v.uid))
+      .sort((a, b) => b.level - a.level)[0];
+    if (loudestOther) lastSpeaker.current = uidOf(loudestOther.uid);
     setSpeaking((prev) => (prev.size === next.size && [...next].every((u) => prev.has(u)) ? prev : next));
   });
   const leavingRef = useRef(false);
@@ -584,6 +593,13 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, connected, remoteKey, stageOn]);
   const tiles = people_.length + 1;
+  const visibleProfiles = new Set<string>([me?.id || "", ...people_.map((u) => byUid.get(String(u.uid))?.profile_id || "")].filter(Boolean));
+  const reactionsFor = (profileId?: string) => (profileId ? signals.reactions.filter((r) => r.target === profileId) : []);
+  /** Reactions go to whoever spoke last (not me); before anyone has spoken they float over the whole call. */
+  const sendReaction = (emoji: string) => {
+    const target = lastSpeaker.current ? byUid.get(lastSpeaker.current)?.profile_id || null : null;
+    signals.react(emoji, target && target !== me?.id ? target : null);
+  };
   const grid = tiles <= 1 ? "grid-cols-1" : tiles === 2 ? "grid-cols-1 sm:grid-cols-2" : tiles <= 4 ? "grid-cols-2" : tiles <= 9 ? "grid-cols-3" : "grid-cols-4";
   const timer = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const myName = me ? displayName(me) : "You";
@@ -593,7 +609,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
       {/* The call keeps playing while minimised: the screen just hides. */}
       <Shell hidden={minimized}>
         <style>{CALL_FX_CSS}</style>
-        <ReactionLayer reactions={signals.reactions} />
+        <ReactionLayer reactions={signals.reactions.filter((r) => !r.target || !visibleProfiles.has(r.target))} />
         {signals.notice && <CallNotice key={signals.notice.id} text={signals.notice.text} />}
         <header className="relative z-10 mx-2 mt-2 flex items-center gap-3 rounded-[24px] bg-white/[0.05] px-3 py-2.5 ring-1 ring-white/[0.08] backdrop-blur-xl">
           <GroupAvatar name={groupName} url={groupAvatar} size={40} />
@@ -610,20 +626,12 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
               REC{iAmRecording ? ` ${recTime}` : ""}
             </span>
           )}
-          {signals.hands.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setHandsOpen(true)}
-              aria-label={`${signals.hands.length} raised ${signals.hands.length === 1 ? "hand" : "hands"}`}
-              className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-amber-400/15 px-2.5 text-[13px] font-bold text-amber-300 ring-1 ring-amber-300/30"
-            >
-              <span className="zgc-wave">✋</span> {signals.hands.length}
-            </button>
-          )}
           <button type="button" onClick={goMinimize} aria-label="Minimise call" title="Minimise — keep using Zero Club" className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.08] transition hover:bg-white/[0.14]">
             <Minimize2 className="h-[18px] w-[18px]" />
           </button>
         </header>
+
+        <HandsStrip hands={signals.hands} meId={me?.id} onOpen={() => setHandsOpen(true)} />
 
         {stageOn && (
           <div className="relative mx-2 mb-2 mt-2 min-h-0 flex-[3] overflow-hidden rounded-[26px] bg-black ring-1 ring-white/10">
@@ -646,13 +654,13 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
         )}
 
         <div className={stageOn ? "no-scrollbar flex h-[132px] shrink-0 gap-2 overflow-x-auto px-2 [&>*]:w-[170px] [&>*]:shrink-0" : `mt-2 grid min-h-0 flex-1 auto-rows-fr gap-2 px-2 ${grid}`}>
-          <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack} speaking={micOn && speaking.has(String(myUid))} hand={handOrder(me?.id)}>
+          <Tile name={`${myName} (you)`} avatar={me?.avatar_url || null} muted={!micOn || !!micError} videoOn={camOn && !!localCameraTrack} speaking={micOn && speaking.has(String(myUid))} hand={handOrder(me?.id)} reactions={reactionsFor(me?.id)}>
             <LocalUser audioTrack={localMicrophoneTrack} videoTrack={localCameraTrack} micOn cameraOn={camOn} playAudio={false} playVideo={camOn} className="h-full w-full" />
           </Tile>
           {people_.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
-              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo} speaking={speaking.has(String(u.uid))} hand={handOrder(person?.profile_id)}>
+              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo} speaking={speaking.has(String(u.uid))} hand={handOrder(person?.profile_id)} reactions={reactionsFor(person?.profile_id)}>
                 <RemoteUser user={u} playAudio playVideo={u.hasVideo} videoPlayerConfig={CAMERA_PLAYER} className="h-full w-full" />
               </Tile>
             );
@@ -689,7 +697,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           </Ctrl>
           <div>
             <Ctrl on={!trayOpen} onClick={() => setTrayOpen((v) => !v)} label="Send a reaction"><Smile className="h-6 w-6" /></Ctrl>
-            {trayOpen && <ReactionTray onPick={(emoji) => signals.react(emoji)} onClose={() => setTrayOpen(false)} />}
+            {trayOpen && <ReactionTray onPick={sendReaction} onClose={() => setTrayOpen(false)} />}
           </div>
           {(canEnd || iAmRecording) && (
             <button
@@ -763,7 +771,7 @@ const ownerOfScreen = (uid: string | number) => String(Number(uid) - SCREEN_UID_
 const canShareScreen = () => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getDisplayMedia === "function"
   && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; children: React.ReactNode }) {
+function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, reactions = [], children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; reactions?: FloatingReaction[]; children: React.ReactNode }) {
   return (
     <div className={`relative min-h-[120px] overflow-hidden rounded-[26px] bg-[#16101c] ring-1 transition-shadow duration-300 ${speaking ? "zgc-speaking ring-[#ff4fc3]" : hand ? "ring-2 ring-amber-300/70" : "ring-white/[0.08]"}`}>
       <div className={`absolute inset-0 ${videoOn ? "" : "opacity-0"}`}>{children}</div>
@@ -778,6 +786,7 @@ function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, chi
           </div>
         </>
       )}
+      <TileReactions reactions={reactions} />
       {hand && (
         <span className="zgc-pop absolute left-2 top-2 flex items-center gap-1 rounded-full bg-amber-400 px-2 py-1 text-[12px] font-extrabold text-[#2a1a00] shadow-[0_8px_20px_-8px_rgba(251,191,36,0.9)]">
           <span className="zgc-wave">✋</span>{hand}
