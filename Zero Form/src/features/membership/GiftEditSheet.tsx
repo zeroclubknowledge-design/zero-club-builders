@@ -68,7 +68,10 @@ export function GiftEditSheet({
     if (!open) return;
     setAmount(String(fromBaseAmount(Number(card.amount))));
     setQuantity(String(card.quantity || 1));
-    setExpires(toLocalInput(card.expires_at));
+    // An expired gift opens with a fresh date already set (a week from now), so
+    // reopening it is one tap: Save brings it back to Collecting.
+    const isExpired = !!card.expires_at && Date.parse(card.expires_at) <= Date.now();
+    setExpires(isExpired ? toLocalInput(new Date(Date.now() + 7 * 86400000).toISOString()) : toLocalInput(card.expires_at));
     setTemplateId(card.template_id || "signature");
     setService(card.service === "support" ? "universal" : card.service);
     setLimited(Boolean(card.bootcamp_ids?.length));
@@ -107,6 +110,8 @@ export function GiftEditSheet({
   const cost = topUp + newPlacesCost;
   const expiry = new Date(expires).getTime();
   const now = Date.now();
+  const wasExpired = !!card.expires_at && Date.parse(card.expires_at) <= now;
+  const setExpiryIn = (days: number) => setExpires(toLocalInput(new Date(Date.now() + days * 86400000).toISOString()));
 
   const problem = useMemo(() => {
     if (!newAmount || newAmount > 5000000) return `Amount per person must be between ${format(1)} and ${format(5000000)}.`;
@@ -152,7 +157,11 @@ export function GiftEditSheet({
       return data;
     },
     onSuccess: () => {
-      toast.success(cost > 0 && !sponsored ? `Gift updated · ${format(cost)} from your wallet` : "Gift updated");
+      toast.success(
+        wasExpired
+          ? `Gift reactivated · collecting claims until ${new Date(expires).toLocaleString()}`
+          : cost > 0 && !sponsored ? `Gift updated · ${format(cost)} from your wallet` : "Gift updated",
+      );
       for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile", "wallet", "wallet-balance", "gift-edit-wallet"])
         void client.invalidateQueries({ queryKey: [key] });
       onOpenChange(false);
@@ -166,7 +175,7 @@ export function GiftEditSheet({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="mx-auto max-h-[94dvh] max-w-[560px]">
         <DrawerHeader className="text-left">
-          <DrawerTitle>Edit gift</DrawerTitle>
+          <DrawerTitle>{wasExpired ? "Edit and reactivate gift" : "Edit gift"}</DrawerTitle>
           <DrawerDescription>
             Change anything about this Zero Card. The amount and number of claims can only go up. People who already
             claimed keep what they got.
@@ -258,8 +267,19 @@ export function GiftEditSheet({
             {/* Date — editable */}
             <label className="block">
               <span className={LABEL}>Claim and use before</span>
-              <input type="datetime-local" value={expires} onChange={(event) => setExpires(event.target.value)} className={`${FIELD} min-w-0 max-w-full`} />
-              <span className="mt-1.5 block text-[12px] text-muted-foreground">New claims close at this time. Gifts already claimed keep their own date.</span>
+              {/* Quick dates: some phone pickers only commit a datetime once both
+                  date and time are chosen, which left Save disabled. */}
+              <span className="mb-2 flex flex-wrap gap-1.5">
+                {[[1, "Tomorrow"], [7, "1 week"], [14, "2 weeks"], [30, "1 month"]].map(([days, label]) => (
+                  <button key={label} type="button" onClick={() => setExpiryIn(days as number)} className="h-8 rounded-full border border-foreground/15 px-3 text-[12.5px] font-semibold text-foreground transition hover:border-foreground/40 active:scale-95">
+                    {label}
+                  </button>
+                ))}
+              </span>
+              <input type="datetime-local" value={expires} onChange={(event) => setExpires(event.target.value)} onInput={(event) => setExpires((event.target as HTMLInputElement).value)} className={`${FIELD} min-w-0 max-w-full`} />
+              <span className="mt-1.5 block text-[12px] text-muted-foreground">
+                {wasExpired ? "This gift expired. Saving with a new date reopens it for claims." : "New claims close at this time. Gifts already claimed keep their own date."}
+              </span>
             </label>
           </div>
 
@@ -340,7 +360,7 @@ export function GiftEditSheet({
         </div>
 
         <div className="border-t border-border bg-background px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
-          {problem && changed && <p className="mb-2 text-[12.5px] font-medium text-rose-600">{problem}</p>}
+          {problem && (changed || wasExpired) && <p className="mb-2 text-[12.5px] font-medium text-rose-600">{problem}</p>}
           <button
             type="button"
             disabled={!changed || !!problem || save.isPending}
@@ -348,7 +368,7 @@ export function GiftEditSheet({
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white transition hover:bg-[#b41c7e] disabled:opacity-40"
           >
             {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
-            {!changed ? "No changes yet" : cost > 0 && !sponsored ? `Save · ${format(cost)}` : "Save changes"}
+            {!changed ? "No changes yet" : cost > 0 && !sponsored ? `${wasExpired ? "Reactivate" : "Save"} · ${format(cost)}` : wasExpired ? "Save and reactivate" : "Save changes"}
           </button>
         </div>
       </DrawerContent>

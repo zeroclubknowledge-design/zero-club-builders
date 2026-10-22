@@ -6,6 +6,9 @@ import {
   certificateAccents,
   certificateTemplates,
   emptyCertificateDesign,
+  LOGO_SCALE_MAX,
+  LOGO_SCALE_MIN,
+  logoScale,
   safeAccent,
   type CertificateDesign,
 } from "./design";
@@ -193,6 +196,32 @@ export function CertificateSetup({
               onChange={(brand_logo) => update({ brand_logo })}
               onBusyChange={setUploadingLogo}
             />
+            {design.brand_logo && (
+              <div className="rounded-xl border border-border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="cert-logo-size" className="text-xs font-semibold">Logo size</label>
+                  <span className="text-[11.5px] font-semibold tabular-nums text-muted-foreground">
+                    {Math.round(logoScale({ use_brand: true, brand_logo_scale: design.brand_logo_scale }) * 100)}%
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  <span className="text-[11px] text-muted-foreground">Smaller</span>
+                  <input
+                    id="cert-logo-size"
+                    type="range"
+                    min={LOGO_SCALE_MIN}
+                    max={LOGO_SCALE_MAX}
+                    step={0.05}
+                    disabled={disabled}
+                    value={logoScale({ use_brand: true, brand_logo_scale: design.brand_logo_scale })}
+                    onChange={(event) => update({ brand_logo_scale: Number(event.target.value) })}
+                    className="h-2 min-w-0 flex-1 cursor-pointer accent-[#cc208f]"
+                  />
+                  <span className="text-[11px] text-muted-foreground">Bigger</span>
+                </div>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">Make your logo stand out on both sides of the certificate. Check it in the live preview below.</p>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <label className="block space-y-1 text-xs font-semibold">

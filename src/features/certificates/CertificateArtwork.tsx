@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { supabase } from "@/lib/supabase";
-import { certificateTemplates, readableOn, safeAccent, type CertificateDesign } from "./design";
+import { certificateTemplates, logoScale, readableOn, safeAccent, type CertificateDesign } from "./design";
 
 /**
  * The certificate itself.
@@ -168,6 +168,13 @@ export function CertificateArtwork({
           .publicUrl
       : url;
   const logo = design.use_brand ? asset(design.brand_logo) : "/logo.png";
+  /* Front masthead: a bigger logo grows upward and gets a wider box (wide
+     wordmarks gain the most), and the brand name below moves down to match. */
+  const scale = logoScale(design);
+  const logoH = 42 * scale;
+  const logoW = logoH * (1 + (scale - 1) * 2);
+  const logoTop = scale > 1 ? Math.max(36, 50 - (logoH - 42) * 0.5) : 50;
+  const brandY = Math.max(120, logoTop + logoH + 22);
   const signature = design.signature_url ? asset(design.signature_url) : "";
   const back = side === "back";
   const style = t.style as "border" | "ribbon" | "left" | "right" | "both" | "orbit";
@@ -325,16 +332,16 @@ export function CertificateArtwork({
           {logo && (
             <image
               href={logo}
-              x={500 - 21}
-              y="50"
-              width="42"
-              height="42"
+              x={500 - logoW / 2}
+              y={logoTop}
+              width={logoW}
+              height={logoH}
               preserveAspectRatio="xMidYMid meet"
             />
           )}
           <text
             x="500"
-            y="120"
+            y={brandY}
             textAnchor="middle"
             fontFamily={FONT}
             fontSize="14"
@@ -344,7 +351,7 @@ export function CertificateArtwork({
           >
             {brand.slice(0, 40).toUpperCase()}
           </text>
-          <line x1="440" x2="560" y1="136" y2="136" stroke={p.accent} strokeWidth="1.4" opacity="0.7" />
+          <line x1="440" x2="560" y1={brandY + (brandY > 120 ? 13 : 16)} y2={brandY + (brandY > 120 ? 13 : 16)} stroke={p.accent} strokeWidth="1.4" opacity="0.7" />
 
           {/* ── Eyebrow ──────────────────────────────────────────────── */}
           <text
@@ -541,6 +548,7 @@ function BackSheet({
   hours?: number;
 }) {
   const geometric = ["left", "right", "both", "orbit"].includes(style);
+  const backLogo = 40 * logoScale(design);
   const textWidth = geometric ? 64 : 78;
   const body = lines(design.back_text, textWidth, 6);
   return (
@@ -559,14 +567,14 @@ function BackSheet({
         <image
           href={logo}
           x="72"
-          y="64"
-          width="40"
-          height="40"
+          y={84 - backLogo / 2}
+          width={backLogo}
+          height={backLogo}
           preserveAspectRatio="xMidYMid meet"
         />
       )}
       <text
-        x="124"
+        x={72 + backLogo + 12}
         y="92"
         fontFamily={FONT}
         fontSize="12"

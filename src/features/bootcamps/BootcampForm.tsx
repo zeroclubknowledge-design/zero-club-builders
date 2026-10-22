@@ -37,6 +37,7 @@ import { createBootcampAction } from "@/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { CardSelect } from "@/components/CardSelect";
+import { CategoryPicker } from "@/components/CategoryPicker";
 import { BootcampMediaInput } from "./BootcampMediaInput";
 import { CertificateSetup } from "@/features/certificates/CertificateSetup";
 import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
@@ -684,18 +685,12 @@ export function BootcampForm({
                   Category
                 </label>
                 <div className="relative">
-                  <CardSelect
+                  <CategoryPicker
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={setCategory}
                     className="h-12 w-full appearance-none rounded-lg border border-border bg-card px-4 pr-12 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                     disabled={loading || certificateUploading}
-                  >
-                    <option>Design</option>
-                    <option>Development</option>
-                    <option>Marketing</option>
-                    <option>Business</option>
-                  </CardSelect>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+                  />
                 </div>
               </div>
 

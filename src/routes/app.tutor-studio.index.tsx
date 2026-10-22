@@ -56,6 +56,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { LearningOperationsPanel } from "@/features/studio/LearningOperationsPanel";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
+import { CategoryPicker } from "@/components/CategoryPicker";
 import { BootcampMediaInput } from "@/features/bootcamps/BootcampMediaInput";
 
 import { confirmCard, promptCard } from "@/components/ConfirmCard";
@@ -1476,21 +1477,11 @@ function TutorStudioPage() {
                       Category
                     </label>
                     <div className="relative">
-                      <CardSelect
+                      <CategoryPicker
                         value={bootcampSettings.category}
-                        onChange={(e) =>
-                          setBootcampSettings({ ...bootcampSettings, category: e.target.value })
-                        }
+                        onChange={(category) => setBootcampSettings({ ...bootcampSettings, category })}
                         className="w-full appearance-none bg-card rounded-2xl px-5 py-4 pr-10 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/40 transition"
-                      >
-                        <option>Design</option>
-                        <option>Development</option>
-                        <option>Marketing</option>
-                        <option>Business</option>
-                        <option>AI</option>
-                        <option>Motion</option>
-                      </CardSelect>
-                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      />
                     </div>
                   </div>
                   <div className="space-y-3">

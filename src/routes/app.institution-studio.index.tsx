@@ -49,6 +49,7 @@ import {
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
+import { CategoryPicker } from "@/components/CategoryPicker";
 
 import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/institution-studio/")({
@@ -1042,19 +1043,12 @@ function InstitutionHub() {
                       <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 block">
                         Category
                       </label>
-                      <CardSelect
+                      <CategoryPicker
                         value={newBootcamp.category}
-                        onChange={(e) =>
-                          setNewBootcamp({ ...newBootcamp, category: e.target.value })
-                        }
+                        onChange={(category) => setNewBootcamp({ ...newBootcamp, category })}
+                        options={CATEGORIES}
                         className="w-full h-11 bg-card rounded-xl px-4 text-[13.5px] font-medium outline-none focus:ring-2 focus:ring-primary/40 transition appearance-none"
-                      >
-                        {CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </CardSelect>
+                      />
                     </div>
                   </div>
 

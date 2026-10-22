@@ -62,6 +62,8 @@ export type CertificateDesign = {
   brand_logo: string;
   /** Signature line colour for branded certificates. Optional on older designs. */
   brand_accent?: string;
+  /** How large the brand logo prints, 1 (default) to 2. Optional on older designs. */
+  brand_logo_scale?: number;
   signature_url: string;
   signer_name: string;
   signer_title: string;
@@ -74,6 +76,7 @@ export const emptyCertificateDesign: CertificateDesign = {
   brand_name: "",
   brand_logo: "",
   brand_accent: "#cc208f",
+  brand_logo_scale: 1,
   signature_url: "",
   signer_name: "",
   signer_title: "Instructor",
@@ -95,6 +98,16 @@ export function certificateDesignError(design: CertificateDesign | null) {
   )
     return "Choose a valid brand colour.";
   return null;
+}
+
+export const LOGO_SCALE_MIN = 1;
+export const LOGO_SCALE_MAX = 2;
+
+/** The brand logo's size multiplier, clamped so it never pushes into the text. */
+export function logoScale(design: Pick<CertificateDesign, "use_brand" | "brand_logo_scale">) {
+  if (!design.use_brand) return 1;
+  const s = Number(design.brand_logo_scale);
+  return Number.isFinite(s) ? Math.min(LOGO_SCALE_MAX, Math.max(LOGO_SCALE_MIN, s)) : 1;
 }
 
 /** Six-digit hex only; anything else falls back so artwork never receives junk. */

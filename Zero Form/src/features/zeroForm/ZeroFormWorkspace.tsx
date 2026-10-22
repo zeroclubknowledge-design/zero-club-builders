@@ -62,6 +62,7 @@ import {
 } from "@/features/zeroForm/templates";
 import { CardSelect } from "@/components/CardSelect";
 import { zc } from "@/lib/config";
+import { CategoryPicker } from "@/components/CategoryPicker";
 
 const money = (value: number) => formatWalletAmount(Number(value) || 0);
 const isMissingRpc = (error: any) =>
@@ -339,7 +340,7 @@ function ZeroFormBuilder({
   const zfQueryClient = useQueryClient();
   const [newCampOpen, setNewCampOpen] = useState(false);
   const [newCampTitle, setNewCampTitle] = useState("");
-  const [newCampCategory, setNewCampCategory] = useState("");
+  const [newCampCategory, setNewCampCategory] = useState("Development");
   const [newCampPrice, setNewCampPrice] = useState("");
   const createCamp = useMutation({
     mutationFn: async () => {
@@ -369,7 +370,7 @@ function ZeroFormBuilder({
       setTitle((current: string) => current || `${newCampTitle.trim()} — registration`);
       setNewCampOpen(false);
       setNewCampTitle("");
-      setNewCampCategory("");
+      setNewCampCategory("Development");
       setNewCampPrice("");
       toast.success("Bootcamp created", {
         description: "Anyone who pays through this form is enrolled in it automatically.",
@@ -592,11 +593,9 @@ function ZeroFormBuilder({
                       className={input}
                     />
                     <div className="grid gap-2 sm:grid-cols-2">
-                      <input
+                      <CategoryPicker
                         value={newCampCategory}
-                        onChange={(e) => setNewCampCategory(e.target.value)}
-                        maxLength={60}
-                        placeholder="Category, e.g. Design"
+                        onChange={setNewCampCategory}
                         className={input}
                       />
                       <input
