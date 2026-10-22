@@ -1,9 +1,10 @@
 import { payWithGiftCredit } from "@/lib/giftCheckout";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  Award,
   ArrowLeft,
   BadgeCheck,
   Calendar,
@@ -41,6 +42,8 @@ import { ImageLightbox } from "@/components/ImageLightbox";
 import { UsernamePicker } from "@/components/UsernamePicker";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { ClubComposer } from "@/features/community/ClubComposer";
+import { ContributorsView } from "@/features/community/ContributorsView";
+import { claimClubInvites, clubInviteLink } from "@/features/community/clubInvites";
 import { useUser } from "@/hooks/useUser";
 import { draftKey } from "@/lib/draftStorage";
 import { decodeChatMedia, encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
@@ -61,7 +64,7 @@ import { CardSelect } from "@/components/CardSelect";
  */
 
 export type HubSection =
-  "home" | "announcements" | "meetings" | "cohorts" | "members" | "staff" | "settings";
+  "home" | "announcements" | "meetings" | "cohorts" | "members" | "contributors" | "staff" | "settings";
 
 type Person = {
   id: string;
@@ -322,6 +325,11 @@ export function CommunityHubPage({ clubId, section }: { clubId: string; section?
       replace: Boolean(s),
     });
   const active = ((section as HubSection) || "home") as HubSection;
+  // Someone who arrived through a member's link: credit that member now they're in.
+  const isMember = Boolean(hub.data?.me?.member);
+  useEffect(() => {
+    if (isMember) void claimClubInvites();
+  }, [isMember, clubId]);
   const openOnPhone = Boolean(section);
 
   if (hub.isLoading) {
@@ -373,6 +381,8 @@ export function CommunityHubPage({ clubId, section }: { clubId: string; section?
         return <CohortsView h={h} onBack={back} />;
       case "members":
         return <MembersView h={h} onBack={back} />;
+      case "contributors":
+        return <ContributorsView clubId={h.club.id} clubName={h.club.name} onBack={back} />;
       case "staff":
         return <StaffView h={h} onBack={back} />;
       case "settings":
@@ -416,6 +426,7 @@ function Shell({ children }: { children: ReactNode }) {
 /* ── left rail ────────────────────────────────────────────────────────── */
 
 function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSection) => void }) {
+  const { data: viewer } = useUser();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const myCohorts = h.cohorts.filter((c) => c.my_status === "member");
@@ -447,7 +458,8 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
      everything else in the app is — not through a bare navigator.share call
      that silently did nothing on browsers without it. */
   const share = async () => {
-    const url = `${window.location.origin}/club/${h.club.id}`;
+    // Carries who shared it, so they're credited on Contributors when someone joins.
+    const url = clubInviteLink(h.club.id, viewer?.id);
     if (hasShareSheet()) {
       await openShareSheet({
         heading: `Share ${h.club.name}`,
@@ -561,6 +573,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         )}
         {item("staff", "Teaching staff", <BadgeCheck className="h-[18px] w-[18px]" />)}
         {item("members", "Members", <Users className="h-[18px] w-[18px]" />)}
+        {item("contributors", "Contributors", <Award className="h-[18px] w-[18px]" />)}
         {h.me.is_owner && item("settings", "Settings", <Settings className="h-[18px] w-[18px]" />)}
 
         {myCohorts.length > 0 && (

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ArrowRight, Users } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { toPlainText } from "@/lib/contentPreview";
+import { rememberClubInvite } from "@/features/community/clubInvites";
 
 /**
  * Public landing page for a shared club link.
@@ -93,6 +94,8 @@ function ClubLinkPage() {
 
   // Anyone already signed in should not have to look at this page at all.
   useEffect(() => {
+    // Remember who shared this link (?ref=), so they're credited once this person joins.
+    rememberClubInvite(id, new URLSearchParams(window.location.search).get("ref"));
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled && data.session) window.location.replace(target);

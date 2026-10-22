@@ -116,6 +116,7 @@ import { ZeroMark } from "@/components/ZeroLoader";
 import { FloatingPicker } from "@/components/FloatingPicker";
 import { ClubPollMessage, PollComposer } from "@/features/groups/Poll";
 import { ClubComposer } from "@/features/community/ClubComposer";
+import { claimClubInvites, clubInviteLink } from "@/features/community/clubInvites";
 import { confirmCard } from "@/components/ConfirmCard";
 export const Route = createFileRoute("/app/clubs/chat")({
   component: ClubChat,
@@ -242,6 +243,10 @@ function ClubChat() {
   const [members, setMembers] = useState<any[]>([]);
   const [club, setClub] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  // Someone who joined through a member's link: credit that member (the server checks membership).
+  useEffect(() => {
+    if (currentUser?.id) void claimClubInvites();
+  }, [currentUser?.id]);
   const { data: currentUserProfile, refetch: refetchCurrentUser } = useUser();
   const [activeRoom, setActiveRoom] = usePersistentDraft(draftKey(currentUserProfile?.id, "club-room", clubId || "joined"), roomParam || "general");
   useEffect(() => { if (roomParam) setActiveRoom(roomParam); }, [roomParam, clubId, setActiveRoom]);
@@ -813,7 +818,8 @@ function ClubChat() {
   // /club/<id> rather than /app?club=<id>: the public page carries the club's
   // name and picture in its HTML, so the link previews properly when shared.
   // Anyone signed in is forwarded straight into the app from there.
-  const inviteLink = () => `${window.location.origin}/club/${club?.id}`;
+  // Carries who shared it, so they are credited on the club's Contributors page when someone joins.
+  const inviteLink = () => clubInviteLink(club?.id || "", currentUser?.id);
 
   const handleCopyInvite = () => {
     if (!club) return;
