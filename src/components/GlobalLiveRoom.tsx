@@ -1,4 +1,5 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useMicRecovery, useOngoingCallNotification } from "@/features/calls/backgroundCall";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
@@ -1613,6 +1614,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       toast.error("This browser will not let a page choose the speaker");
     }
   };
+
+  /* Android: keep the mic while minimised, and reopen it at once on return (features/calls/backgroundCall.ts). */
+  useOngoingCallNotification({ active: !isLeaving && !!channel, title: clubName || "Live class", body: "Live class in progress · tap to return", url: `/app/live/${channel}` });
+  useMicRecovery(localMicrophoneTrack, micOn, () => {
+    micHeardRef.current = false;
+    micOnSinceRef.current = Date.now();
+    setMicProblem(null);
+  });
 
   /*
    * Staying audible with the app in the background.

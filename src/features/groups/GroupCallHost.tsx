@@ -23,6 +23,7 @@ import { useLiveRecording } from "@/features/zero-live/useLiveRecording";
 import { callRecordingError, startAnnouncedCallRecording } from "./callRecording";
 import { Circle, Hand, Loader2, Maximize2, Mic, MicOff, Minimize2, MonitorOff, MonitorUp, PhoneOff, RefreshCw, Smile, Users, Video, VideoOff, Volume2 } from "@/components/icons/glyphs";
 import { useCallSignals, type FloatingReaction } from "./callSignals";
+import { useMicRecovery, useOngoingCallNotification } from "@/features/calls/backgroundCall";
 import { CALL_FX_CSS, CallNotice, HandsSheet, HandsStrip, ReactionLayer, ReactionTray, TileReactions } from "./CallExtras";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/hooks/useUser";
@@ -251,6 +252,9 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   /* Raised hands and live reactions (realtime, nothing stored). */
   const signalMe = useMemo(() => (me ? { id: me.id, name: displayName(me), avatar: me.avatar_url || null } : null), [me]);
   const signals = useCallSignals({ groupId, startedAt, me: signalMe });
+  /* Stay heard with the app minimised (Android), and get the mic back straight away on return. */
+  useOngoingCallNotification({ active: connected && !leaving, title: `${groupName} call`, body: session.video ? "Video call in progress · tap to return" : "Voice call in progress · tap to return", url: `/app/chat/g/${groupId}/call` });
+  useMicRecovery(localMicrophoneTrack, micOn);
   const [trayOpen, setTrayOpen] = useState(false);
   const [handsOpen, setHandsOpen] = useState(false);
   const handOrder = (profileId?: string) => {
@@ -692,7 +696,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           {people_.map((u) => {
             const person = byUid.get(String(u.uid));
             return (
-              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo} speaking={speaking.has(String(u.uid))} hand={handOrder(person?.profile_id)} reactions={reactionsFor(person?.profile_id)}>
+              <Tile key={u.uid} name={person?.name || "Member"} avatar={person?.avatar || null} muted={!u.hasAudio || mutedUids.has(String(u.uid))} videoOn={u.hasVideo} speaking={speaking.has(String(u.uid))} hand={handOrder(person?.profile_id)} reactions={reactionsFor(person?.profile_id)} away={!!person?.profile_id && signals.away.has(person.profile_id)}>
                 <RemoteUser user={u} playAudio playVideo={u.hasVideo} videoPlayerConfig={CAMERA_PLAYER} className="h-full w-full" />
               </Tile>
             );
@@ -803,7 +807,7 @@ const ownerOfScreen = (uid: string | number) => String(Number(uid) - SCREEN_UID_
 const canShareScreen = () => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getDisplayMedia === "function"
   && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, reactions = [], children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; reactions?: FloatingReaction[]; children: React.ReactNode }) {
+function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, reactions = [], away = false, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; reactions?: FloatingReaction[]; away?: boolean; children: React.ReactNode }) {
   return (
     <div className={`relative min-h-[120px] overflow-hidden rounded-[26px] bg-[#16101c] ring-1 transition-shadow duration-300 ${speaking ? "zgc-speaking ring-[#ff4fc3]" : hand ? "ring-2 ring-amber-300/70" : "ring-white/[0.08]"}`}>
       <div className={`absolute inset-0 ${videoOn ? "" : "opacity-0"}`}>{children}</div>
@@ -822,6 +826,11 @@ function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, rea
       {hand && (
         <span className="zgc-pop absolute left-2 top-2 flex items-center gap-1 rounded-full bg-amber-400 px-2 py-1 text-[12px] font-extrabold text-[#2a1a00] shadow-[0_8px_20px_-8px_rgba(251,191,36,0.9)]">
           <span className="zgc-wave">✋</span>{hand}
+        </span>
+      )}
+      {away && (
+        <span title="Their app is minimised. They may not be heard until they come back." className="absolute right-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[11.5px] font-semibold text-white/85 ring-1 ring-white/10 backdrop-blur-md">
+          Away
         </span>
       )}
       <span className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[12px] font-semibold text-white ring-1 ring-white/10 backdrop-blur-md">

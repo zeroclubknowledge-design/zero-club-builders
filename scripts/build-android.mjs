@@ -88,6 +88,55 @@ async function injectHeadsUpNotifications() {
   log("Notifications use a high-importance channel, so they pop over other apps");
 }
 
+/**
+ * Staying heard with the app minimised during a call.
+ *
+ * Android silences Chrome's microphone a few seconds after the app goes to the
+ * background unless the app runs a "microphone" foreground service. The web
+ * app shows an ongoing-call notification during calls; DelegationService
+ * (see HeadsUpNotifications.java) starts android/native/CallForegroundService
+ * from it, and KeepMicActivity asks for RECORD_AUDIO, which Android 14 requires
+ * for that service. This copies both classes into the generated package and
+ * declares them, with their permissions, in the generated AndroidManifest.xml.
+ */
+async function injectCallService() {
+  const manifest = JSON.parse(await readFile(TWA_MANIFEST, "utf8"));
+  const packageId = String(manifest.packageId);
+  const javaDir = path.join(WORK_DIR, "app", "src", "main", "java", ...packageId.split("."));
+  for (const name of ["CallForegroundService.java", "KeepMicActivity.java"]) {
+    const source = await readFile(path.join(ROOT, "android", "native", name), "utf8");
+    await writeFile(path.join(javaDir, name), source.replace(/__PACKAGE__/g, packageId), "utf8");
+  }
+
+  const androidManifest = path.join(WORK_DIR, "app", "src", "main", "AndroidManifest.xml");
+  if (!(await exists(androidManifest))) fail("Generated AndroidManifest.xml not found");
+  let xml = await readFile(androidManifest, "utf8");
+  if (!xml.includes("CallForegroundService")) {
+    const permissions = [
+      "android.permission.RECORD_AUDIO",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+    ]
+      .filter((name) => !xml.includes(`"${name}"`))
+      .map((name) => `    <uses-permission android:name="${name}"/>`)
+      .join("\n");
+    const appAt = xml.indexOf("<application");
+    if (appAt === -1) fail("Unexpected AndroidManifest.xml: no <application>");
+    xml = `${xml.slice(0, appAt)}${permissions}\n\n    ${xml.slice(appAt)}`;
+    const components =
+      `        <service android:name=".CallForegroundService" android:exported="false"\n` +
+      `            android:foregroundServiceType="microphone"/>\n` +
+      `        <activity android:name=".KeepMicActivity" android:exported="false"\n` +
+      `            android:excludeFromRecents="true" android:noHistory="true"\n` +
+      `            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>\n`;
+    const closeAt = xml.lastIndexOf("</application>");
+    if (closeAt === -1) fail("Unexpected AndroidManifest.xml: no </application>");
+    xml = `${xml.slice(0, closeAt)}${components}    ${xml.slice(closeAt)}`;
+    await writeFile(androidManifest, xml, "utf8");
+  }
+  log("Calls keep the microphone when the app is minimised (microphone foreground service)");
+}
+
 /** Pinned so a Bubblewrap release cannot change the output of a reproducible build. */
 const BUBBLEWRAP_VERSION = process.env.BUBBLEWRAP_VERSION ?? "1.25.0";
 
@@ -305,6 +354,7 @@ function assertToolPathsAreShellSafe({ jdkPath, androidSdkPath }) {
  */
 async function patchGeneratedProject(iconOrigin) {
   await injectHeadsUpNotifications();
+  await injectCallService();
 
   const rootGradle = path.join(WORK_DIR, "build.gradle");
   if (await exists(rootGradle)) {

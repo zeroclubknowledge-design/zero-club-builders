@@ -27,7 +27,8 @@ export type RaisedHand = { profileId: string; name: string; avatar: string | nul
 /** `target` is the profile the reaction was sent to (the last person who spoke), or null for the whole call. */
 export type FloatingReaction = { id: string; emoji: string; name: string; mine: boolean; x: number; drift: number; target: string | null };
 
-type Presence = { name: string; avatar: string | null; hand: number | null };
+/** `away`: their app is in the background, so Android may be sending silence (see features/calls/backgroundCall.ts). */
+type Presence = { name: string; avatar: string | null; hand: number | null; away?: boolean };
 type Me = { id: string; name: string; avatar: string | null };
 
 /** A stable topic for this call, whatever format the start time arrives in. */
@@ -90,6 +91,7 @@ function keepJoined(
 
 export function useCallSignals({ groupId, startedAt, me, enabled = true }: { groupId: string; startedAt: string; me: Me | null; enabled?: boolean }) {
   const [hands, setHands] = useState<RaisedHand[]>([]);
+  const [away, setAway] = useState<Set<string>>(() => new Set());
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const [myHand, setMyHand] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
@@ -120,7 +122,7 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
     const p = presence.current;
     const who = meRef.current;
     if (!p.ch || !p.joined || !who) return;
-    void p.ch.track({ name: who.name, avatar: who.avatar, hand: myHandRef.current } satisfies Presence).catch(() => undefined);
+    void p.ch.track({ name: who.name, avatar: who.avatar, hand: myHandRef.current, away: document.visibilityState === "hidden" } satisfies Presence).catch(() => undefined);
   }, []);
 
   const myId = me?.id;
@@ -154,10 +156,13 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
         ch.on("presence", { event: "sync" }, () => {
           const state = ch.presenceState<Presence>();
           const list: RaisedHand[] = [];
+          const awayNow = new Set<string>();
           for (const [profileId, metas] of Object.entries(state)) {
             const meta = metas[metas.length - 1];
             if (meta?.hand) list.push({ profileId, name: meta.name || "Member", avatar: meta.avatar || null, at: meta.hand });
+            if (meta?.away && profileId !== myId) awayNow.add(profileId);
           }
+          setAway((prev) => (prev.size === awayNow.size && [...awayNow].every((id) => prev.has(id)) ? prev : awayNow));
           list.sort((a, b) => a.at - b.at);
           // A new hand from someone else gets a short notice for everyone.
           for (const hand of list) {
@@ -188,6 +193,12 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
 
   // Publish my hand whenever it changes (only once the hands channel is joined).
   useEffect(() => { trackMe(); }, [myHand, trackMe]);
+  // Tell the call when this app goes to the background and comes back.
+  useEffect(() => {
+    const onVisibility = () => trackMe();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [trackMe]);
 
   const toggleHand = useCallback(() => setMyHand((h) => (h ? null : Date.now())), []);
 
@@ -213,5 +224,5 @@ export function useCallSignals({ groupId, startedAt, me, enabled = true }: { gro
     [],
   );
 
-  return { hands, reactions, myHand, notice, toggleHand, react, lowerHand };
+  return { hands, away, reactions, myHand, notice, toggleHand, react, lowerHand };
 }

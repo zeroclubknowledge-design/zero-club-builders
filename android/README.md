@@ -222,3 +222,48 @@ WhatsApp. The old default channels are removed.
 - While Zero Club is open on screen, `src/sw.ts` skips the system banner for
   push types the in-app pop card already shows, so nobody gets two cards.
 
+
+---
+
+## Calls keep the microphone when the app is minimised
+
+Android silences Chrome's microphone a few seconds after the app goes to the
+background, unless the app runs a foreground service of type `microphone`.
+Without it, someone who minimises Zero Club during a call or live class still
+looks unmuted, but everyone else hears silence.
+
+How it fits together:
+
+1. During a call the web app shows an "ongoing call" notification tagged
+   `zc-ongoing-call` (`src/features/calls/backgroundCall.ts`), re-shown every minute.
+2. Chrome delegates it to `DelegationService`, where the code injected from
+   `native/HeadsUpNotifications.java` hands it to `native/CallForegroundService.java`.
+   That service runs in the foreground (type `microphone`) with the notification.
+   Our launcher binds Chrome with `BIND_INCLUDE_CAPABILITIES`, so Chrome keeps
+   the microphone while the service runs.
+3. When the call ends the web closes the notification, `onCancelNotification`
+   stops the service. If the page vanishes, the service stops itself after 4 minutes
+   without a refresh. Swiping the app away also stops it.
+4. Android 14+ requires `RECORD_AUDIO` for a microphone service, so the first call
+   opens `native/KeepMicActivity.java` to ask once. If Android refuses to start the
+   service from the background (Android 12+), the notification shows a
+   **Keep mic on** button that starts it from a tap.
+
+`scripts/build-android.mjs` (`injectCallService`) copies both classes into the
+generated package and adds the service, activity and three permissions
+(`RECORD_AUDIO`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`) to the
+generated manifest on every build.
+
+**Release:** this changes permissions, so it needs a new Android build:
+`npm run android:build -- --release patch`. In Play Console, App content →
+Foreground service permissions, declare **Microphone** ("Keeps the user's
+microphone working in voice/video calls and live classes while the app is
+minimised"); Play asks for a short video of a call continuing with the app in
+the background. Update the Data safety form if it doesn't already list audio
+(the audio goes to the call, as it already does).
+
+**Test on a phone (Android 12, 13 and 14+ if possible):** join a group call from
+another device, minimise Zero Club, talk for 30 seconds → the other device should
+keep hearing you. The "Ongoing call" notification should be visible and should
+disappear when you hang up. Repeat after denying the mic permission once (the
+notification should offer Keep mic on).

@@ -72,6 +72,10 @@
             @androidx.annotation.NonNull String platformTag, int platformId,
             @androidx.annotation.NonNull android.app.Notification notification,
             @androidx.annotation.NonNull String channelName) {
+        // A call in progress: run the microphone service instead (CallForegroundService.java).
+        if (CallForegroundService.handles(platformTag)) {
+            return CallForegroundService.onCallNotification(this, notification);
+        }
         if (!zcNotificationsAllowed()) return false;
         android.app.NotificationManager manager =
                 (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
@@ -87,4 +91,14 @@
         }
         manager.notify(platformTag, platformId, out);
         return true;
+    }
+
+    // The web closed the ongoing-call notification: the call ended, so release the microphone.
+    @Override
+    public void onCancelNotification(@androidx.annotation.NonNull String platformTag, int platformId) {
+        if (CallForegroundService.handles(platformTag)) {
+            CallForegroundService.onCallEnded(this);
+            return;
+        }
+        super.onCancelNotification(platformTag, platformId);
     }

@@ -194,7 +194,9 @@ const SHOWN_IN_APP = new Set([
 // chat. Now the running app is asked to route there itself (instant, no
 // reload), with a full navigation and then a new window as fallbacks.
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
+  // The ongoing-call notification stays up for the whole call: on Android it
+  // keeps the microphone service running (features/calls/backgroundCall.ts).
+  if (!event.notification.data?.ongoingCall) event.notification.close();
   // Declining a ring just dismisses it.
   if (event.action === 'decline') return;
 
