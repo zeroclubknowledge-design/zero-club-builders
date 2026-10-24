@@ -4,6 +4,9 @@ import {
   ArrowLeft,
   BadgeCheck,
   Bookmark,
+  Building2,
+  ChevronRight,
+  HandCoins,
   BookOpen,
   Check,
   CheckCircle2,
@@ -550,6 +553,17 @@ function BootcampDetail() {
                   )}
                 </div>
                 <button
+                  type="button"
+                  onClick={handleWishlist}
+                  disabled={wishlistLoading}
+                  aria-pressed={isWishlisted}
+                  aria-label={isWishlisted ? "Saved to your wishlist" : "Save for later"}
+                  title={isWishlisted ? "Saved to your wishlist" : "Save for later"}
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border transition active:scale-[0.96] disabled:opacity-60 ${isWishlisted ? "border-[#cc208f]/40 bg-[#cc208f]/10 text-[#cc208f]" : "border-border text-foreground hover:bg-foreground/[0.05]"}`}
+                >
+                  {wishlistLoading ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Bookmark className={`h-[18px] w-[18px] ${isWishlisted ? "fill-current" : ""}`} />}
+                </button>
+                <button
                   onClick={handleEnroll}
                   disabled={loading}
                   className="flex h-12 shrink-0 items-center gap-2 rounded-full bg-foreground px-7 text-[16px] font-semibold text-background transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
@@ -598,22 +612,42 @@ function BootcampDetail() {
                 />
               )}
 
-              <div className="mt-3 grid grid-cols-1 gap-2 border-t border-border pt-3">
-                {!currentUser?.is_admin && <GroupSeatsButton bootcamp={bootcamp} />}
-                <PrivateBootcampButton bootcampId={bootcamp.id} compact />
-                {couponPrice > 0 && (
-                  <RequestFundsButton amount={couponPrice} purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`} label="Ask someone to sponsor this" />
-                )}
-                <button
-                  type="button"
-                  onClick={handleWishlist}
-                  disabled={wishlistLoading}
-                  aria-pressed={isWishlisted}
-                  className="flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground disabled:opacity-60"
-                >
-                  {wishlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className={`h-4 w-4 ${isWishlisted ? "fill-current text-foreground" : ""}`} />}
-                  {isWishlisted ? "Saved to your wishlist" : "Save for later"}
-                </button>
+              {/* Other ways in: one quiet card of rows, so Enroll stays the one clear action. */}
+              <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-foreground/[0.02]">
+                <p className="px-4 pb-1 pt-3.5 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">More ways to join</p>
+                <div className="divide-y divide-border/70">
+                  {!currentUser?.is_admin && (
+                    <GroupSeatsButton
+                      bootcamp={bootcamp}
+                      trigger={(open) => (
+                        <JoinOption
+                          icon={<Users className="h-[18px] w-[18px]" />}
+                          title="Buy for a group"
+                          hint={Number(bootcamp.group_discount_percent) > 0
+                            ? `Save on ${bootcamp.group_min_seats || 3}+ seats · share one code`
+                            : "Pay once for your friends or team"}
+                          badge={Number(bootcamp.group_discount_percent) > 0 ? `-${bootcamp.group_discount_percent}%` : undefined}
+                          onClick={open}
+                        />
+                      )}
+                    />
+                  )}
+                  <PrivateBootcampButton
+                    bootcampId={bootcamp.id}
+                    trigger={(open) => (
+                      <JoinOption icon={<Building2 className="h-[18px] w-[18px]" />} title="Private bootcamp for your team" hint="A custom run on your schedule" onClick={open} />
+                    )}
+                  />
+                  {couponPrice > 0 && (
+                    <RequestFundsButton
+                      amount={couponPrice}
+                      purpose={`Enrolment for ${bootcamp?.title || "a Zero Club bootcamp"}`}
+                      trigger={(start) => (
+                        <JoinOption icon={<HandCoins className="h-[18px] w-[18px]" />} title="Ask someone to sponsor this" hint={`Send a payment link for ${formatPrice(couponPrice)}`} onClick={start} />
+                      )}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -770,4 +804,21 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
 /** True when a description was written with the rich text editor. */
 function looksFormatted(text?: string | null) {
   return /<(p|ul|ol|li|h2|h3|strong|em|br|blockquote)\b/i.test(String(text || ""));
+}
+
+/** One row in "More ways to join": icon tile, title, one-line hint, chevron. */
+function JoinOption({ icon, title, hint, badge, onClick }: { icon: React.ReactNode; title: string; hint: string; badge?: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-foreground/[0.03] active:bg-foreground/[0.05]">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f] ring-1 ring-inset ring-[#cc208f]/15">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className="text-[14.5px] font-semibold leading-snug text-foreground">{title}</span>
+          {badge && <span className="shrink-0 rounded-full bg-emerald-500/12 px-2 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">{badge}</span>}
+        </span>
+        <span className="mt-0.5 block text-[12.5px] leading-snug text-muted-foreground">{hint}</span>
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/70 transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+    </button>
+  );
 }

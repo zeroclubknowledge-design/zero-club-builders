@@ -856,7 +856,8 @@ export function BootcampReviews({ bootcamp, isEnrolled, viewerId }: { bootcamp: 
 
 /* ───────────────────────── group seats ───────────────────────── */
 
-export function GroupSeatsButton({ bootcamp }: { bootcamp: any }) {
+/** `trigger` lets a page draw its own control; it gets the function that opens the sheet. */
+export function GroupSeatsButton({ bootcamp, trigger }: { bootcamp: any; trigger?: (open: () => void) => ReactNode }) {
   const { format } = useWalletCurrency();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -881,9 +882,11 @@ export function GroupSeatsButton({ bootcamp }: { bootcamp: any }) {
   if (unit <= 0) return null;
   return (
     <>
-      <button type="button" onClick={() => { setDone(null); setOpen(true); }} className="flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground">
-        <Users className="h-4 w-4" /> Buy for a group{Number(bootcamp.group_discount_percent) > 0 ? ` · save ${bootcamp.group_discount_percent}%` : ""}
-      </button>
+      {trigger ? trigger(() => { setDone(null); setOpen(true); }) : (
+        <button type="button" onClick={() => { setDone(null); setOpen(true); }} className="flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground">
+          <Users className="h-4 w-4" /> Buy for a group{Number(bootcamp.group_discount_percent) > 0 ? ` · save ${bootcamp.group_discount_percent}%` : ""}
+        </button>
+      )}
       <Sheet open={open} onOpenChange={setOpen} title="Buy seats for your group" description={Number(bootcamp.group_discount_percent) > 0 ? `${bootcamp.group_discount_percent}% off when you buy ${bootcamp.group_min_seats} or more seats. You get a code to share, or assign seats by username.` : "Pay once for your team or friends. You get a code to share, or assign seats by username."} icon={<Users className="h-5 w-5" />}>
         {done ? (
           <div className="text-center">
@@ -981,7 +984,7 @@ export function MySeatPacks() {
 
 /* ───────────────────────── private bootcamp for teams ───────────────────────── */
 
-export function PrivateBootcampButton({ bootcampId, ownerId, compact }: { bootcampId?: string | null; ownerId?: string | null; compact?: boolean }) {
+export function PrivateBootcampButton({ bootcampId, ownerId, compact, trigger }: { bootcampId?: string | null; ownerId?: string | null; compact?: boolean; trigger?: (open: () => void) => ReactNode }) {
   const [open, setOpen] = useState(false);
   const [org, setOrg] = useState("");
   const [size, setSize] = useState("10");
@@ -999,9 +1002,11 @@ export function PrivateBootcampButton({ bootcampId, ownerId, compact }: { bootca
   });
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={compact ? "flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground" : outlineBtn}>
-        <Building2 className="h-4 w-4" /> Private bootcamp for your team
-      </button>
+      {trigger ? trigger(() => setOpen(true)) : (
+        <button type="button" onClick={() => setOpen(true)} className={compact ? "flex h-10 items-center justify-center gap-2 rounded-full text-[14px] font-semibold text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground" : outlineBtn}>
+          <Building2 className="h-4 w-4" /> Private bootcamp for your team
+        </button>
+      )}
       <Sheet open={open} onOpenChange={setOpen} title="Request a private bootcamp" description="A custom live programme for your company, school or community — your schedule, your goals." icon={<Building2 className="h-5 w-5" />}>
         <div className="space-y-3">
           <div><span className={label}>Organisation</span><input value={org} onChange={(e) => setOrg(e.target.value)} maxLength={140} placeholder="Company or school name" className={field} /></div>

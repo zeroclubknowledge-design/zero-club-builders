@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { HandCoins, Loader2, Copy, Check } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { copyToClipboard, fundLinkUrl } from "@/lib/share";
@@ -27,6 +27,7 @@ export function RequestFundsButton({
   className,
   label = "Ask someone to help",
   compact = false,
+  trigger,
 }: {
   /** In base wallet units, the same units as a price on the page. */
   amount: number;
@@ -35,6 +36,8 @@ export function RequestFundsButton({
   className?: string;
   label?: string;
   compact?: boolean;
+  /** Draw your own control instead of the default button; it gets the function that starts the request. */
+  trigger?: (start: () => void) => ReactNode;
 }) {
   const { format } = useWalletCurrency();
   const [open, setOpen] = useState(false);
@@ -72,7 +75,7 @@ export function RequestFundsButton({
 
   return (
     <>
-      <button
+      {trigger ? trigger(start) : <button
         type="button"
         onClick={start}
         className={
@@ -84,7 +87,7 @@ export function RequestFundsButton({
       >
         <HandCoins className="h-4 w-4" />
         {label}
-      </button>
+      </button>}
 
       <Drawer open={open} onOpenChange={(next) => { setOpen(next); if (!next) setSlug(null); }}>
         <DrawerContent className="mx-auto max-w-md px-4 pb-5 pt-1 sm:p-6">
