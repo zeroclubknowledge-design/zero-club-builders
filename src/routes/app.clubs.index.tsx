@@ -917,7 +917,7 @@ function Clubs() {
             <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
               {clubCapacity.permanent_club_limit === null
                 ? `${clubCapacity.plan_name} supports organisation-specific Club capacity.`
-                : `${capacityLabel} permanent Clubs used on ${clubCapacity.plan_name}. Bootcamp cohort Clubs do not count.`}
+                : `${capacityLabel} permanent Clubs used on ${clubCapacity.plan_name}. Bootcamp Clubs do not count.`}
             </DrawerDescription>
           </DrawerHeader>
 

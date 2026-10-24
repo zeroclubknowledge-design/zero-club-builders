@@ -158,7 +158,7 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
     ],
     shortcuts: [
       { label: "Tutor Studio", hint: "Your classes and learners", to: "/app/tutor-studio" },
-      { label: "Clubs", hint: "Talk to your cohorts", to: "/app/clubs" },
+      { label: "Clubs", hint: "Talk to your bootcamps", to: "/app/clubs" },
       { label: "ZeroNotes", hint: "Publish class notes", to: "/app/notes" },
     ],
   },
@@ -216,7 +216,7 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
     eyebrow: "Your programme planner",
     heading: "How can your programmes do more?",
     description: "Design programmes, support your tutors and report progress with clarity.",
-    placeholder: "Describe a programme, a cohort goal, or a report you need to write…",
+    placeholder: "Describe a programme, a bootcamp goal, or a report you need to write…",
     starters: [
       {
         title: "Design a programme",
@@ -225,10 +225,10 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
         icon: Target,
       },
       {
-        title: "Reflect on a cohort",
+        title: "Reflect on a bootcamp",
         hint: "From summary to next steps",
         prompt:
-          "Review this anonymised cohort summary. Suggest support actions and separate evidence from assumptions: ",
+          "Review this anonymised bootcamp summary. Suggest support actions and separate evidence from assumptions: ",
         icon: Users,
       },
       {
@@ -252,7 +252,7 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
     ],
     shortcuts: [
       { label: "Digital Hub", hint: "Your institution studio", to: "/app/institution-studio" },
-      { label: "Bootcamps", hint: "Programmes and cohorts", to: "/app/bootcamps" },
+      { label: "Bootcamps", hint: "Programmes and bootcamps", to: "/app/bootcamps" },
       { label: "Metrics", hint: "Reach and results", to: "/app/metrics" },
     ],
   },

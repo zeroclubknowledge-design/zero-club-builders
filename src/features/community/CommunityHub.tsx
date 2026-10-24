@@ -567,7 +567,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         )}
         {item(
           "cohorts",
-          "Cohorts",
+          "Bootcamps",
           <GraduationCap className="h-[18px] w-[18px]" />,
           h.me.admin ? h.requests.length : 0,
         )}
@@ -579,7 +579,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         {myCohorts.length > 0 && (
           <>
             <p className="px-3 pb-1 pt-5 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Your cohorts
+              Your bootcamps
             </p>
             {myCohorts.map((c) => (
               <Link
@@ -602,7 +602,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
           <button
             type="button"
             onClick={async () => {
-              if ((await confirmCard(`Leave ${h.club.name}? You'll also leave its cohorts.`))) leave.mutate();
+              if ((await confirmCard(`Leave ${h.club.name}? You'll also leave its bootcamps.`))) leave.mutate();
             }}
             className="flex h-10 w-full items-center gap-2.5 rounded-[10px] px-3 text-[13.5px] font-medium text-muted-foreground hover:bg-foreground/[0.04] hover:text-rose-600"
           >
@@ -649,7 +649,7 @@ function JoinCommunityCard({ h }: { h: Hub }) {
       <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
         {h.me.requested
           ? "You'll get a notification as soon as they decide."
-          : "Members get the announcements, meetings and access to the cohorts inside this club."}
+          : "Members get the announcements, meetings and access to the bootcamps inside this club."}
       </p>
       {!h.me.requested && (
         <button
@@ -678,7 +678,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
   })();
   const stats = [
     { label: "Members", value: h.counts.members, s: "members" as const },
-    { label: "Cohorts", value: h.counts.cohorts, s: "cohorts" as const },
+    { label: "Bootcamps", value: h.counts.cohorts, s: "cohorts" as const },
     { label: "Teaching staff", value: Math.max(1, h.counts.staff), s: "staff" as const },
     {
       label: "Upcoming meetings",
@@ -771,7 +771,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
 
         {h.me.admin && h.requests.length > 0 && (
           <Panel
-            title={`Requests to join cohorts · ${h.requests.length}`}
+            title={`Requests to join bootcamps · ${h.requests.length}`}
             action={
               <button
                 type="button"
@@ -793,14 +793,14 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
         )}
 
         <Panel
-          title="Your cohorts"
+          title="Your bootcamps"
           action={
             <button
               type="button"
               onClick={() => go("cohorts")}
               className="text-[13px] font-semibold text-[#cc208f]"
             >
-              All cohorts
+              All bootcamps
             </button>
           }
         >
@@ -827,10 +827,10 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
           ) : (
             <p className="text-[13.5px] text-muted-foreground">
               {h.cohorts.length
-                ? "You're not in a cohort yet. Pick one to get the class chat, assignments, quizzes and Q&A."
+                ? "You're not in a bootcamp yet. Pick one to get the class chat, assignments, quizzes and Q&A."
                 : h.me.admin
-                  ? "Create the first cohort — one for each skill you teach."
-                  : "No cohorts yet. The club team will open them soon."}
+                  ? "Create the first bootcamp — one for each skill you teach."
+                  : "No bootcamps yet. The club team will open them soon."}
             </p>
           )}
         </Panel>
@@ -1284,7 +1284,7 @@ function MeetingsView({ h, onBack }: { h: Hub; onBack: () => void }) {
             title="No meetings yet"
             body={
               h.me.admin
-                ? "Schedule a live session for the whole club or one cohort. Members are notified and get a Join button 15 minutes before."
+                ? "Schedule a live session for the whole club or one bootcamp. Members are notified and get a Join button 15 minutes before."
                 : "Meetings the club team schedules will appear here."
             }
           />
@@ -1498,7 +1498,7 @@ function CohortsView({ h, onBack }: { h: Hub; onBack: () => void }) {
         toast.success("Request sent", { description: "The club team will review it." });
         refresh();
       } else if (r?.status === "needs_bootcamp") {
-        toast.message("This cohort is for the bootcamp's learners", {
+        toast.message("This bootcamp is for its enrolled learners", {
           description: "Enrol in the bootcamp and you'll be added automatically.",
         });
         void navigate({ to: "/app/bootcamps/$id", params: { id: r.bootcamp_id } });
@@ -1519,19 +1519,19 @@ function CohortsView({ h, onBack }: { h: Hub; onBack: () => void }) {
             }
             if (res?.status === "insufficient_funds") {
               toast.error("Add money to your wallet to join this club", {
-                description: "Then pick the cohort again.",
+                description: "Then pick the bootcamp again.",
               });
               void navigate({ to: "/app/wallet/add-money" });
               return;
             }
             toast.success("Request sent to the club team", {
-              description: "You can pick a cohort once they approve you.",
+              description: "You can pick a bootcamp once they approve you.",
             });
             refresh();
           })
           .catch((e: any) => toast.error(e?.message || "Could not join the club"));
       } else if (r?.status === "invite_only")
-        toast.message("This cohort is invite-only", {
+        toast.message("This bootcamp is invite-only", {
           description: "Ask the club team to add you.",
         });
     },
@@ -1588,13 +1588,13 @@ function CohortsView({ h, onBack }: { h: Hub; onBack: () => void }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <SectionHeader
-        title="Cohorts"
-        sub="Each cohort has its own class chat, assignments, quizzes and Q&A"
+        title="Bootcamps"
+        sub="Each bootcamp has its own class chat, assignments, quizzes and Q&A"
         onBack={onBack}
         action={
           h.me.admin ? (
             <button type="button" onClick={() => setCreating(true)} className={btnPrimary}>
-              <Plus className="h-4 w-4" /> New cohort
+              <Plus className="h-4 w-4" /> New bootcamp
             </button>
           ) : undefined
         }
@@ -1643,16 +1643,16 @@ function CohortsView({ h, onBack }: { h: Hub; onBack: () => void }) {
         {h.cohorts.length === 0 ? (
           <Empty
             icon={<GraduationCap className="h-6 w-6" />}
-            title="No cohorts yet"
+            title="No bootcamps yet"
             body={
               h.me.admin
-                ? "Create a cohort for each skill or intake — e.g. 'Product Design · Jan', 'Data Analysis'. Each one gets its own General chat, Assignments, Quizzes and Q&A."
-                : "The club team hasn't opened a cohort yet."
+                ? "Create a bootcamp for each skill or intake — e.g. 'Product Design · Jan', 'Data Analysis'. Each one gets its own General chat, Assignments, Quizzes and Q&A."
+                : "The club team hasn't opened a bootcamp yet."
             }
             action={
               h.me.admin ? (
                 <button type="button" onClick={() => setCreating(true)} className={btnPrimary}>
-                  <Plus className="h-4 w-4" /> Create the first cohort
+                  <Plus className="h-4 w-4" /> Create the first bootcamp
                 </button>
               ) : undefined
             }
@@ -1760,7 +1760,7 @@ function CohortMenu({ onEdit, onAdd }: { onEdit: () => void; onAdd: () => void }
     <div className="relative">
       <button
         type="button"
-        aria-label="Cohort options"
+        aria-label="Bootcamp options"
         onClick={() => setOpen((v) => !v)}
         className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"
       >
@@ -1793,7 +1793,7 @@ function CohortMenu({ onEdit, onAdd }: { onEdit: () => void; onAdd: () => void }
               }}
               className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[14px] hover:bg-foreground/[0.04]"
             >
-              <Pencil className="h-4 w-4" /> Edit cohort
+              <Pencil className="h-4 w-4" /> Edit bootcamp
             </button>
           </div>
         </>
@@ -1860,7 +1860,7 @@ function CohortSheet({
     },
     onSuccess: (id) => {
       toast.success(
-        cohort ? "Cohort updated" : "Cohort created",
+        cohort ? "Bootcamp updated" : "Bootcamp created",
         cohort
           ? undefined
           : { description: "It has its own General chat, Assignments, Quizzes and Q&A." },
@@ -1869,7 +1869,7 @@ function CohortSheet({
       onSaved();
       if (!cohort) void navigate({ to: "/app/clubs/chat", search: { clubId: id } as never });
     },
-    onError: (e: any) => toast.error(e?.message || "Could not save the cohort"),
+    onError: (e: any) => toast.error(e?.message || "Could not save the bootcamp"),
   });
   const modes: { v: Cohort["join_mode"]; t: string; d: string }[] = [
     { v: "open", t: "Open", d: "Any club member can join" },
@@ -1882,8 +1882,8 @@ function CohortSheet({
     <Sheet
       open={open}
       onOpenChange={onOpenChange}
-      title={cohort ? "Edit cohort" : "New cohort"}
-      body="A cohort is a class inside your club, with its own General chat, Assignments, Announcements, Quizzes and Q&A."
+      title={cohort ? "Edit bootcamp" : "New bootcamp"}
+      body="A bootcamp is a class inside your club, with its own General chat, Assignments, Announcements, Quizzes and Q&A."
     >
       <div className="space-y-3">
         <div>
@@ -1976,7 +1976,7 @@ function CohortSheet({
           className={`${btnPrimary} h-11 w-full`}
         >
           {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}{" "}
-          {cohort ? "Save" : "Create cohort"}
+          {cohort ? "Save" : "Create bootcamp"}
         </button>
       </div>
     </Sheet>
@@ -1989,7 +1989,7 @@ function AddCohortMemberSheet({ cohort, onClose }: { cohort: Cohort; onClose: ()
     mutationFn: () => rpc<any>("add_cohort_member", { p_cohort: cohort.id, p_username: username }),
     onSuccess: (r) => {
       toast.success(
-        r?.added === false ? "They're already in this cohort" : "Added — they've been notified",
+        r?.added === false ? "They're already in this bootcamp" : "Added — they've been notified",
       );
       setUsername("");
     },
@@ -2143,7 +2143,7 @@ function MembersView({ h, onBack }: { h: Hub; onBack: () => void }) {
                         type="button"
                         aria-label="Remove"
                         onClick={async () =>
-                          (await confirmCard(`Remove ${nameOf(m.profiles)} from the club and its cohorts?`)) &&
+                          (await confirmCard(`Remove ${nameOf(m.profiles)} from the club and its bootcamps?`)) &&
                           remove.mutate(m)
                         }
                         className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]"
@@ -2185,7 +2185,7 @@ function StaffView({ h, onBack }: { h: Hub; onBack: () => void }) {
     <div className="min-h-0 flex-1 overflow-y-auto">
       <SectionHeader
         title="Teaching staff"
-        sub="They run every cohort in this club"
+        sub="They run every bootcamp in this club"
         onBack={onBack}
       />
       <div className="mx-auto max-w-[760px] space-y-4 px-4 py-5 md:px-8">
@@ -2193,8 +2193,8 @@ function StaffView({ h, onBack }: { h: Hub; onBack: () => void }) {
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-[14px] font-semibold">Add a tutor or moderator</p>
             <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-              Staff can post announcements, schedule meetings, create cohorts and manage every
-              cohort's rooms.
+              Staff can post announcements, schedule meetings, create bootcamps and manage every
+              bootcamp's rooms.
             </p>
             <div className="mt-3 flex gap-2">
               <UsernamePicker

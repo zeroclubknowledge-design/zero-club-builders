@@ -211,7 +211,7 @@ export function InstitutionOnboardingDrawer({
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <div><label className={label}>Learners</label><input type="number" value={form.learner_count} onChange={(e) => set("learner_count", e.target.value)} placeholder="450" className={field} /></div>
                     <div><label className={label}>Tutors or staff</label><input type="number" value={form.tutor_count} onChange={(e) => set("tutor_count", e.target.value)} placeholder="25" className={field} /></div>
-                    <div className="sm:col-span-2"><label className={label}>Programs you plan to run</label><textarea value={form.programs_planned} onChange={(e) => set("programs_planned", e.target.value)} rows={2} placeholder="Software engineering cohort, data analytics diploma…" className={area} /></div>
+                    <div className="sm:col-span-2"><label className={label}>Programs you plan to run</label><textarea value={form.programs_planned} onChange={(e) => set("programs_planned", e.target.value)} rows={2} placeholder="Software engineering bootcamp, data analytics diploma…" className={area} /></div>
                   </div>
                 </section>
 

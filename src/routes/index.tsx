@@ -146,7 +146,7 @@ const zeroClubFeatures = [
   },
   {
     title: "Live bootcamps",
-    copy: "Learn from working professionals in focused cohorts with curriculum and real momentum.",
+    copy: "Learn from working professionals in focused bootcamps with curriculum and real momentum.",
     icon: <IconLearn className="h-[22px] w-[22px]" />,
   },
   {
@@ -188,7 +188,7 @@ const platformHighlights = [
   },
   {
     title: "Communities built around work",
-    copy: "Private clubs keep cohorts, teams, tutors, and creators close to the conversations that matter.",
+    copy: "Private clubs keep bootcamps, teams, tutors, and creators close to the conversations that matter.",
     video: "/highlights/communities.mp4",
     poster: "/highlights/communities.webp",
   },
@@ -207,7 +207,7 @@ const audienceCards = [
   },
   {
     title: "For institutions",
-    copy: "Create structured learning spaces, support cohorts, and track real learner participation.",
+    copy: "Create structured learning spaces, support bootcamps, and track real learner participation.",
     art: "/audience/institutions.webp",
   },
   {
@@ -655,7 +655,7 @@ function ClubsSection() {
         <div data-reveal="right" className="order-1 lg:order-2">
           <p className="zc-eyebrow">Communities with a purpose</p>
           <h2 className="mt-3 font-display text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#171717] dark:text-white md:text-[42px]">
-            Private spaces for cohorts, creator circles, and serious teams.
+            Private spaces for bootcamps, creator circles, and serious teams.
           </h2>
           <div className="mt-8 grid gap-4">
             {[

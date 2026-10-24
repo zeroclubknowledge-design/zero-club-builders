@@ -39,7 +39,7 @@ export const Route = createFileRoute("/business/")({
       {
         name: "description",
         content:
-          "One business account for your organization. Hire builders by their proof of work, sponsor challenges, train your team — or run a tech hub with bootcamps, tutors and cohorts.",
+          "One business account for your organization. Hire builders by their proof of work, sponsor challenges, train your team — or run a tech hub with bootcamps and tutors.",
       },
       { property: "og:title", content: "Zero Club for Business" },
       { property: "og:description", content: "Hire builders, sponsor challenges, train your team, or run a tech hub on Zero Club." },
@@ -55,7 +55,7 @@ const COMPANY_FEATURES = [
 ];
 
 const HUB_FEATURES = [
-  { Icon: LayoutGrid, title: "Bootcamps & cohorts", body: "Publish programmes, run live classes and keep every cohort in one place." },
+  { Icon: LayoutGrid, title: "Bootcamps", body: "Publish programmes, run live classes and keep every bootcamp in one place." },
   { Icon: Users, title: "Tutors", body: "Bring your tutors in, assign them to bootcamps and follow their delivery." },
   { Icon: ClipboardList, title: "Admissions with Zero Form", body: "Pre-registration forms, early-bird pricing and seat limits, paid into your wallet." },
   { Icon: Trophy, title: "Outcomes", body: "Learner progress, attendance and analytics you can show to partners and funders." },
@@ -212,7 +212,7 @@ function BusinessLanding() {
               Where organizations meet the <span className="text-[#cc208f]">builders who ship.</span>
             </h1>
             <p className="mt-5 max-w-[min(600px,94%)] text-balance text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-[#4d4f55] animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both] dark:text-white/70">
-              One business account for your organization. Hire and train talent as a company, or run bootcamps and cohorts as an institution — and switch between the two whenever you need.
+              One business account for your organization. Hire and train talent as a company, or run bootcamps as an institution — and switch between the two whenever you need.
             </p>
             <div className="mt-7 flex w-full flex-col items-stretch justify-center gap-3 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.4s_both] sm:w-auto sm:flex-row sm:items-center">
               <Link
@@ -242,7 +242,7 @@ function BusinessLanding() {
                 Icon={Building2}
                 tag="Institutional"
                 title="A tech hub or training institution"
-                points={["Digital Hub for bootcamps", "Tutors and cohorts", "Admissions with Zero Form", "Learner outcomes"]}
+                points={["Digital Hub for bootcamps", "Tutors and bootcamps", "Admissions with Zero Form", "Learner outcomes"]}
                 href="#hubs"
                 note="Reviewed by Zero Club"
               />

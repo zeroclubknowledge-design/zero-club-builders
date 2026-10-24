@@ -263,7 +263,7 @@ export const ZERO_FORM_TEMPLATES: ZeroFormTemplate[] = [
   {
     id: "student",
     name: "Student bootcamp",
-    description: "For school and university cohorts — captures school and level.",
+    description: "For school and university bootcamps — captures school and level.",
     fields: [
       field("full_name", "Full name", "text", 0, true, "Ada Obi"),
       field("email", "Email", "email", 1, true, "you@email.com"),

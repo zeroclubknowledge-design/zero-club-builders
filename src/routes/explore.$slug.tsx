@@ -52,7 +52,7 @@ const products: Record<string, ProductPage> = {
       },
       {
         title: "Institution oversight",
-        copy: "See cohort health, tutor performance, programme reach, completion, and operational outcomes.",
+        copy: "See bootcamp health, tutor performance, programme reach, completion, and operational outcomes.",
       },
     ],
     workflow: [
@@ -139,13 +139,13 @@ const products: Record<string, ProductPage> = {
   },
   bootcamps: {
     name: "Bootcamps",
-    eyebrow: "Cohort learning",
+    eyebrow: "Bootcamp learning",
     statement: "Structured learning that ends in visible work.",
     summary:
       "Zero Club Bootcamps bring curriculum, live teaching, classwork, community, enrolment, and proof of completion into one focused experience.",
     Icon: GraduationCap,
     proof: [
-      { value: "Live", label: "Cohorts with real teaching" },
+      { value: "Live", label: "Bootcamps with real teaching" },
       { value: "Structured", label: "Curriculum, lessons, and classwork" },
       { value: "Visible", label: "Outcomes connect to builder profiles" },
     ],
@@ -156,16 +156,16 @@ const products: Record<string, ProductPage> = {
       },
       {
         title: "For tutors",
-        copy: "Create bootcamps for free, manage cohorts, price access, issue coupons, and edit every programme detail.",
+        copy: "Create bootcamps for free, manage learners, price access, issue coupons, and edit every programme detail.",
       },
       {
         title: "For institutions",
-        copy: "Coordinate tutors, cohorts, programmes, and outcomes from an institution-level workspace.",
+        copy: "Coordinate tutors, bootcamps, programmes, and outcomes from an institution-level workspace.",
       },
     ],
     workflow: [
       "Review outcomes, tutor, curriculum, and pricing",
-      "Enrol and enter the temporary cohort club",
+      "Enrol and enter the temporary bootcamp club",
       "Learn live and submit classwork",
       "Complete the programme and add proof to your profile",
     ],
@@ -178,7 +178,7 @@ const products: Record<string, ProductPage> = {
     eyebrow: "Focused communities",
     statement: "Community organised around a shared direction.",
     summary:
-      "Clubs give cohorts, teams, creators, and learning communities a focused home for conversation, announcements, classwork, questions, live spaces, and rewards.",
+      "Clubs give bootcamps, teams, creators, and learning communities a focused home for conversation, announcements, classwork, questions, live spaces, and rewards.",
     Icon: UsersRound,
     proof: [
       { value: "General", label: "Conversation and shared media" },

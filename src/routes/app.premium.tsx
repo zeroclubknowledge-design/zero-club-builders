@@ -119,7 +119,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Basic",
     billingLabel: "forever",
-    features: ["Create and sell bootcamps", "3 rewarded Zero Games competitions weekly", "Temporary cohort club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
+    features: ["Create and sell bootcamps", "3 rewarded Zero Games competitions weekly", "Temporary club for every bootcamp", "Curriculum and learner management", "Bootcamp pricing and coupons", "1 permanent Club", "Tutor profile, feed, and community access"],
     limitations: ["No Zero AI teaching assistance", "No verified bootcamp badge", "Cannot connect a bootcamp to an existing club"],
   },
   {
@@ -128,7 +128,7 @@ const plans: Plan[] = [
     name: "Tutor Pro",
     eyebrow: "Teach with confidence",
     priceValue: 7000,
-    description: "Add trusted verification and connect each cohort to the community you already lead.",
+    description: "Add trusted verification and connect each bootcamp to the community you already lead.",
     audiences: ["Tutor"],
     recommendedFor: "Tutor",
     storedTier: "Premium",
@@ -148,7 +148,7 @@ const plans: Plan[] = [
     recommendedFor: "Tutor",
     storedTier: "Premium+",
     billingLabel: "/ month",
-    features: ["Everything in Tutor Pro", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Zero AI curriculum, assessment, and teaching assistance", "Zero AI voice conversations", "Advanced Zero AI cohort assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority tutor support"],
+    features: ["Everything in Tutor Pro", "20 rewarded Zero Games competitions weekly, maximum 3 daily", "Create up to 10 permanent Clubs", "Zero AI curriculum, assessment, and teaching assistance", "Zero AI voice conversations", "Advanced Zero AI bootcamp assistance", "Multi-bootcamp verification support", "Unlimited existing-club connections", "Priority tutor support"],
   },
   {
     id: "institution-small",
@@ -160,7 +160,7 @@ const plans: Plan[] = [
     audiences: ["Institution"],
     recommendedFor: "Institution",
     billingLabel: "/ year",
-    features: ["30-day free trial", "21 rewarded Zero Games competitions weekly, maximum 3 daily", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "21 rewarded Zero Games competitions weekly, maximum 3 daily", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Bootcamp participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-large",
@@ -173,7 +173,7 @@ const plans: Plan[] = [
     recommendedFor: "Institution",
     featured: true,
     billingLabel: "/ year",
-    features: ["30-day free trial", "56 rewarded Zero Games competitions weekly, maximum 8 daily", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Cohort participation analytics", "Priority onboarding and support"],
+    features: ["30-day free trial", "56 rewarded Zero Games competitions weekly, maximum 8 daily", "Multiple-campus support", "Digital Hub", "Tutor and role management", "Multi-bootcamp oversight", "Bootcamp participation analytics", "Priority onboarding and support"],
   },
   {
     id: "institution-custom",
@@ -200,7 +200,7 @@ const audienceCopy: Record<Audience, { title: string; description: string }> = {
   },
   Tutor: {
     title: "Turn expertise into outcomes",
-    description: "Package knowledge, run structured cohorts, support learners, and earn from your teaching.",
+    description: "Package knowledge, run structured bootcamps, support learners, and earn from your teaching.",
   },
   Institution: {
     title: "Coordinate learning at scale",

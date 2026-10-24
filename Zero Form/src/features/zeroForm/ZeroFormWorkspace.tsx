@@ -532,7 +532,7 @@ function ZeroFormBuilder({
                   [
                     "waitlist",
                     "Waitlist",
-                    "Collect sign-ups for anything — a launch, a cohort, an event. No bootcamp needed, no payment.",
+                    "Collect sign-ups for anything — a launch, a class, an event. No bootcamp needed, no payment.",
                   ],
                 ] as const
               ).map(([value, name, hint]) => (
@@ -589,7 +589,7 @@ function ZeroFormBuilder({
                       value={newCampTitle}
                       onChange={(e) => setNewCampTitle(e.target.value)}
                       maxLength={120}
-                      placeholder="Bootcamp name, e.g. Product Design Cohort 3"
+                      placeholder="Bootcamp name, e.g. Product Design Bootcamp 3"
                       className={input}
                     />
                     <div className="grid gap-2 sm:grid-cols-2">

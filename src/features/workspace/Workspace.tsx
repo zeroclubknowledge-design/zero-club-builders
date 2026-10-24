@@ -417,7 +417,7 @@ function NewChannelDrawer({ open, onOpenChange, orgId, onCreated }: { open: bool
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent overlayClassName="z-[10090]" className="z-[10100] mx-auto max-w-lg border-none bg-background px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         <h3 className="font-display text-[19px] font-semibold">Add a channel</h3>
-        <p className="mt-1 text-[13.5px] text-muted-foreground">Channels keep conversations about one topic, team or cohort in one place. Everyone on the team can join in.</p>
+        <p className="mt-1 text-[13.5px] text-muted-foreground">Channels keep conversations about one topic, team or bootcamp in one place. Everyone on the team can join in.</p>
         <label className="mt-4 block text-[12.5px] font-semibold text-muted-foreground">Name</label>
         <div className="mt-1.5 flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-3">
           <Hash className="h-4 w-4 text-muted-foreground" />

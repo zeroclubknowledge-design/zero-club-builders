@@ -145,7 +145,7 @@ function BusinessWelcome() {
                 Icon={Building2}
                 title="Institutional"
                 subtitle="A tech hub or training institution"
-                points={["Bootcamps & cohorts", "Tutors and admissions", "Learner outcomes"]}
+                points={["Bootcamps", "Tutors and admissions", "Learner outcomes"]}
                 note="Reviewed by Zero Club before it opens"
               />
             </div>

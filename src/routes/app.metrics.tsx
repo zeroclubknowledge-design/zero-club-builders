@@ -256,14 +256,14 @@ function MetricsPage() {
       ? data.institutionTutors.length === 0
         ? { label: "Build your faculty", detail: "Invite tutors into your institution workspace.", to: "/app/institution-studio" as const, Icon: Users }
         : activePrograms.length === 0
-          ? { label: "Launch a programme", detail: "Turn your curriculum into an active cohort.", to: "/app/institution-studio" as const, Icon: Building2 }
-          : { label: "Review cohort delivery", detail: "Open your institution hub to manage outcomes.", to: "/app/institution-studio" as const, Icon: BookOpenCheck }
+          ? { label: "Launch a programme", detail: "Turn your curriculum into an active bootcamp.", to: "/app/institution-studio" as const, Icon: Building2 }
+          : { label: "Review bootcamp delivery", detail: "Open your institution hub to manage outcomes.", to: "/app/institution-studio" as const, Icon: BookOpenCheck }
       : isTutor
         ? data.managedBootcamps.length === 0
           ? { label: "Create your first bootcamp", detail: "Package your expertise into a focused learning experience.", to: "/app/tutor-studio/create" as const, Icon: GraduationCap }
           : draftPrograms.length > 0
             ? { label: "Prepare your next launch", detail: "Finish a draft curriculum and open enrolment.", to: "/app/tutor-studio" as const, Icon: Rocket }
-            : { label: "Review learner progress", detail: "Use Tutor Studio to keep your cohorts moving.", to: "/app/tutor-studio" as const, Icon: BookOpenCheck }
+            : { label: "Review learner progress", detail: "Use Tutor Studio to keep your bootcamps moving.", to: "/app/tutor-studio" as const, Icon: BookOpenCheck }
         : proofPosts.length === 0
           ? { label: "Ship your first proof", detail: "Turn your work into a visible build.", to: "/app/ship" as const, Icon: Rocket }
           : data.enrollments.length === 0
@@ -343,7 +343,7 @@ function MetricsPage() {
           { value: insights.activePrograms.length, label: "Active bootcamps" },
           { value: insights.draftPrograms.length, label: "Draft programmes" },
           { value: data?.managedEnrollments.length || 0, label: "Learners reached" },
-          { value: insights.completedPrograms.length, label: "Completed cohorts" },
+          { value: insights.completedPrograms.length, label: "Completed bootcamps" },
         ]
       : [
           { value: insights.verifiedBuilds.length, label: "Verified builds" },
@@ -396,7 +396,7 @@ function MetricsPage() {
               <>
                 <MetricCard label="Tutors" value={compact(data?.institutionTutors.length || 0)} detail="Faculty connected" />
                 <MetricCard label="Programmes" value={compact(data?.managedBootcamps.length || 0)} detail={`${insights.activePrograms.length} currently active`} />
-                <MetricCard label="Learners" value={compact(data?.managedEnrollments.length || 0)} detail={insights.enrollmentChange === 0 ? "Across all cohorts" : `${insights.enrollmentChange > 0 ? "+" : ""}${insights.enrollmentChange}% in this period`} />
+                <MetricCard label="Learners" value={compact(data?.managedEnrollments.length || 0)} detail={insights.enrollmentChange === 0 ? "Across all bootcamps" : `${insights.enrollmentChange > 0 ? "+" : ""}${insights.enrollmentChange}% in this period`} />
                 <MetricCard label="Programme value" value={currency(insights.estimatedProgramValue)} detail="Gross value of enrolments" />
               </>
             ) : insights.isTutor ? (

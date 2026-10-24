@@ -739,7 +739,7 @@ function InstitutionHub() {
                   <div className="text-left">
                     <p className="text-[14px] font-semibold tracking-tight">Learning operations</p>
                     <p className="text-[11.5px] text-muted-foreground mt-0.5">
-                      Cohorts, learners and schedules
+                      Bootcamps, learners and schedules
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />

@@ -254,7 +254,7 @@ function InstitutionControlPanel() {
                       <span className="block truncate text-[13.5px] font-semibold tracking-tight">{club.name}</span>
                       <span className="block truncate text-[11.5px] text-muted-foreground">
                         {club.members} {club.members === 1 ? "member" : "members"}
-                        {club.club_type === "temporary" && " · cohort club"}
+                        {club.club_type === "temporary" && " · bootcamp club"}
                       </span>
                     </span>
                   </Link>

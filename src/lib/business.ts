@@ -21,7 +21,7 @@ export const BUSINESS_MODES: Record<BusinessMode, { label: string; short: string
   institutional: {
     label: "Institutional",
     short: "Institution",
-    blurb: "Run a tech hub: bootcamps, tutors, cohorts and learner outcomes.",
+    blurb: "Run a tech hub: bootcamps, tutors and learner outcomes.",
     home: "/app/institution-studio",
   },
   company: {
@@ -94,7 +94,7 @@ export const BUSINESS_GOALS: Record<BusinessMode, { key: string; label: string }
   institutional: [
     { key: "bootcamps", label: "Run bootcamps" },
     { key: "tutors", label: "Manage tutors" },
-    { key: "cohorts", label: "Track cohorts" },
+    { key: "cohorts", label: "Track bootcamps" },
     { key: "admissions", label: "Take admissions" },
     { key: "outcomes", label: "Show outcomes" },
     { key: "hire", label: "Place graduates" },

@@ -45,7 +45,7 @@ export const docPages: DocPage[] = [
         paragraphs: ["Every account shares the same social foundation, but tools and metrics change according to the work that account needs to do."],
         bullets: [
           "Learners build skills, proof, relationships, and access to work.",
-          "Tutors create bootcamps, teach cohorts, manage curriculum, and earn from expertise.",
+          "Tutors create bootcamps, teach learners, manage curriculum, and earn from expertise.",
           "Institutions coordinate programmes, tutors, learners, communities, and outcomes.",
           "Zero Club administrators protect platform quality, safety, payments, and operations.",
         ],
@@ -127,7 +127,7 @@ export const docPages: DocPage[] = [
         bullets: [
           "Learner metrics focus on consistency, learning, Ships, profile reach, and participation.",
           "Tutor metrics focus on enrolment, completion, learner outcomes, quality, and teaching revenue.",
-          "Institution metrics focus on programme reach, cohort health, tutor performance, completion, and operations.",
+          "Institution metrics focus on programme reach, bootcamp health, tutor performance, completion, and operations.",
           "Every metric should link back to the activity or outcome that produced it whenever possible.",
         ],
       },
@@ -218,7 +218,7 @@ export const docPages: DocPage[] = [
       {
         title: "For learners",
         paragraphs: ["A bootcamp details page begins with the programme description and outcomes, then presents its curriculum and learning contents before pricing and purchase actions. This order lets a learner understand the programme before making a payment decision."],
-        bullets: ["Review the tutor or institution, outcomes, schedule, requirements, and curriculum.", "Expand curriculum sections to see every lesson title, type and length — the full syllabus outline is public, while lesson videos and files unlock after enrolment.", "Review price, available coupon, refund information, and access terms at the page footer.", "After enrolment, use the cohort club for live teaching, announcements, questions, and classwork."],
+        bullets: ["Review the tutor or institution, outcomes, schedule, requirements, and curriculum.", "Expand curriculum sections to see every lesson title, type and length — the full syllabus outline is public, while lesson videos and files unlock after enrolment.", "Review price, available coupon, refund information, and access terms at the page footer.", "After enrolment, use the bootcamp club for live teaching, announcements, questions, and classwork."],
       },
       {
         title: "For tutors",
@@ -227,7 +227,7 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Temporary and existing Clubs",
-        paragraphs: ["Every launched bootcamp can create a temporary cohort club at no additional subscription cost. The club exists for the programme lifecycle and disappears after the bootcamp ends. Connecting the programme to an existing, persistent Club requires an eligible paid tutor plan."],
+        paragraphs: ["Every launched bootcamp can create a temporary bootcamp club at no additional subscription cost. The club exists for the programme lifecycle and disappears after the bootcamp ends. Connecting the programme to an existing, persistent Club requires an eligible paid tutor plan."],
       },
       {
         title: "Verification and Zero AI",
@@ -384,7 +384,7 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Planned experiences",
-        bullets: ["Learner assistance for explanations, practice plans, reflection, and project direction.", "Tutor assistance for curriculum structure, teaching preparation, and learner support.", "Institution assistance for programme insight, operations, and cohort intervention.", "Tutor expertise interviews that contribute to bootcamp verification review.", "Contextual guidance across Notes, projects, Metrics, and other supported workflows."],
+        bullets: ["Learner assistance for explanations, practice plans, reflection, and project direction.", "Tutor assistance for curriculum structure, teaching preparation, and learner support.", "Institution assistance for programme insight, operations, and bootcamp intervention.", "Tutor expertise interviews that contribute to bootcamp verification review.", "Contextual guidance across Notes, projects, Metrics, and other supported workflows."],
       },
       {
         title: "Boundaries",
@@ -476,8 +476,8 @@ export const docPages: DocPage[] = [
         note: "This benefit is redeemed once. Deleting the first Club does not give the account another six-month benefit.",
       },
       {
-        title: "Capacity and temporary cohorts",
-        paragraphs: ["Only permanent Clubs count toward plan capacity. A Bootcamp cohort Club is attached to a Bootcamp lifecycle, ends with that cohort, and never consumes a permanent Club slot."],
+        title: "Capacity and temporary bootcamps",
+        paragraphs: ["Only permanent Clubs count toward plan capacity. A Bootcamp Club is attached to a Bootcamp lifecycle, ends with that bootcamp, and never consumes a permanent Club slot."],
         bullets: ["Capacity is always displayed as an exact count such as 2 / 3.", "There are no unlimited or plus-sign Club allowances for individual plans.", "Existing Clubs are not deleted when a member downgrades or exceeds a lower plan limit.", "An owner above the current limit can manage existing communities but cannot create another permanent Club."],
       },
       {
@@ -509,7 +509,7 @@ export const docPages: DocPage[] = [
       },
       {
         title: "Institution Hub",
-        paragraphs: ["Institution Hub replaces Tutor Studio for an Institution account. It supports programme operations at organisation level, including assigned tutors, multiple bootcamps, cohorts, institutional metrics, and administration."],
+        paragraphs: ["Institution Hub replaces Tutor Studio for an Institution account. It supports programme operations at organisation level, including assigned tutors, multiple bootcamps, bootcamps, institutional metrics, and administration."],
         bullets: ["Institution navigation remains inside the standard desktop frame.", "Back to app returns the institution to the social product.", "Assigned tutors and authorised admins can edit and save bootcamps they manage.", "Institution metrics must represent programme and organisational outcomes, not learner activity."],
       },
       {

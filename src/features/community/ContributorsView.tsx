@@ -345,7 +345,7 @@ export function ContributorsView({
               <Rule icon={<HelpCircle className="h-3.5 w-3.5 text-sky-400" />} text="Ask a question in Q&A" pts="3" />
               <Rule icon={<Flame className="h-3.5 w-3.5 text-orange-400" />} text="Each day you're active (consistency)" pts="2" />
               <Rule icon={<Sparkles className="h-3.5 w-3.5 text-muted-foreground" />} text="Taking part in General chat (up to 30)" pts="1" />
-              <li className="pt-1 text-[12px] text-muted-foreground">Activity in this club's cohorts counts too. The club owner isn't ranked.</li>
+              <li className="pt-1 text-[12px] text-muted-foreground">Activity in this club's bootcamps counts too. The club owner isn't ranked.</li>
             </ul>
           )}
         </section>

@@ -1,0 +1,13 @@
+-- Applied 2026-10-24 (Supabase migrations "zero_form_browse_v2", "zero_form_browse_v2_fix",
+-- "club_cohorts_called_bootcamps_messages").
+--
+-- browse_zero_forms_v2(p_search text, p_club uuid, p_kind text, p_limit int) returns jsonb
+--   { forms, clubs, kinds } for anon + authenticated. Every published Zero Form whose
+--   zero_form_state is 'open', of every kind ('bootcamp', 'waitlist', and any added later),
+--   with club, owner, price, dates, seats_left and `registered`. Forms for bootcamps in
+--   private/inactive clubs stay unlisted. (browse_zero_forms v1 is no longer used by the app.)
+--
+-- Wording: the groups inside a club are called Bootcamps, not Cohorts. User-facing messages
+-- in add_cohort_member, community_for_owner, create_club_cohort, decide_club_join_request,
+-- enforce_permanent_club_capacity, join_club_cohort and update_club_cohort were reworded.
+-- Function names, columns and stored values (club_type 'cohort') are unchanged.

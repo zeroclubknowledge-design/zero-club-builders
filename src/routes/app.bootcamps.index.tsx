@@ -132,7 +132,7 @@ function Bootcamps() {
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto max-w-[900px] px-4 pb-3 pt-3 md:px-6">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.02em] text-foreground">Learn</h1>
-          <p className="mt-0.5 text-[14px] text-muted-foreground">Learn with a cohort. Leave with proof.</p>
+          <p className="mt-0.5 text-[14px] text-muted-foreground">Learn in a bootcamp. Leave with proof.</p>
           <label className="mt-3 flex h-9 w-full items-center gap-2 rounded-lg bg-foreground/[0.05] px-3">
             <Search className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             <input

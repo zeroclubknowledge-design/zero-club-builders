@@ -207,14 +207,14 @@ function Overview({ ws, onApply, onTab }: { ws: Workspace; onApply: () => void; 
 function HubStatus({ hub, mode, onApply }: { hub: Workspace["hub"]; mode: string; onApply: () => void }) {
   if (mode === "institutional") {
     return (
-      <Banner tone="ok" Icon={BadgeCheck} title="You're in Institutional mode" body="Your Digital Hub runs bootcamps, tutors and cohorts.">
+      <Banner tone="ok" Icon={BadgeCheck} title="You're in Institutional mode" body="Your Digital Hub runs bootcamps and tutors.">
         <Link to="/app/institution-studio" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background">Open Digital Hub <ArrowRight className="h-3.5 w-3.5" /></Link>
       </Banner>
     );
   }
   if (!hub) {
     return (
-      <Banner tone="info" Icon={Building2} title="Are you a tech hub too?" body="Apply for a Digital Hub to switch to Institutional mode and run bootcamps, tutors and cohorts. Zero Club reviews every hub.">
+      <Banner tone="info" Icon={Building2} title="Are you a tech hub too?" body="Apply for a Digital Hub to switch to Institutional mode and run bootcamps and tutors. Zero Club reviews every hub.">
         <button type="button" onClick={onApply} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background">Apply for a Digital Hub</button>
       </Banner>
     );

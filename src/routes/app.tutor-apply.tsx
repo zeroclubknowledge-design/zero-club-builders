@@ -170,7 +170,7 @@ function IntroScreen({ firstName, onStart, onBack }: { firstName: string; onStar
 
         <h2 className="mb-3 mt-8 text-[12px] font-bold uppercase tracking-[0.12em] text-muted-foreground">What you unlock</h2>
         <div className="grid gap-2.5 sm:grid-cols-2">
-          <Perk icon={<LayoutDashboard className="h-5 w-5" />} title="Tutor Studio" body="Run bootcamps, live classes and cohorts from one place." />
+          <Perk icon={<LayoutDashboard className="h-5 w-5" />} title="Tutor Studio" body="Run bootcamps and live classes from one place." />
           <Perk icon={<Users className="h-5 w-5" />} title="Your learners" body="Track progress, projects and attendance for every student." />
           <Perk icon={<Sparkles className="h-5 w-5" />} title="Earn on Zero Club" body="Get paid for bootcamps and memberships, straight to your wallet." />
           <Perk icon={<BadgeCheck className="h-5 w-5" />} title="Tutor badge" body="A verified Tutor mark on your profile and posts." />

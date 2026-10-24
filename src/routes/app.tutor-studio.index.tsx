@@ -1247,7 +1247,7 @@ function TutorStudioPage() {
                     </DrawerTitle>
                     <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
                       {roleDrawer === "rep"
-                        ? "Reps oversee daily activities and answer questions. Appoint as many as the cohort needs — tap a rep again to step them down."
+                        ? "Reps oversee daily activities and answer questions. Appoint as many as the bootcamp needs — tap a rep again to step them down."
                         : "Administrators can moderate the club chat and manage members. Promote as many as you need."}
                     </p>
                   </div>
@@ -1844,7 +1844,7 @@ function TutorStudioPage() {
       Icon: BookOpen,
     },
     {
-      label: "Active cohorts",
+      label: "Active bootcamps",
       value: activeBootcamps.toLocaleString(),
       hint: `${draftBootcamps} in draft`,
       Icon: Zap,
@@ -1862,7 +1862,7 @@ function TutorStudioPage() {
       key: "operations" as const,
       title: "Teaching operations",
       tag: "Admin panel",
-      body: "Cohorts, learner progress, schedules, announcements and assessments.",
+      body: "Bootcamps, learner progress, schedules, announcements and assessments.",
       Icon: UsersRound,
     },
   ];
@@ -1904,7 +1904,7 @@ function TutorStudioPage() {
             Welcome back{profile?.full_name ? `, ${String(profile.full_name).split(" ")[0]}` : ""}
           </h2>
           <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
-            Curriculum, learners, pricing, coupons and the community around every cohort, in one
+            Curriculum, learners, pricing, coupons and the community around every bootcamp, in one
             studio.
           </p>
 
@@ -1931,7 +1931,7 @@ function TutorStudioPage() {
                   {clubCapacity.permanent_club_limit ?? "organisation-specific"} permanent clubs
                 </p>
                 <p className="text-[12px] text-muted-foreground">
-                  Temporary bootcamp cohort clubs are excluded.
+                  Temporary bootcamp clubs are excluded.
                 </p>
               </div>
               <Link

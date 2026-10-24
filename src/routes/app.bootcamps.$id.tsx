@@ -462,7 +462,7 @@ function BootcampDetail() {
           <div className="mt-3.5 grid grid-cols-3 border-t border-border pt-3 text-center">
             <div><p className="text-[16px] font-semibold">{modules.length}</p><p className="text-[12px] text-muted-foreground">Sections</p></div>
             <div><p className="text-[16px] font-semibold">{totalLessons}</p><p className="text-[12px] text-muted-foreground">Lessons</p></div>
-            <div><p className="text-[16px] font-semibold">Live</p><p className="text-[12px] text-muted-foreground">Cohort</p></div>
+            <div><p className="text-[16px] font-semibold">Live</p><p className="text-[12px] text-muted-foreground">Bootcamp</p></div>
           </div>
         </section>
 
@@ -650,7 +650,7 @@ function BootcampDetail() {
 
           <h3 className="mt-5 text-[15px] font-semibold">What you get</h3>
           <ul className="mt-2 grid gap-2.5 text-[14px]">
-            {[...(bootcamp.certificate_enabled !== false ? ["Certificate of completion you can add to LinkedIn"] : []), "Live classes with replays", "A private cohort club", "Direct tutor access", "XP for every lesson and ship", "ZeroNotes you keep for good"].map((item) => (
+            {[...(bootcamp.certificate_enabled !== false ? ["Certificate of completion you can add to LinkedIn"] : []), "Live classes with replays", "A private bootcamp club", "Direct tutor access", "XP for every lesson and ship", "ZeroNotes you keep for good"].map((item) => (
               <li key={item} className="flex items-center gap-2.5">
                 <Check className="h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" /> {item}
               </li>

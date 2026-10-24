@@ -61,7 +61,7 @@ export function BusinessAuthShell({
             </div>
             <div className="relative mt-8 grid gap-2.5">
               <AsideRow Icon={BriefcaseBusiness} title="Company" body="Hire builders, sponsor challenges, train your team." />
-              <AsideRow Icon={Building2} title="Institutional" body="Run a tech hub with bootcamps, tutors and cohorts." />
+              <AsideRow Icon={Building2} title="Institutional" body="Run a tech hub with bootcamps and tutors." />
               <AsideRow Icon={ShieldCheck} title="Verified hubs" body="Institutions are reviewed before they go live." />
             </div>
             <div className="relative mt-auto pt-8 text-center">
