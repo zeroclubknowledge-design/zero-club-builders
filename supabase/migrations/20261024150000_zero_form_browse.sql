@@ -1,0 +1,8 @@
+-- Applied as migration "zero_form_browse" on 2026-10-24.
+-- browse_zero_forms(p_search text default null, p_club uuid default null, p_limit int default 60) returns jsonb
+--   { forms: [...], clubs: [...] }, callable by anon + authenticated (security definer).
+-- Lists every Zero Form that is published and zero_form_state(form, bootcamp) = 'open',
+-- for a bootcamp that belongs to an active, public club (directly, or as one of its cohorts;
+-- the form is shown under the top-level club). Each form carries club name/logo, cohort name,
+-- price fields, starts_at, deadline, seats_left and `registered` for the signed-in caller.
+-- See the Supabase migration history for the exact body.

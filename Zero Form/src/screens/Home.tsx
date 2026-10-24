@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ClipboardList, Eye, Loader2, Plus, Users, Wallet, type LucideIcon } from "@/components/icons/glyphs";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { AppShell } from "@/components/AppShell";
 import { Brand } from "@/components/Brand";
-import { AuthSheet } from "@/components/auth/AuthSheet";
 import { ZeroFormWorkspace } from "@/features/zeroForm/ZeroFormWorkspace";
 import { NAV } from "./nav";
 
@@ -73,34 +73,10 @@ function Metric({ icon: Icon, label, value, sub }: { icon: LucideIcon; label: st
   );
 }
 
-/* ── Signed out: the same workspace, empty, with sign-in where you'd create ── */
+/* ── Signed out: straight to the open forms (Browse), no landing page ── */
 
 function SignedOutWorkspace() {
-  const [auth, setAuth] = useState<null | "signup" | "signin">(null);
-  return (
-    <AppShell brand={<Brand />} nav={NAV}>
-      <section className="rounded-[26px] border border-border bg-card p-4 sm:p-6">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">Your workspace</p>
-            <h2 className="mt-1 font-display text-[22px] font-semibold tracking-tight">Zero Forms</h2>
-            <p className="mt-1 text-[12px] text-muted-foreground">Register learners for a bootcamp, or run a waitlist for anything you're launching.</p>
-          </div>
-          <button onClick={() => setAuth("signup")} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground">
-            <Plus className="h-4 w-4" /> New Zero Form
-          </button>
-        </div>
-        <div className="rounded-lg border border-dashed border-border px-6 py-14 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><ClipboardList className="h-6 w-6" /></span>
-          <h3 className="mt-3 text-[15px] font-semibold">Sign in to see your Zero Forms</h3>
-          <p className="mx-auto mt-1 max-w-[360px] text-[13px] text-muted-foreground">Use your Zero Club account, or create one free. Forms you made on Zero Club are already here.</p>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <button onClick={() => setAuth("signin")} className="inline-flex h-11 items-center rounded-lg bg-foreground px-5 text-[13px] font-semibold text-background">Sign in</button>
-            <button onClick={() => setAuth("signup")} className="inline-flex h-11 items-center rounded-lg border border-border px-5 text-[13px] font-semibold">Create a free account</button>
-          </div>
-        </div>
-      </section>
-      <AuthSheet open={!!auth} initialMode={auth || "signup"} onClose={() => setAuth(null)} />
-    </AppShell>
-  );
+  const navigate = useNavigate();
+  useEffect(() => { void navigate({ to: "/browse", replace: true }); }, [navigate]);
+  return null;
 }
