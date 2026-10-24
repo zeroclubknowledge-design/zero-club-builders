@@ -7,6 +7,14 @@ import { toast } from "sonner";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 
+/** "Only for any bootcamp in Club A · Bootcamp X" — whichever limits the gift has. */
+function scopeText(card: any) {
+  const clubs: string[] = (card?.clubs || []).map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean);
+  const camps: string[] = (card?.bootcamps || []).map((c: any) => c?.title).filter(Boolean);
+  const parts = [clubs.length ? `any bootcamp in ${clubs.join(", ")}` : "", camps.length ? camps.join(", ") : ""].filter(Boolean);
+  return parts.length ? `Only for ${parts.join(" · ")}` : "";
+}
+
 export const Route = createFileRoute("/app/gifts/$code")({ component: ClaimGiftPage });
 
 function ClaimGiftPage() {
@@ -59,7 +67,8 @@ function ClaimGiftPage() {
   const unavailable = !alreadyClaimed && (data.card.expired || data.card.status !== "active" || data.card.claims_remaining === 0);
   const senderName = data.creator?.full_name || data.creator?.username || "A Zero Club member";
   const walletBacked = !card.expires_at && (card.service === "support" || card.service === "custom");
-  const useHref = card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app";
+  const oneClub = card.service === "bootcamps" && data.card.clubs?.length === 1 && !data.card.bootcamps?.length ? data.card.clubs[0].id : null;
+  const useHref = oneClub ? `/app/clubs/${oneClub}` : card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app";
 
   const shell = (children: React.ReactNode) => (
     <div className="flex min-h-screen flex-col items-center bg-[#17181b] text-white">
@@ -93,7 +102,7 @@ function ClaimGiftPage() {
         </p>
         {card.expires_at && <p className="mt-3 text-xs text-white/65">Use before {new Date(card.expires_at).toLocaleString()}. Unused credit expires.</p>}
         {!walletBacked && <p className="mt-2 text-sm font-semibold text-white">{format(Number(data.card.my_claim_remaining ?? card.remaining_amount ?? card.amount))} remaining</p>}
-        {!!data.card.bootcamps?.length && <p className="mt-2 text-xs text-white/65">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
+        {scopeText(data.card) && <p className="mt-2 text-xs text-white/65">{scopeText(data.card)}</p>}
         <div className="mt-7 w-full">
           <GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} />
         </div>
@@ -125,7 +134,7 @@ function ClaimGiftPage() {
       </div>
       <p className="mt-3 text-xs text-white/65">{data.card.claims_remaining} of {data.card.quantity} claims left · one per account</p>
       {data.card.expires_at && <p className="mt-2 text-xs text-white/65">Claim and use before {new Date(data.card.expires_at).toLocaleString()}. Unused credit expires.</p>}
-      {!!data.card.bootcamps?.length && <p className="mt-3 text-sm text-white/70">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
+      {scopeText(data.card) && <p className="mt-3 text-sm text-white/70">{scopeText(data.card)}</p>}
       <p className="mt-4 flex items-start gap-2 text-left text-[13px] leading-relaxed text-white/55">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         {walletBacked

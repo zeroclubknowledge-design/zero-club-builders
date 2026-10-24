@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
+import { GiftClubPicker, MAX_GIFT_CLUBS } from "@/features/membership/GiftClubPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
@@ -37,8 +38,11 @@ export function SendGift() {
   useEffect(() => { if (service === "support") setService("universal"); }, [service, setService]);
   const [quantity, setQuantity] = usePersistentDraft(giftKey("quantity"), "1");
   const [expires, setExpires] = usePersistentDraft(giftKey("expiry"), "");
-  const [limited, setLimited] = usePersistentDraft(giftKey("limited-bootcamps"), false);
+  const [scope, setScope] = usePersistentDraft<"all" | "bootcamps" | "clubs">(giftKey("bootcamp-scope"), "all");
+  const limited = scope === "bootcamps";
+  const byClub = scope === "clubs";
   const [bootcampIds, setBootcampIds] = usePersistentDraft<string[]>(giftKey("bootcamps"), []);
+  const [clubIds, setClubIds] = usePersistentDraft<string[]>(giftKey("clubs"), []);
   const request = useRef<{ signature: string; id: string } | null>(null);
   const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
   const [customPurpose, setCustomPurpose] = usePersistentDraft(giftKey("purpose"), "");
@@ -49,7 +53,7 @@ export function SendGift() {
   const count = Number(quantity);
   const total = numericAmount * count;
   const expiry = new Date(expires).getTime();
-  const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100));
+  const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100)) && !(service === "bootcamps" && byClub && (!clubIds.length || clubIds.length > MAX_GIFT_CLUBS));
 
   const { data: profile, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["gift-card-profile", session?.user.id ?? null],
@@ -105,9 +109,11 @@ export function SendGift() {
       if (service === "custom" && !customPurpose.trim()) {
         throw new Error("Say what this custom gift is for.");
       }
-      const signature = JSON.stringify([numericAmount, count, expires, templateId, service, message.trim(), customPurpose.trim(), service === "bootcamps" && limited ? bootcampIds : []]);
+      const signature = JSON.stringify([numericAmount, count, expires, templateId, service, message.trim(), customPurpose.trim(), service === "bootcamps" && limited ? bootcampIds : [], service === "bootcamps" && byClub ? clubIds : []]);
       if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
-      const { data, error } = await supabase.rpc("create_gift_campaign", {
+      const clubScoped = service === "bootcamps" && byClub;
+      const { data, error } = await supabase.rpc((clubScoped ? "create_club_gift_campaign" : "create_gift_campaign") as "create_gift_campaign", {
+        ...(clubScoped ? { gift_club_ids: clubIds } : {}),
         gift_amount: numericAmount,
         gift_template: templateId,
         gift_service: service,
@@ -151,6 +157,8 @@ export function SendGift() {
     : expiry > now + 366 * 86400000 ? "Choose an expiry within one year."
     : service === "bootcamps" && limited && !bootcampIds.length ? "Select at least one eligible bootcamp."
     : service === "bootcamps" && limited && bootcampIds.length > 100 ? "Select no more than 100 bootcamps."
+    : service === "bootcamps" && byClub && !clubIds.length ? "Select at least one club."
+    : service === "bootcamps" && byClub && clubIds.length > MAX_GIFT_CLUBS ? `Select no more than ${MAX_GIFT_CLUBS} clubs.`
     : service === "custom" && !customPurpose.trim() ? "Describe what this custom gift is for."
     : !hasGiftFunds ? `Add ${format(Math.max(0, total - Number(profile?.coins || 0)))} to your wallet to create this gift.`
     : null;
@@ -212,9 +220,10 @@ export function SendGift() {
   return (
     <AppShell brand={<Brand />} nav={NAV}>
       <PageHead title="Gifts & Zero Cards" action={waiting} />
-      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 [&>section]:rounded-[22px] [&>section]:border [&>section]:border-border">
-        <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
-          <div className="mx-auto w-full max-w-[420px]">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-3 [&>section.zg-box]:rounded-[22px] [&>section.zg-box]:border [&>section.zg-box]:border-border">
+        {/* The card and its designs sit straight on the page — no box around them — at full width. */}
+        <section className="pb-2">
+          <div className="w-full [&>*]:!max-w-none">
             <GiftCardVisual
               amount={numericAmount}
               service={service}
@@ -224,8 +233,8 @@ export function SendGift() {
           </div>
           {/* Room is left around every swatch so the selection ring is never
               clipped by the scrolling row, and the row lines up with the card. */}
-          <div className="mx-auto mt-3 w-full max-w-[420px]">
-            <div className="no-scrollbar -mx-1 flex gap-2.5 overflow-x-auto p-1">
+          <div className="mt-4 w-full">
+            <div className="grid grid-cols-6 gap-2 p-1">
               {giftTemplates.map((template) => {
                 const selected = templateId === template.id;
                 return (
@@ -235,7 +244,7 @@ export function SendGift() {
                     onClick={() => setTemplateId(template.id)}
                     aria-label={`${template.name} design`}
                     aria-pressed={selected}
-                    className={`relative grid h-10 min-w-[52px] flex-1 place-items-center rounded-[10px] border border-foreground/10 transition active:scale-95 ${template.shell} ${selected ? "ring-2 ring-foreground ring-offset-2 ring-offset-card" : ""}`}
+                    className={`relative grid h-11 min-w-0 place-items-center rounded-[12px] border border-foreground/10 transition active:scale-95 ${template.shell} ${selected ? "ring-2 ring-foreground ring-offset-2 ring-offset-canvas" : ""}`}
                   >
                     {selected && (
                       <span className="grid h-5 w-5 place-items-center rounded-full bg-background/90 text-foreground shadow-sm">
@@ -249,7 +258,7 @@ export function SendGift() {
           </div>
         </section>
 
-        <section className="flex flex-col gap-4 bg-card p-4 md:rounded-xl md:border md:border-border">
+        <section className="zg-box flex flex-col gap-4 bg-card p-4 md:rounded-xl md:border md:border-border">
           <div>
             <span className={LABEL}>Amount per person</span>
             <div className="flex items-baseline gap-1.5 border-b border-foreground/15 pb-2 focus-within:border-foreground/40">
@@ -308,7 +317,7 @@ export function SendGift() {
             )}
           </div>
 
-          {service === "bootcamps" && <div><span className={LABEL}>Eligible bootcamps</span><div className="mt-2 flex flex-wrap gap-2"><button type="button" aria-pressed={!limited} onClick={() => setLimited(false)} className={`rounded-full border px-4 py-2 text-sm ${!limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>All bootcamps</button><button type="button" aria-pressed={limited} onClick={() => setLimited(true)} className={`rounded-full border px-4 py-2 text-sm ${limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>Choose bootcamps</button></div>{limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}</div>}
+          {service === "bootcamps" && <div><span className={LABEL}>Eligible bootcamps</span><div className="mt-2 flex flex-wrap gap-2">{([["all", "All bootcamps"], ["clubs", "Choose clubs"], ["bootcamps", "Choose bootcamps"]] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={scope === id} onClick={() => setScope(id)} className={`rounded-full border px-4 py-2 text-sm ${scope === id ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>{label}</button>)}</div>{byClub && <GiftClubPicker selected={clubIds} onChange={setClubIds} />}{limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}</div>}
           {service === "custom" && (
             <label className="block">
               <span className={LABEL}>What's it for?</span>
@@ -343,7 +352,7 @@ export function SendGift() {
           </label>
         </section>
 
-        <section className="flex flex-col bg-card px-4 pb-4 pt-4">
+        <section className="zg-box flex flex-col bg-card px-4 pb-4 pt-4">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 p-3"><span className="text-sm text-muted-foreground">{isPlatformAdmin ? "Total sponsored" : "Total reserved"} · {count > 0 ? count.toLocaleString() : 0} × {format(numericAmount)}</span><strong className="text-base tabular-nums">{format(Number.isFinite(total) ? total : 0)}</strong></div>
           <p className="flex items-start gap-2 text-[13px] leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />

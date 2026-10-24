@@ -40,7 +40,7 @@ export function ReceivedGifts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at, bootcamp_ids, expires_at")
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at, bootcamp_ids, club_ids, expires_at")
         .eq("claimed_by", profile!.id)
         .eq("status", "claimed")
         .gt("remaining_amount", 0)
@@ -52,6 +52,15 @@ export function ReceivedGifts() {
     },
   });
   const list = (cards.data || []) as any[];
+  const clubIds = [...new Set(list.flatMap((g) => g.club_ids || []))] as string[];
+  const clubNames = useQuery({
+    queryKey: ["gift-club-names", clubIds],
+    enabled: clubIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("clubs").select("id, name").in("id", clubIds);
+      return Object.fromEntries((data || []).map((c: any) => [c.id, c.name])) as Record<string, string>;
+    },
+  });
   const total = list.reduce((s, c) => s + Number(c.remaining_amount || 0), 0);
 
   return (
@@ -83,7 +92,8 @@ export function ReceivedGifts() {
             <div className="grid gap-5 sm:grid-cols-2">
               {list.map((g) => {
                 const label = giftServices.find((s) => s.id === g.service)?.label || g.service;
-                const where = WHERE[g.service] || WHERE.universal;
+                const clubs = ((g.club_ids || []) as string[]).map((id) => clubNames.data?.[id]).filter(Boolean);
+                const where = g.club_ids?.length === 1 && !g.bootcamp_ids?.length ? { path: `/app/clubs/${g.club_ids[0]}`, action: "Open club" } : WHERE[g.service] || WHERE.universal;
                 return (
                   <article key={g.id} className="min-w-0">
                     <GiftCardVisual amount={g.amount} service={g.service} templateId={g.template_id} code={g.code} message={g.message} />
@@ -93,6 +103,7 @@ export function ReceivedGifts() {
                         <p className="truncate text-[12px] text-muted-foreground">
                           of {format(Number(g.amount))}{g.expires_at ? ` · use by ${new Date(g.expires_at).toLocaleDateString()}` : ""}
                           {g.bootcamp_ids?.length ? ` · ${g.bootcamp_ids.length} bootcamp${g.bootcamp_ids.length === 1 ? "" : "s"} only` : ""}
+                          {g.club_ids?.length ? ` · bootcamps in ${clubs.length ? clubs.join(", ") : `${g.club_ids.length} club${g.club_ids.length === 1 ? "" : "s"}`}` : ""}
                         </p>
                       </div>
                       <a href={zc(where.path)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-foreground px-3.5 text-[12.5px] font-semibold text-background">

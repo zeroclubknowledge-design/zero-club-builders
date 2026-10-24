@@ -17,6 +17,14 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
  * card, create a free Zero Club account right here, and the gift is claimed
  * the moment the code is verified — no second site, no lost link.
  */
+/** "Only for bootcamps in Club A, Club B" / "Only for: Bootcamp X" — whichever limits the gift has. */
+function scopeText(card: any) {
+  const clubs: string[] = (card?.clubs || []).map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean);
+  const camps: string[] = (card?.bootcamps || []).map((c: any) => c?.title).filter(Boolean);
+  const parts = [clubs.length ? `any bootcamp in ${clubs.join(", ")}` : "", camps.length ? camps.join(", ") : ""].filter(Boolean);
+  return parts.length ? `Only for ${parts.join(" · ")}` : "";
+}
+
 export function ClaimGift({ code }: { code: string }) {
   const client = useQueryClient();
   const { session, loading: authLoading } = useAuth();
@@ -91,7 +99,8 @@ export function ClaimGift({ code }: { code: string }) {
   const unavailable = !alreadyClaimed && (data.card.expired || data.card.status !== "active" || data.card.claims_remaining === 0);
   const senderName = data.creator?.full_name || data.creator?.username || "A Zero Club member";
   const walletBacked = !card.expires_at && (card.service === "support" || card.service === "custom");
-  const useHref = zc(card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app");
+  const oneClub = card.service === "bootcamps" && data.card.clubs?.length === 1 && !data.card.bootcamps?.length ? data.card.clubs[0].id : null;
+  const useHref = zc(oneClub ? `/app/clubs/${oneClub}` : card.service === "bootcamps" ? "/app/bootcamps" : card.service === "zero-store" ? "/app/store" : card.service === "membership" ? "/app/premium" : card.service === "zero-ai" ? "/app/zero-ai" : walletBacked ? "/app/wallet" : "/app");
 
   const shell = (children: React.ReactNode) => (
     <div className="flex min-h-screen flex-col items-center bg-[#17181b] text-white">
@@ -125,7 +134,7 @@ export function ClaimGift({ code }: { code: string }) {
         </p>
         {card.expires_at && <p className="mt-3 text-xs text-white/65">Use before {new Date(card.expires_at).toLocaleString()}. Unused credit expires.</p>}
         {!walletBacked && <p className="mt-2 text-sm font-semibold text-white">{format(Number(data.card.my_claim_remaining ?? card.remaining_amount ?? card.amount))} remaining</p>}
-        {!!data.card.bootcamps?.length && <p className="mt-2 text-xs text-white/65">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
+        {scopeText(data.card) && <p className="mt-2 text-xs text-white/65">{scopeText(data.card)}</p>}
         <div className="mt-7 w-full">
           <GiftCardVisual amount={card.amount} service={card.service} templateId={card.template_id} code={card.code} message={card.message} />
         </div>
@@ -160,7 +169,7 @@ export function ClaimGift({ code }: { code: string }) {
       </div>
       <p className="mt-3 text-xs text-white/65">{data.card.claims_remaining} of {data.card.quantity} claims left · one per account</p>
       {data.card.expires_at && <p className="mt-2 text-xs text-white/65">Claim and use before {new Date(data.card.expires_at).toLocaleString()}. Unused credit expires.</p>}
-      {!!data.card.bootcamps?.length && <p className="mt-3 text-sm text-white/70">Only for: {data.card.bootcamps.map((camp: any) => camp.title).join(", ")}</p>}
+      {scopeText(data.card) && <p className="mt-3 text-sm text-white/70">{scopeText(data.card)}</p>}
       <p className="mt-4 flex items-start gap-2 text-left text-[13px] leading-relaxed text-white/55">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         {walletBacked
@@ -216,6 +225,7 @@ function SignedOutClaim({ card, onAuthed }: { card: any; onAuthed: () => void })
                   <span className="flex h-7 items-center rounded-full bg-white/10 px-3">{card.claims_remaining} of {card.quantity} left</span>
                 </div>
                 {card.expires_at && <p className="mt-3 text-xs text-white/60">Claim and use before {new Date(card.expires_at).toLocaleString()}.</p>}
+                {scopeText(card) && <p className="mt-2 text-xs text-white/60">{scopeText(card)}</p>}
                 <div className="mt-auto w-full pt-8">
                   <button type="button" onClick={() => setStep("account")} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-[#17181b]">
                     Claim {format(Number(card.amount))} <ArrowRight className="h-4 w-4" />

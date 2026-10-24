@@ -6,13 +6,12 @@ import {
   certificateAccents,
   certificateTemplates,
   emptyCertificateDesign,
-  LOGO_SCALE_MAX,
-  LOGO_SCALE_MIN,
-  logoScale,
   safeAccent,
   type CertificateDesign,
 } from "./design";
 import { CertificateArtwork } from "./CertificateArtwork";
+import { CertificateLogoSize } from "./CertificateLogoSize";
+import { CertificateAppearanceEditor } from "./CertificateAppearanceEditor";
 import { SignatureInput } from "./SignatureInput";
 import { Maximize2, X } from "@/components/icons/glyphs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -77,14 +76,18 @@ export function CertificateSetup({
   }, [uploadingLogo, uploadingSignature, onBusyChange]);
   const design = draft || value || studio.data?.defaults || emptyCertificateDesign;
   useEffect(() => {
-    // Seed an empty studio with the saved default exactly once.
-    if (!value && !draft && studio.data?.defaults) {
-      setDraft(studio.data.defaults);
-      onChange(studio.data.defaults);
+    // Seed the editor with the saved design without replacing an active draft.
+    const source = draft || value || studio.data?.defaults;
+    if (source && ((!value && !draft) || source.artwork_version !== 2)) {
+      const next: CertificateDesign = { ...source, artwork_version: 2 };
+      setDraft(next);
+      onChange(next);
     }
   }, [value, draft, studio.data?.defaults, onChange]);
   const update = (patch: Partial<CertificateDesign>) => {
-    const next = { ...design, ...patch };
+    const next: CertificateDesign = { ...design, ...patch, artwork_version: 2 };
+    if (patch.brand_accent !== undefined && design.appearance?.accent_color !== undefined)
+      next.appearance = { ...design.appearance, accent_color: patch.brand_accent };
     setDraft(next);
     onChange(next);
   };
@@ -113,7 +116,7 @@ export function CertificateSetup({
     );
 
   const brandOn = design.use_brand;
-  const accent = safeAccent(design.brand_accent, "#cc208f");
+  const accent = safeAccent(design.appearance?.accent_color || design.brand_accent, "#cc208f");
   const canBrand = studio.data.can_brand;
 
   return (
@@ -196,32 +199,6 @@ export function CertificateSetup({
               onChange={(brand_logo) => update({ brand_logo })}
               onBusyChange={setUploadingLogo}
             />
-            {design.brand_logo && (
-              <div className="rounded-xl border border-border p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <label htmlFor="cert-logo-size" className="text-xs font-semibold">Logo size</label>
-                  <span className="text-[11.5px] font-semibold tabular-nums text-muted-foreground">
-                    {Math.round(logoScale({ use_brand: true, brand_logo_scale: design.brand_logo_scale }) * 100)}%
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-3">
-                  <span className="text-[11px] text-muted-foreground">Smaller</span>
-                  <input
-                    id="cert-logo-size"
-                    type="range"
-                    min={LOGO_SCALE_MIN}
-                    max={LOGO_SCALE_MAX}
-                    step={0.05}
-                    disabled={disabled}
-                    value={logoScale({ use_brand: true, brand_logo_scale: design.brand_logo_scale })}
-                    onChange={(event) => update({ brand_logo_scale: Number(event.target.value) })}
-                    className="h-2 min-w-0 flex-1 cursor-pointer accent-[#cc208f]"
-                  />
-                  <span className="text-[11px] text-muted-foreground">Bigger</span>
-                </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">Make your logo stand out on both sides of the certificate. Check it in the live preview below.</p>
-              </div>
-            )}
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <label className="block space-y-1 text-xs font-semibold">
@@ -301,17 +278,25 @@ export function CertificateSetup({
             </button>
           </div>
         </div>
-        <div className="overflow-hidden rounded-xl border border-border bg-white shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
-          <CertificateArtwork design={design} side={side} course={course} />
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(240px,0.85fr)_minmax(0,1.4fr)]">
+          <div className="order-2 min-w-0 lg:order-1">
+            <CertificateAppearanceEditor design={design} disabled={disabled} onChange={(appearance) => update({ appearance })} />
+          </div>
+          <div className="order-1 min-w-0 space-y-3 lg:sticky lg:top-4 lg:order-2">
+            <CertificateLogoSize design={design} disabled={disabled} onChange={(brand_logo_scale) => update({ brand_logo_scale })} />
+            <div className="overflow-hidden rounded-xl border border-border bg-white shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
+              <CertificateArtwork design={design} side={side} course={course} />
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── Templates ────────────────────────────────────────────────────── */}
       <section className="space-y-3">
         <div>
-          <p className="text-[13px] font-semibold">Template</p>
+            <p className="text-[13px] font-semibold">Premium certificate collection</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Six compositions. Your identity carries through whichever you pick.
+            Six coordinated front-and-back designs. Your logo, signature and chosen size carry through to the issued certificate.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -429,8 +414,14 @@ export function CertificateSetup({
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="overflow-hidden rounded-lg bg-white shadow-2xl">
-            <CertificateArtwork design={design} side={preview || "front"} course={course} />
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(250px,0.7fr)_minmax(0,1.7fr)]">
+            <CertificateAppearanceEditor design={design} disabled={disabled} onChange={(appearance) => update({ appearance })} />
+            <div className="min-w-0 space-y-3 lg:sticky lg:top-2">
+              <CertificateLogoSize design={design} disabled={disabled} onChange={(brand_logo_scale) => update({ brand_logo_scale })} />
+              <div className="overflow-hidden rounded-lg bg-white shadow-2xl">
+                <CertificateArtwork design={design} side={preview || "front"} course={course} />
+              </div>
+            </div>
           </div>
           <p className="mt-2 text-center text-[11px] text-white/70">
             Screens are illustrative. The issued certificate uses the learner's real name, date and

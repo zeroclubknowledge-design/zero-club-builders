@@ -165,6 +165,7 @@ function Panel({
   onClose: () => void;
 }) {
   const phone = useIsPhone();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top?: number; bottom?: number; left: number; width: number; maxHeight: number } | null>(null);
   // Inside a dialog or drawer, render inside it: those trap focus and close on
   // taps outside themselves.
@@ -190,11 +191,17 @@ function Panel({
       else setPos({ bottom: (h ? h.bottom : window.innerHeight) - r.top + 6, left, width, maxHeight: Math.min(360, above) });
     };
     place();
+    /* Scrolling the list itself must not re-place the panel: that re-render
+       used to jump the list back to the chosen option, so it never scrolled. */
+    const onScroll = (e: Event) => {
+      if (rootRef.current && e.target instanceof Node && rootRef.current.contains(e.target)) return;
+      place();
+    };
     window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [phone, anchor, host]);
 
@@ -212,9 +219,12 @@ function Panel({
     };
   }, [onClose, phone]);
 
-  // Bring the chosen option into view when the list opens.
+  // Bring the chosen option into view once, when the list opens.
   const listRef = useRef<HTMLDivElement>(null);
+  const revealed = useRef(false);
   useEffect(() => {
+    if (revealed.current || (!phone && !pos)) return;
+    revealed.current = true;
     listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
   }, [pos, phone]);
 
@@ -262,7 +272,7 @@ function Panel({
 
   return createPortal(
     phone ? (
-      <div className="fixed inset-0 z-[10050] flex items-end" style={{ pointerEvents: "auto" }} data-card-select="">
+      <div ref={rootRef} className="fixed inset-0 z-[10050] flex items-end" style={{ pointerEvents: "auto" }} data-card-select="">
         <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
         <div className="zc-card-select-sheet relative flex max-h-[78dvh] w-full flex-col rounded-t-[28px] bg-card pb-[env(safe-area-inset-bottom)] text-foreground shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.5)]">
           <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-foreground/15" />
@@ -273,18 +283,18 @@ function Panel({
             </button>
           </div>
           {search}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3">{list}</div>
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3" style={{ scrollbarWidth: "none" }}>{list}</div>
         </div>
       </div>
     ) : (
-      <div className="fixed inset-0 z-[10050]" style={{ pointerEvents: "auto" }} data-card-select="" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div ref={rootRef} className="fixed inset-0 z-[10050]" style={{ pointerEvents: "auto" }} data-card-select="" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         {pos && (
           <div
             className="absolute flex flex-col overflow-hidden rounded-2xl bg-card text-foreground shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-foreground/[0.08]"
             style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width, maxHeight: pos.maxHeight }}
           >
             {search}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{list}</div>
+            <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain" style={{ scrollbarWidth: "none" }}>{list}</div>
           </div>
         )}
       </div>

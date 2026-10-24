@@ -6,7 +6,7 @@ const migration=fs.readFileSync(new URL('../supabase/migrations/20261018130000_c
 const basic='10000000-0000-0000-0000-000000000001',pro='20000000-0000-0000-0000-000000000002',org='30000000-0000-0000-0000-000000000003',learner='40000000-0000-0000-0000-000000000004';
 const signature=id=>`https://project.supabase.co/storage/v1/object/public/certificate-assets/${id}/signature-aaaaaaaa.png`;
 const logo=id=>`https://project.supabase.co/storage/v1/object/public/certificate-assets/${id}/logo-aaaaaaaa.png`;
-const design=(id,brand=false)=>({template:'folio',use_brand:brand,brand_name:'Studio Academy',brand_logo:brand?logo(id):'',signature_url:signature(id),signer_name:'Taylor Smith',signer_title:'Programme Director',back_text:'Practical learning and achievement.'});
+const design=(id,brand=false)=>({artwork_version:2,template:'folio',use_brand:brand,brand_name:'Studio Academy',brand_logo:brand?logo(id):'',signature_url:signature(id),signer_name:'Taylor Smith',signer_title:'Programme Director',back_text:'Practical learning and achievement.',appearance:{background_color:'#142630',back_background_color:'#203b48',text_color:'#f8f5ed',heading_font:'georgia',heading:'Certificate of Achievement',show_texture:false,alignment:'left'}});
 test('certificate studio uses server permissions and immutable issuance snapshots',async t=>{
  const db=new PGlite();
  try{
@@ -47,6 +47,7 @@ test('certificate studio uses server permissions and immutable issuance snapshot
   });
   await t.test('Pro tutors and organizations can use their own logos; learners cannot configure certificates',async()=>{
    await save(pro,design(pro,true));assert.equal((await value('select get_my_certificate_studio() as value')).can_brand,true);
+   assert.deepEqual((await value('select get_my_certificate_studio() as value')).defaults.appearance,design(pro,true).appearance);
    await save(org,design(org,true));assert.equal((await value('select get_my_certificate_studio() as value')).can_brand,true);
    await assert.rejects(save(learner,design(learner)),/Tutors and organizations/);
   });
@@ -63,10 +64,13 @@ test('certificate studio uses server permissions and immutable issuance snapshot
    await user(basic);cert=await value("insert into bootcamp_certificates(code,bootcamp_id,learner_name) values('NEW-CERT',$1,'Alex Morgan') returning id as value",[camp]);
    await db.query('update bootcamps set certificate_design=$1 where id=$2',[{...design(basic),template:'orbit'},camp]);
    assert.equal((await value('select design_snapshot as value from bootcamp_certificates where id=$1',[cert])).template,'folio');
+   assert.equal((await value('select design_snapshot as value from bootcamp_certificates where id=$1',[cert])).artwork_version,2);
+   assert.deepEqual((await value('select design_snapshot as value from bootcamp_certificates where id=$1',[cert])).appearance,design(basic).appearance);
    await assert.rejects(db.query('update bootcamp_certificates set design_snapshot=$1 where id=$2',[{...design(basic),template:'orbit'},cert]),/Issued certificate designs cannot be changed/);
    await db.query('update bootcamp_certificates set revoked_at=now() where id=$1',[cert]);
    await db.exec("reset role;select set_config('test.uid','',false);set role anon");
    const publicCert=await value("select get_bootcamp_certificate_v2('new-cert') as value");assert.equal(publicCert.design.template,'folio');assert.equal(publicCert.revoked,true);
+   assert.deepEqual(publicCert.design.appearance,design(basic).appearance);
    assert.equal((await value("select get_bootcamp_certificate_v2('LEGACY') as value")).design,null);
    assert.equal(await value("select get_bootcamp_certificate_v2('missing') as value"),null);
   });

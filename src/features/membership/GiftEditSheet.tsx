@@ -5,6 +5,7 @@ import { Check, Loader2, Minus, Plus, ShieldCheck } from "@/components/icons/gly
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
+import { GiftClubPicker } from "@/features/membership/GiftClubPicker";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { supabase } from "@/lib/supabase";
 import { giftEditError, verifyGiftEdit } from "./giftEdit";
@@ -22,6 +23,7 @@ export type EditableGift = {
   expires_at: string | null;
   funding_source: string;
   bootcamp_ids?: string[] | null;
+  club_ids?: string[] | null;
 };
 
 /** ISO → the value a datetime-local input wants, in local time. */
@@ -60,8 +62,11 @@ export function GiftEditSheet({
   const [expires, setExpires] = useState("");
   const [templateId, setTemplateId] = useState(card.template_id);
   const [service, setService] = useState(card.service);
-  const [limited, setLimited] = useState(false);
+  const [scope, setScope] = useState<"all" | "bootcamps" | "clubs">("all");
+  const limited = scope === "bootcamps";
+  const byClub = scope === "clubs";
   const [bootcampIds, setBootcampIds] = useState<string[]>([]);
+  const [clubIds, setClubIds] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [customPurpose, setCustomPurpose] = useState("");
   const request = useRef<{ signature: string; id: string } | null>(null);
@@ -77,8 +82,9 @@ export function GiftEditSheet({
     setExpires(isExpired ? toLocalInput(new Date(Date.now() + 7 * 86400000).toISOString()) : toLocalInput(card.expires_at));
     setTemplateId(card.template_id || "signature");
     setService(card.service === "support" ? "universal" : card.service);
-    setLimited(Boolean(card.bootcamp_ids?.length));
+    setScope(card.club_ids?.length ? "clubs" : card.bootcamp_ids?.length ? "bootcamps" : "all");
     setBootcampIds(card.bootcamp_ids || []);
+    setClubIds(card.club_ids || []);
     setMessage(card.message || "");
     setCustomPurpose(card.custom_purpose || "");
     request.current = null;
@@ -126,9 +132,10 @@ export function GiftEditSheet({
     if (expiry > now + 366 * 86400000) return "Choose a claim-by date within one year.";
     if (service === "custom" && !customPurpose.trim()) return "Say what this custom gift is for.";
     if (service === "bootcamps" && limited && !bootcampIds.length) return "Select at least one eligible bootcamp.";
+    if (service === "bootcamps" && byClub && !clubIds.length) return "Select at least one club.";
     if (!sponsored && cost > 0 && wallet !== undefined && cost > wallet) return `Add ${format(cost - wallet)} to your wallet to save these changes.`;
     return null;
-  }, [newAmount, amountTooLow, newQuantity, quantityTooLow, expiry, now, wasExpired, claimed, service, customPurpose, limited, bootcampIds, sponsored, cost, wallet, format, oldAmount, oldQuantity]);
+  }, [newAmount, amountTooLow, newQuantity, quantityTooLow, expiry, now, wasExpired, claimed, service, customPurpose, limited, bootcampIds, byClub, clubIds, sponsored, cost, wallet, format, oldAmount, oldQuantity]);
 
   const changed =
     newAmount !== oldAmount ||
@@ -138,7 +145,8 @@ export function GiftEditSheet({
     service !== card.service ||
     message.trim() !== (card.message || "") ||
     customPurpose.trim() !== (card.custom_purpose || "") ||
-    JSON.stringify(service === "bootcamps" && limited ? [...bootcampIds].sort() : []) !== JSON.stringify([...(card.bootcamp_ids || [])].sort());
+    JSON.stringify(service === "bootcamps" && limited ? [...bootcampIds].sort() : []) !== JSON.stringify([...(card.bootcamp_ids || [])].sort()) ||
+    JSON.stringify(service === "bootcamps" && byClub ? [...clubIds].sort() : []) !== JSON.stringify([...(card.club_ids || [])].sort());
 
   const save = useMutation({
     networkMode: "always",
@@ -156,12 +164,13 @@ export function GiftEditSheet({
         p_message: message.trim() || null,
         p_custom_purpose: service === "custom" ? customPurpose.trim() : null,
         p_bootcamp_ids: service === "bootcamps" && limited ? bootcampIds : [],
+        p_club_ids: service === "bootcamps" && byClub ? clubIds : [],
       };
       // Same edit retried = same request id, so it can never be charged twice.
       const signature = JSON.stringify(payload);
       if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
       const args = { ...payload, p_request_id: request.current.id };
-      const { data, error } = await supabase.rpc("update_gift_campaign" as never, args as never).abortSignal(AbortSignal.timeout(20_000));
+      const { data, error } = await supabase.rpc("update_club_gift_campaign" as never, args as never).abortSignal(AbortSignal.timeout(20_000));
       if (error) throw error;
       return verifyGiftEdit(data, args) as EditableGift & { status: string };
     },
@@ -319,9 +328,11 @@ export function GiftEditSheet({
             <div>
               <span className={LABEL}>Eligible bootcamps</span>
               <div className="mt-2 flex flex-wrap gap-2">
-                <button type="button" aria-pressed={!limited} onClick={() => setLimited(false)} className={`rounded-full border px-4 py-2 text-sm ${!limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>All bootcamps</button>
-                <button type="button" aria-pressed={limited} onClick={() => setLimited(true)} className={`rounded-full border px-4 py-2 text-sm ${limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>Choose bootcamps</button>
+                {([["all", "All bootcamps"], ["clubs", "Choose clubs"], ["bootcamps", "Choose bootcamps"]] as const).map(([id, label]) => (
+                  <button key={id} type="button" aria-pressed={scope === id} onClick={() => setScope(id)} className={`rounded-full border px-4 py-2 text-sm ${scope === id ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>{label}</button>
+                ))}
               </div>
+              {byClub && <GiftClubPicker selected={clubIds} onChange={setClubIds} />}
               {limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}
             </div>
           )}

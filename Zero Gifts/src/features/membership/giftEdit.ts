@@ -1,7 +1,7 @@
 export type GiftEditPayload = {
   p_gift: string; p_amount: number; p_quantity: number; p_expires_at: string;
   p_template: string; p_service: string; p_message: string | null;
-  p_custom_purpose: string | null; p_bootcamp_ids: string[]; p_request_id: string;
+  p_custom_purpose: string | null; p_bootcamp_ids: string[]; p_club_ids?: string[]; p_request_id: string;
 };
 
 export function giftEditError(error: unknown): string {

@@ -43,6 +43,7 @@ type GiftCard = {
   status: "active" | "claimed" | "cancelled";
   refunded_at: string | null;
   bootcamp_ids: string[] | null;
+  club_ids?: string[] | null;
 };
 
 function GiftCampaignsPage() {
@@ -62,7 +63,7 @@ function GiftCampaignsPage() {
       const { data, error } = await supabase
         .from("gift_cards")
         .select(
-          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at,bootcamp_ids",
+          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at,bootcamp_ids,club_ids",
         )
         .eq("creator_id", session.user.id)
         .is("parent_gift_id", null)

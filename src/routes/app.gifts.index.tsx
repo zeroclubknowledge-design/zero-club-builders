@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
+import { GiftClubPicker, MAX_GIFT_CLUBS } from "@/features/membership/GiftClubPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -43,7 +44,10 @@ function GiftCardsPage() {
   useEffect(() => { if (service === "support") setService("universal"); }, [service, setService]);
   const [quantity, setQuantity] = usePersistentDraft(giftKey("quantity"), "1");
   const [expires, setExpires] = usePersistentDraft(giftKey("expiry"), "");
-  const [limited, setLimited] = usePersistentDraft(giftKey("limited-bootcamps"), false);
+  const [scope, setScope] = usePersistentDraft<"all" | "bootcamps" | "clubs">(giftKey("bootcamp-scope"), "all");
+  const limited = scope === "bootcamps";
+  const byClub = scope === "clubs";
+  const [clubIds, setClubIds] = usePersistentDraft<string[]>(giftKey("clubs"), []);
   const [bootcampIds, setBootcampIds] = usePersistentDraft<string[]>(giftKey("bootcamps"), []);
   const request = useRef<{ signature: string; id: string } | null>(null);
   const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
@@ -55,7 +59,7 @@ function GiftCardsPage() {
   const count = Number(quantity);
   const total = numericAmount * count;
   const expiry = new Date(expires).getTime();
-  const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100));
+  const validDetails = Number.isInteger(count) && count > 0 && count <= 10000 && Number.isFinite(expiry) && expiry > now && expiry <= now + 366 * 86400000 && !(service === "bootcamps" && limited && (!bootcampIds.length || bootcampIds.length > 100)) && !(service === "bootcamps" && byClub && (!clubIds.length || clubIds.length > MAX_GIFT_CLUBS));
 
   const { data: profile, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["gift-card-profile", storedDraftOwner()],
@@ -96,7 +100,7 @@ function GiftCardsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at,bootcamp_ids,expires_at")
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at,bootcamp_ids,club_ids,expires_at")
         .eq("claimed_by", profile!.id)
         .eq("status", "claimed")
         .gt("remaining_amount", 0)
@@ -133,9 +137,11 @@ function GiftCardsPage() {
       if (service === "custom" && !customPurpose.trim()) {
         throw new Error("Say what this custom gift is for.");
       }
-      const signature = JSON.stringify([numericAmount, count, expires, templateId, service, message.trim(), customPurpose.trim(), service === "bootcamps" && limited ? bootcampIds : []]);
+      const signature = JSON.stringify([numericAmount, count, expires, templateId, service, message.trim(), customPurpose.trim(), service === "bootcamps" && limited ? bootcampIds : [], service === "bootcamps" && byClub ? clubIds : []]);
       if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
-      const { data, error } = await supabase.rpc("create_gift_campaign", {
+      const clubScoped = service === "bootcamps" && byClub;
+      const { data, error } = await supabase.rpc((clubScoped ? "create_club_gift_campaign" : "create_gift_campaign") as "create_gift_campaign", {
+        ...(clubScoped ? { gift_club_ids: clubIds } : {}),
         gift_amount: numericAmount,
         gift_template: templateId,
         gift_service: service,
@@ -177,6 +183,8 @@ function GiftCardsPage() {
     : expiry > now + 366 * 86400000 ? "Choose an expiry within one year."
     : service === "bootcamps" && limited && !bootcampIds.length ? "Select at least one eligible bootcamp."
     : service === "bootcamps" && limited && bootcampIds.length > 100 ? "Select no more than 100 bootcamps."
+    : service === "bootcamps" && byClub && !clubIds.length ? "Select at least one club."
+    : service === "bootcamps" && byClub && clubIds.length > MAX_GIFT_CLUBS ? `Select no more than ${MAX_GIFT_CLUBS} clubs.`
     : service === "custom" && !customPurpose.trim() ? "Describe what this custom gift is for."
     : !hasGiftFunds ? `Add ${format(Math.max(0, total - Number(profile?.coins || 0)))} to your wallet to create this gift.`
     : null;
@@ -333,6 +341,7 @@ function GiftCardsPage() {
                       of {format(Number(gift.amount) || 0)} left
                     </p>
                     {!!gift.bootcamp_ids?.length && <p className="mt-1 text-xs text-muted-foreground">Only for {gift.bootcamp_ids.length} selected bootcamp{gift.bootcamp_ids.length === 1 ? "" : "s"}</p>}
+                    {!!gift.club_ids?.length && <p className="mt-1 text-xs text-muted-foreground">Only for bootcamps in {gift.club_ids.length} club{gift.club_ids.length === 1 ? "" : "s"}</p>}
                     {gift.expires_at && <p className="mt-1 text-xs text-muted-foreground">Use before {new Date(gift.expires_at).toLocaleString()}</p>}
                   </div>
                   {destination.href ? (
@@ -412,7 +421,7 @@ function GiftCardsPage() {
             )}
           </div>
 
-          {service === "bootcamps" && <div><span className={LABEL}>Eligible bootcamps</span><div className="mt-2 flex flex-wrap gap-2"><button type="button" aria-pressed={!limited} onClick={() => setLimited(false)} className={`rounded-full border px-4 py-2 text-sm ${!limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>All bootcamps</button><button type="button" aria-pressed={limited} onClick={() => setLimited(true)} className={`rounded-full border px-4 py-2 text-sm ${limited ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>Choose bootcamps</button></div>{limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}</div>}
+          {service === "bootcamps" && <div><span className={LABEL}>Eligible bootcamps</span><div className="mt-2 flex flex-wrap gap-2">{([["all", "All bootcamps"], ["clubs", "Choose clubs"], ["bootcamps", "Choose bootcamps"]] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={scope === id} onClick={() => setScope(id)} className={`rounded-full border px-4 py-2 text-sm ${scope === id ? "border-foreground font-semibold" : "border-border text-muted-foreground"}`}>{label}</button>)}</div>{byClub && <GiftClubPicker selected={clubIds} onChange={setClubIds} />}{limited && <GiftBootcampPicker selected={bootcampIds} onChange={setBootcampIds} />}</div>}
           {service === "custom" && (
             <label className="block">
               <span className={LABEL}>What's it for?</span>
