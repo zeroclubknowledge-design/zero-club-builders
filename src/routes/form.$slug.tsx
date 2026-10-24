@@ -642,7 +642,7 @@ function ZeroFormPublicPage() {
                       left: `${left}%`,
                       top: `${top}%`,
                       width: `${size}px`,
-                      height: `${size * 1.55}px`,
+                      height: `${Number(size) * 1.55}px`,
                       background: colour as string,
                       borderRadius: i % 3 === 0 ? "1px" : "999px",
                       animationDelay: `${delay}ms`,

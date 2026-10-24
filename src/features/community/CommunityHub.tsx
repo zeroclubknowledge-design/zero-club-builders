@@ -11,6 +11,7 @@ import {
   Camera,
   Check,
   ChevronRight,
+  ClipboardList,
   ExternalLink,
   FileText,
   GraduationCap,
@@ -64,7 +65,7 @@ import { CardSelect } from "@/components/CardSelect";
  */
 
 export type HubSection =
-  "home" | "announcements" | "meetings" | "cohorts" | "members" | "contributors" | "staff" | "settings";
+  "home" | "announcements" | "meetings" | "cohorts" | "waitlist" | "members" | "contributors" | "staff" | "settings";
 
 type Person = {
   id: string;
@@ -379,6 +380,8 @@ export function CommunityHubPage({ clubId, section }: { clubId: string; section?
         return <MeetingsView h={h} onBack={back} />;
       case "cohorts":
         return <CohortsView h={h} onBack={back} />;
+      case "waitlist":
+        return <WaitlistView h={h} onBack={back} />;
       case "members":
         return <MembersView h={h} onBack={back} />;
       case "contributors":
@@ -571,6 +574,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
           <GraduationCap className="h-[18px] w-[18px]" />,
           h.me.admin ? h.requests.length : 0,
         )}
+        {item("waitlist", "Waitlist", <ClipboardList className="h-[18px] w-[18px]" />)}
         {item("staff", "Teaching staff", <BadgeCheck className="h-[18px] w-[18px]" />)}
         {item("members", "Members", <Users className="h-[18px] w-[18px]" />)}
         {item("contributors", "Contributors", <Award className="h-[18px] w-[18px]" />)}
@@ -2160,6 +2164,147 @@ function MembersView({ h, onBack }: { h: Hub; onBack: () => void }) {
                 No members match.
               </p>
             )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Waitlist: the club's waitlist Zero Forms ─────────────────────────────
+ * Waitlists belong to a club through zero_forms.club_id (club_waitlists /
+ * set_zero_form_club). Everyone who can see the club sees the open ones and
+ * can join in one tap; the club team also sees drafts, closed ones and
+ * sign-up counts, and can add their own waitlists here or take them out.
+ */
+type ClubWaitlist = {
+  id: string; slug: string; title: string; description: string | null; banner_url: string | null;
+  status: string; state: string; registration_deadline: string | null; owner_name: string | null;
+  mine: boolean | null; signups: number | null; my_status: string | null;
+};
+const ZERO_FORM_URL = (import.meta.env.VITE_ZERO_FORM_URL as string | undefined) || "https://form.zeroclubs.xyz";
+
+function waitlistBadge(w: ClubWaitlist) {
+  if (w.status === "draft") return { label: "Draft", tone: "bg-foreground/[0.07] text-muted-foreground" };
+  if (w.status === "closed" || w.state !== "open") return { label: "Closed", tone: "bg-foreground/[0.07] text-muted-foreground" };
+  return { label: "Open", tone: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400" };
+}
+
+function WaitlistView({ h, onBack }: { h: Hub; onBack: () => void }) {
+  const queryClient = useQueryClient();
+  const [adding, setAdding] = useState("");
+  const key = ["club-waitlists", h.club.id];
+  const q = useQuery({
+    queryKey: key,
+    queryFn: () => rpc<{ can_manage: boolean; waitlists: ClubWaitlist[]; mine: { id: string; title: string; status: string }[] }>("club_waitlists", { p_club: h.club.id }),
+  });
+  const move = useMutation({
+    mutationFn: ({ form, club }: { form: string; club: string | null }) => rpc("set_zero_form_club", { p_form: form, p_club: club }),
+    onSuccess: (_d, v) => {
+      toast.success(v.club ? "Waitlist added to this club" : "Waitlist removed from this club");
+      setAdding("");
+      void queryClient.invalidateQueries({ queryKey: key });
+    },
+    onError: (e: any) => toast.error(e?.message || "Could not update the waitlist"),
+  });
+  const data = q.data;
+  const list = data?.waitlists || [];
+  const manage = !!data?.can_manage;
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <SectionHeader
+        title="Waitlist"
+        sub={manage ? "Waitlists people can join from this club" : `Join what ${h.club.name} is launching next`}
+        onBack={onBack}
+        action={manage ? (
+          <a href={ZERO_FORM_URL} target="_blank" rel="noreferrer" className={`${btnGhost} h-9 shrink-0`}>
+            <Plus className="h-4 w-4" /> New
+          </a>
+        ) : undefined}
+      />
+      <div className="mx-auto max-w-[760px] space-y-4 px-4 py-5 md:px-8">
+        {manage && (data?.mine?.length || 0) > 0 && (
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-[14px] font-semibold">Add one of your waitlists</p>
+            <p className="mt-0.5 text-[12.5px] text-muted-foreground">It will show here for everyone in {h.club.name}, and under this club on Zero Form.</p>
+            <div className="mt-3 flex gap-2">
+              <CardSelect value={adding} onChange={(e) => setAdding(e.target.value)} className={`${field} min-w-0 flex-1`}>
+                <option value="">Choose a waitlist</option>
+                {data!.mine.map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}{m.status === "draft" ? " (draft)" : m.status === "closed" ? " (closed)" : ""}</option>
+                ))}
+              </CardSelect>
+              <button type="button" disabled={!adding || move.isPending} onClick={() => move.mutate({ form: adding, club: h.club.id })} className={`${btnPrimary} h-11 shrink-0`}>
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+
+        {q.isLoading ? (
+          <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        ) : q.error ? (
+          <Empty icon={<ClipboardList className="h-6 w-6" />} title="Couldn't load the waitlist" body={(q.error as Error).message || "Check your connection and try again."} action={<button type="button" onClick={() => void q.refetch()} className={btnGhost}>Try again</button>} />
+        ) : list.length === 0 ? (
+          <Empty
+            icon={<ClipboardList className="h-6 w-6" />}
+            title="No waitlists yet"
+            body={manage
+              ? "Create a waitlist on Zero Form for something you're launching, then add it here so your members can join."
+              : "When this club opens a waitlist, it will show here."}
+            action={manage ? <a href={ZERO_FORM_URL} target="_blank" rel="noreferrer" className={btnPrimary}><Plus className="h-4 w-4" /> Create a waitlist</a> : undefined}
+          />
+        ) : (
+          <div className="grid gap-4 @xl:grid-cols-2">
+            {list.map((w) => {
+              const badge = waitlistBadge(w);
+              const open = w.status === "published" && w.state === "open";
+              return (
+                <article key={w.id} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-card">
+                  <div className="relative aspect-[16/8] bg-cover bg-center" style={{ backgroundImage: w.banner_url ? `url(${w.banner_url})` : `linear-gradient(135deg, #2a0b20, ${PINK} 140%)` }}>
+                    <span className="absolute left-3 top-3 rounded-full bg-violet-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">Waitlist</span>
+                    {manage && <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold backdrop-blur ${badge.tone}`}>{badge.label}</span>}
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <h3 className="line-clamp-2 text-[15.5px] font-semibold leading-snug">{w.title}</h3>
+                    {w.description && <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">{w.description.replace(/[*_#>`]/g, "")}</p>}
+                    <p className="mt-2 text-[12.5px] text-muted-foreground">
+                      {w.owner_name ? `By ${w.owner_name}` : ""}
+                      {manage && w.signups !== null ? `${w.owner_name ? " · " : ""}${w.signups.toLocaleString()} ${w.signups === 1 ? "person" : "people"} on the list` : ""}
+                      {w.registration_deadline ? ` · Closes ${new Date(w.registration_deadline).toLocaleDateString(undefined, { day: "numeric", month: "short" })}` : ""}
+                    </p>
+                    <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
+                      {w.my_status ? (
+                        <>
+                          <span className="inline-flex h-10 items-center gap-1.5 rounded-full bg-emerald-500/12 px-4 text-[13.5px] font-semibold text-emerald-600 dark:text-emerald-400"><Check className="h-4 w-4" /> You're on the list</span>
+                          <Link to="/form/$slug" params={{ slug: w.slug }} className="text-[13px] font-semibold text-muted-foreground hover:text-foreground">View</Link>
+                        </>
+                      ) : open ? (
+                        <Link to="/form/$slug" params={{ slug: w.slug }} className={`${btnPrimary} h-10`}>Join the waitlist</Link>
+                      ) : (
+                        <span className="text-[13px] font-semibold text-muted-foreground">{w.status === "draft" ? "Not published yet" : "This waitlist is closed"}</span>
+                      )}
+                      {manage && w.mine && (
+                        <a href={ZERO_FORM_URL} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-[13px] font-semibold text-foreground/80 hover:text-foreground">
+                          Manage <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      {manage && (
+                        <button
+                          type="button"
+                          disabled={move.isPending}
+                          onClick={async () => (await confirmCard(`Remove "${w.title}" from ${h.club.name}? The waitlist itself and its sign-ups are kept.`)) && move.mutate({ form: w.id, club: null })}
+                          className={`${w.mine ? "" : "ml-auto "}text-[13px] font-semibold text-muted-foreground hover:text-foreground`}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

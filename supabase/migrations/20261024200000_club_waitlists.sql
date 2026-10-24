@@ -1,0 +1,16 @@
+-- Applied 2026-10-24 (Supabase migrations "club_waitlists", "zero_form_browse_v2_waitlist_club").
+--
+-- Club page → Waitlist. Waitlist Zero Forms can belong to a top-level club:
+--   zero_forms.club_id uuid references clubs(id) on delete set null (+ partial index).
+--   Backfill: waitlists with no club were attached to their owner's club when the owner
+--   runs exactly one active top-level club (BigTechSkills 1.0 → Vigency Community).
+--
+-- club_waitlists(p_club uuid) → { can_manage, waitlists[], mine[], club_id }
+--   Published waitlists for anyone who can see the club (private clubs: members only).
+--   The club team (is_club_admin) also gets drafts/closed ones, sign-up counts, and `mine`:
+--   their own waitlists not yet in any club, to add here.
+-- set_zero_form_club(p_form uuid, p_club uuid|null)
+--   Add: only the form's owner, and only to a club they help run. Remove (null): the owner
+--   or the club team. Bootcamp forms are refused (they show up with their bootcamp).
+-- browse_zero_forms_v2 now shows a waitlist's club (top = bootcamp club, else zero_forms.club_id),
+--   so private-club waitlists stay unlisted there too.
