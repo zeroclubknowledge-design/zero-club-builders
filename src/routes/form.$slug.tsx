@@ -614,86 +614,57 @@ function ZeroFormPublicPage() {
     return (
       <Shell>
         <div className="zf-success mx-auto w-full max-w-[560px] px-4 pb-14 pt-5 sm:px-5 sm:pt-8">
-          <div className="zf-card relative overflow-hidden rounded-[30px] border border-white/10 bg-[#141016] text-white shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
+          <div className="zf-card relative overflow-hidden rounded-[30px] border border-border bg-card p-3 text-foreground shadow-[0_40px_90px_-40px_rgba(0,0,0,0.45)] sm:p-3.5">
 
-            {/* ── Hero: contained celebration ──────────────────────────── */}
-            <div className="relative isolate h-[210px] overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(130%_150%_at_18%_0%,#e94fb0_0%,#b62ba4_38%,#6d3ad6_72%,#3b1d86_100%)]" />
-              <div className="zf-glow absolute -left-16 top-4 h-48 w-48 rounded-full bg-[#ff7ad9]/45 blur-3xl" />
-              <div className="zf-glow absolute -right-12 bottom-0 h-44 w-44 rounded-full bg-[#7c8bff]/40 blur-3xl" />
-              {/* Grain keeps the gradient from banding on phone screens. */}
-              <div className="absolute inset-0 opacity-[0.18] [background-image:radial-gradient(rgba(255,255,255,0.5)_0.5px,transparent_0.5px)] [background-size:5px_5px]" />
-
-              {/* Confetti lives inside this clipped layer, so nothing escapes
-                  onto the page around the card. */}
-              <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-                {[
-                  [6, 18, 7, "#ffd76a", 0], [15, 62, 5, "#ffffff", 420], [24, 26, 6, "#8ff0cf", 180],
-                  [33, 74, 4, "#ffd76a", 620], [42, 14, 5, "#ffffff", 260], [51, 56, 7, "#ff9ecb", 90],
-                  [60, 22, 4, "#ffd76a", 700], [68, 68, 6, "#ffffff", 330], [77, 30, 5, "#8ff0cf", 140],
-                  [85, 66, 7, "#ffd76a", 520], [92, 20, 4, "#ffffff", 60], [96, 54, 5, "#ff9ecb", 780],
-                  [11, 86, 4, "#ffffff", 380], [47, 88, 5, "#8ff0cf", 560], [72, 84, 4, "#ffffff", 240],
-                  [89, 88, 5, "#ffd76a", 880], [29, 10, 4, "#ffd76a", 480], [57, 96, 4, "#ff9ecb", 660],
-                ].map(([left, top, size, colour, delay], i) => (
-                  <span
-                    key={i}
-                    className="zf-flake absolute block"
-                    style={{
-                      left: `${left}%`,
-                      top: `${top}%`,
-                      width: `${size}px`,
-                      height: `${Number(size) * 1.55}px`,
-                      background: colour as string,
-                      borderRadius: i % 3 === 0 ? "1px" : "999px",
-                      animationDelay: `${delay}ms`,
-                      animationDuration: `${(5.4 + (i % 5) * 0.6).toFixed(1)}s`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <p className="zf-rise absolute left-6 top-6 text-[10px] font-semibold uppercase tracking-[0.34em] text-white/85" style={{ animationDelay: "120ms" }}>
-                {confirmed ? "Registration confirmed" : kind === "interested" ? "Interest registered" : "Details received"}
-              </p>
-
-              {/* Emblem: the ring draws itself, then the tick lands. */}
-              <div className="absolute left-1/2 top-[54%] -translate-x-1/2 -translate-y-1/2">
-                <div className="zf-emblem relative grid h-[88px] w-[88px] place-items-center rounded-full bg-white/12 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.6)] backdrop-blur-md ring-1 ring-white/30">
-                  <svg viewBox="0 0 96 96" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
-                    <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="3" />
-                    <circle
-                      className="zf-ring"
-                      cx="48" cy="48" r="42" fill="none"
-                      stroke="#8ff0cf" strokeWidth="3" strokeLinecap="round"
-                      strokeDasharray="264" strokeDashoffset="264"
-                    />
-                  </svg>
-                  <svg viewBox="0 0 24 24" className="zf-tick relative h-9 w-9 text-[#0f6b52]" fill="none" aria-hidden>
-                    <path d="M5 12.6l4.4 4.4L19 7.4" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+            {/* ── Hero: the form's own banner ──────────────────────────── */}
+            {(() => {
+              const heroImage = form?.banner_url || bootcamp?.banner_url || null;
+              return (
+                <div className="relative">
+                  <div className="zf-banner relative aspect-[16/10] overflow-hidden rounded-[22px] bg-foreground/[0.06]">
+                    {heroImage ? (
+                      <img src={heroImage} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 bg-[radial-gradient(130%_150%_at_18%_0%,#e94fb0_0%,#b62ba4_38%,#6d3ad6_72%,#3b1d86_100%)]" />
+                    )}
+                    <div className="pointer-events-none absolute inset-0 rounded-[22px] ring-1 ring-inset ring-black/[0.06]" />
+                  </div>
+                  {/* Emblem: the ring draws itself, then the tick lands. */}
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
+                  <div className="zf-emblem grid h-[60px] w-[60px] place-items-center rounded-full bg-card shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)]">
+                    <span className="relative grid h-[50px] w-[50px] place-items-center rounded-full bg-[#cc208f]">
+                      <svg viewBox="0 0 96 96" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
+                        <circle className="zf-ring" cx="48" cy="48" r="44" fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="4" strokeLinecap="round" strokeDasharray="277" strokeDashoffset="277" />
+                      </svg>
+                      <svg viewBox="0 0 24 24" className="zf-tick relative h-6 w-6" fill="none" aria-hidden>
+                        <path d="M5 12.6l4.4 4.4L19 7.4" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* ── Copy ─────────────────────────────────────────────────── */}
-            <div className="relative px-5 pb-6 pt-1 text-center sm:px-8">
-              <p className="zf-rise text-[11px] font-semibold uppercase tracking-[0.3em] text-[#ff9ecb]" style={{ animationDelay: "260ms" }}>
+            <div className="relative px-3 pb-4 pt-12 text-center sm:px-6">
+              <p className="zf-rise text-[11px] font-semibold uppercase tracking-[0.3em] text-[#cc208f]" style={{ animationDelay: "260ms" }}>
                 {confirmed ? "Congratulations" : kind === "interested" ? "You're on the list" : "Received"}
               </p>
-              <h1 className="zf-rise mt-2.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-white sm:text-[30px]" style={{ animationDelay: "340ms" }}>
+              <h1 className="zf-rise mt-2.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-foreground sm:text-[30px]" style={{ animationDelay: "340ms" }}>
                 {heading}
               </h1>
-              <p className="zf-rise mx-auto mt-2.5 max-w-[400px] text-[14px] leading-6 text-white/65" style={{ animationDelay: "420ms" }}>
+              <p className="zf-rise mx-auto mt-2.5 max-w-[400px] text-[15px] font-medium leading-6 text-foreground/85" style={{ animationDelay: "420ms" }}>
                 {formTitle}
               </p>
-              <p className="zf-rise mx-auto mt-3 max-w-[420px] text-[13.5px] leading-6 text-white/55" style={{ animationDelay: "500ms" }}>
+              <p className="zf-rise mx-auto mt-3 max-w-[420px] text-[14px] leading-6 text-muted-foreground" style={{ animationDelay: "500ms" }}>
                 {lead}
               </p>
 
               {/* ── Ticket receipt ────────────────────────────────────── */}
               <div className="zf-rise relative mt-7 text-left" style={{ animationDelay: "580ms" }}>
-                <div className="relative overflow-hidden rounded-2xl bg-white/[0.055] ring-1 ring-white/10">
-                  <div className="px-4 pb-3.5 pt-4">
+                <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d6279a,#cc208f_45%,#b01c7b)] text-white shadow-[0_18px_40px_-20px_rgba(204,32,143,0.8)]">
+                  <div className="px-5 pb-1 pt-2.5">
                     {!dataOnly && bootcamp?.title && (
                       <TicketRow label="Bootcamp" value={bootcamp.title} />
                     )}
@@ -708,17 +679,17 @@ function ZeroFormPublicPage() {
                     />
                   </div>
                   {/* Perforation with punched-out notches, so it reads as a ticket. */}
-                  <div className="relative h-6">
-                    <span className="absolute left-[-9px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 rounded-full bg-[#141016]" />
-                    <span className="absolute right-[-9px] top-1/2 h-[18px] w-[18px] -translate-y-1/2 rounded-full bg-[#141016]" />
-                    <div className="absolute inset-x-4 top-1/2 border-t border-dashed border-white/15" />
+                  <div className="relative h-5">
+                    <span className="absolute left-[-11px] top-1/2 h-[22px] w-[22px] -translate-y-1/2 rounded-full bg-card" />
+                    <span className="absolute right-[-11px] top-1/2 h-[22px] w-[22px] -translate-y-1/2 rounded-full bg-card" />
+                    <div className="absolute inset-x-5 top-1/2 border-t-2 border-dashed border-white/35" />
                   </div>
-                  <div className="flex items-center justify-between gap-3 px-4 pb-4">
-                    <span className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/45">
-                      <BadgeCheck className="h-3.5 w-3.5 text-[#8ff0cf]" /> Secured by Zero Club
+                  <div className="flex items-center justify-center gap-3 px-4 pb-4">
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/85">
+                      <BadgeCheck className="h-3.5 w-3.5 text-white" /> Secured by Zero Club
                     </span>
                     {confirmed && !cancelled && (
-                      <span className="rounded-full bg-[#8ff0cf]/12 px-2.5 py-1 text-[10.5px] font-semibold text-[#8ff0cf]">
+                      <span className="rounded-full bg-white/20 px-2.5 py-1 text-[10.5px] font-semibold text-white">
                         Place held
                       </span>
                     )}
@@ -733,7 +704,7 @@ function ZeroFormPublicPage() {
                     <Link
                       to="/app/bootcamps/$id"
                       params={{ id: (enrolledBootcamp || bootcamp?.id) as string }}
-                      className="zf-cta group relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                      className="zf-cta group relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-foreground px-7 text-[15px] font-semibold text-background shadow-[0_16px_34px_-18px_rgba(0,0,0,0.55)] transition active:scale-[0.985]"
                     >
                       <span className="pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(100deg,transparent,rgba(255,255,255,0.32),transparent)] transition-transform duration-700 group-hover:translate-x-full" />
                       <span className="relative flex items-center gap-2">
@@ -742,7 +713,7 @@ function ZeroFormPublicPage() {
                     </Link>
                     <Link
                       to="/app"
-                      className="inline-flex h-[48px] items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold text-white/85 transition hover:bg-white/[0.06]"
+                      className="inline-flex h-11 items-center justify-center text-[14.5px] font-semibold text-foreground underline-offset-4 transition hover:underline"
                     >
                       Open Zero Club
                     </Link>
@@ -751,21 +722,21 @@ function ZeroFormPublicPage() {
                   <button
                     type="button"
                     onClick={() => { setDone(null); setIntent("pay"); setTab("register"); }}
-                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-foreground px-7 text-[15px] font-semibold text-background shadow-[0_16px_34px_-18px_rgba(0,0,0,0.55)] transition active:scale-[0.985]"
                   >
                     Pay {money(price)} now and hold your place
                   </button>
                 ) : confirmed && !session ? (
                   <Link
                     to="/signup"
-                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(100deg,#e94fb0,#b62ba4_55%,#7c3aed)] px-7 text-[15px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(233,79,176,0.85)] transition active:scale-[0.985]"
+                    className="zf-cta relative inline-flex h-[52px] items-center justify-center gap-2 overflow-hidden rounded-full bg-foreground px-7 text-[15px] font-semibold text-background shadow-[0_16px_34px_-18px_rgba(0,0,0,0.55)] transition active:scale-[0.985]"
                   >
                     Create your account to claim this place <ArrowRight className="h-4 w-4" />
                   </Link>
                 ) : (
                   <Link
                     to="/"
-                    className="inline-flex h-[48px] items-center justify-center rounded-full border border-white/15 text-[14px] font-semibold text-white/85 transition hover:bg-white/[0.06]"
+                    className="inline-flex h-11 items-center justify-center text-[14.5px] font-semibold text-foreground underline-offset-4 transition hover:underline"
                   >
                     Explore Zero Club
                   </Link>
@@ -1505,9 +1476,9 @@ function Row({ label, value }: { label: string; value?: string }) {
 /** A receipt line for the dark success card: quiet label, confident value. */
 function TicketRow({ label, value, strong, last }: { label: string; value?: string; strong?: boolean; last?: boolean }) {
   return (
-    <div className={`flex items-start justify-between gap-4 py-2.5 ${last ? "" : "border-b border-white/[0.07]"}`}>
-      <span className="shrink-0 text-[11.5px] font-medium uppercase tracking-[0.1em] text-white/40">{label}</span>
-      <span className={`min-w-0 text-right text-[13px] leading-5 ${strong ? "font-semibold text-white" : "font-medium text-white/80"}`}>
+    <div className={`flex items-start justify-between gap-4 py-2.5 ${last ? "" : "border-b border-white/15"}`}>
+      <span className="shrink-0 text-[11.5px] font-medium uppercase tracking-[0.1em] text-white/70">{label}</span>
+      <span className={`min-w-0 text-right text-[13px] leading-5 ${strong ? "font-semibold text-white" : "font-semibold text-white/95"}`}>
         {value || "—"}
       </span>
     </div>
