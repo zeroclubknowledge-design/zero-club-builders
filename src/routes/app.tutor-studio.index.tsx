@@ -1791,6 +1791,7 @@ function TutorStudioPage() {
                     onChange={setCertificateDesign}
                     disabled={savingSettings || certificateUploading}
                     course={bootcampSettings.title}
+                    bootcampId={activeBootcamp?.id}
                   />
                 </section>
 

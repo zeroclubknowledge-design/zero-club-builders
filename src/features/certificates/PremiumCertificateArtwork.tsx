@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { ProCertificateFront, isProTemplate } from "./ProCertificateArtwork";
 import { certificateTemplates, certificatePalette, certificateFont, logoScale, readableOn, safeAccent, type CertificateDesign, type CertificatePalette } from "./design";
 
 // Static system faces keep exported SVG/PDF weights consistent with the preview.
@@ -100,11 +101,13 @@ export type CertificateArtworkProps = { design: CertificateDesign; side?: "front
 
 export function PremiumCertificateArtwork({ design, side = "front", learner = "Alex Morgan", course = "Your bootcamp title", code = "SAMPLE · NOT ISSUED", date = "Completion date", hours }: CertificateArtworkProps) {
   const uid = useId().replace(/[^a-z0-9]/gi, "");
+  // PRO collection fronts have their own layouts; their backs use the shared record below.
+  if (side !== "back" && isProTemplate(design.template)) return <ProCertificateFront design={design} learner={learner} course={course} code={code} date={date} />;
   const template = certificateTemplates.find(t=>t.id===design.template) || certificateTemplates[0];
   const a = design.appearance || {};
   const p = certificatePalette(design, side);
   const centered = a.alignment === "center" || (a.alignment !== "left" && ["folio","mosaic","orbit"].includes(template.id));
-  const bodyFont = certificateFont(a.body_font, SANS);
+  const bodyFont = certificateFont(a.body_font, isProTemplate(design.template) ? "Montserrat, Arial, Helvetica, sans-serif" : SANS);
   const nameFont = certificateFont(a.recipient_font, SERIF);
   const titleColor = safeAccent(a.title_color, p.ink);
   const nameColor = safeAccent(a.recipient_color, p.ink);
@@ -120,7 +123,10 @@ export function PremiumCertificateArtwork({ design, side = "front", learner = "A
   const verifyUrl = `https://zeroclubs.xyz/certificate/${encodeURIComponent(code)}`;
   const typography = { fill:p.ink, center:centered, maxWidth:width };
   const rule = (y: number) => <line x1={centered?140:88} x2={centered?860:778} y1={y} y2={y} stroke={p.metal} strokeWidth=".6" opacity=".65" />;
-  const title = certificateFont(a.heading_font, template.id === "cobalt" || template.id === "orbit" ? SANS : SERIF);
+  const pro = isProTemplate(design.template);
+  const title = certificateFont(a.heading_font, pro ? "Montserrat, Arial, Helvetica, sans-serif" : template.id === "cobalt" || template.id === "orbit" ? SANS : SERIF);
+  // On a dark (PRO) background the logo sits on a white tile so it never disappears.
+  const logoTile = pro && readableOn(p.paper) === "#ffffff";
   const metadata = (label:string,value:string,mx:number,my:number,mw=250) => <g>
     <Type x={mx} y={my} fill={p.muted} size={8} tracking={1.6} weight={600}>{label}</Type>
     <Type x={mx} y={my+24} fill={label==="ISSUED TO"?nameColor:p.ink} size={12} weight={500} maxWidth={mw}>{value}</Type>
@@ -154,6 +160,7 @@ export function PremiumCertificateArtwork({ design, side = "front", learner = "A
         <Type x={500} y={640} fill={p.muted} center size={8.5} tracking={.8} maxWidth={centered?780:710}>{sample ? "SAMPLE · NOT ISSUED" : `CREDENTIAL ${code}  ·  ZEROCLUBS.XYZ/CERTIFICATE`}</Type>
       </a>
     </> : <>
+      {logo && logoTile && <rect x="80" y="50" width={logoW + 16} height={logoH + 16} rx="10" fill="#ffffff" />}
       {logo && <image href={logo} x="88" y="58" width={logoW} height={logoH} preserveAspectRatio="xMidYMid meet" />}
       <Type x={88+logoW+18} y={84+logoH/2} fill={p.ink} size={11} weight={600} tracking={1.6} maxWidth={630-logoW}>{brand.toUpperCase()}</Type>
       <Type x={88} y={176} fill={p.accent} size={9} tracking={2.4} weight={600}>RECORD OF COMPLETION</Type>
@@ -162,7 +169,7 @@ export function PremiumCertificateArtwork({ design, side = "front", learner = "A
       <Type x={88} y={311} fill={p.muted} size={8} weight={600} tracking={1.6}>PROGRAMME NOTE</Type>
       {wrap(design.back_text || "Awarded in recognition of practical learning, commitment and demonstrated achievement.",70,6).map((line,i)=><Type key={i} x={88} y={340+i*20} fill={p.ink} size={11.5} maxWidth={550}>{line}</Type>)}
       {metadata("ISSUED TO",learner,88,496,320)}{metadata("DATE OF ISSUE",date,430,496,210)}
-      {metadata("AUTHORIZED SIGNATORY",design.signer_name || "Authorized signatory",88,563,320)}
+      {metadata(design.cosigner?.name ? "SIGNED BY" : "AUTHORIZED SIGNATORY",[design.signer_name || "Authorized signatory", design.cosigner?.name].filter(Boolean).join("  ·  "),88,563,320)}
       {metadata(hours&&hours>0?"LEARNING HOURS":"CREDENTIAL TYPE",hours&&hours>0?`${hours} hours`:"Certificate of completion",430,563,210)}
       <rect x="690" y="304" width="160" height="296" fill={p.deep} /><path d="M704 318h132v268H704Z" fill="none" stroke={p.metal} strokeWidth=".5" opacity=".6" />
       {a.show_seal !== false && <CompletionSeal x={770} y={365} p={p} r={29} />}

@@ -772,6 +772,7 @@ export function BootcampForm({
               onChange={setCertificateDesign}
               disabled={loading || certificateUploading}
               course={title || undefined}
+              bootcampId={bootcampId}
             />
           </section>
         )}

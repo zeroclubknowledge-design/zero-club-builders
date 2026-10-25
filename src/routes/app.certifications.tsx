@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CertificateSetup, useCertificateStudio } from "@/features/certificates/CertificateSetup";
+import { CosignRequests } from "@/features/certificates/CosignRequests";
 import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -15,7 +16,7 @@ function CertificationsPage() {
   const [certificateUploading, setCertificateUploading] = useState(false);
   const save = async () => {
     if (certificateUploading) return;
-    const error = certificateDesignError(design);
+    const error = certificateDesignError(design, { forDefaults: true });
     if (error) {
       toast.error(error);
       return;
@@ -47,6 +48,7 @@ function CertificationsPage() {
             personalize both sides and add your signature.
           </p>
         </header>
+        <CosignRequests />
         <section className="rounded-2xl border border-border bg-card p-4 md:p-6">
           <CertificateSetup
             value={design}

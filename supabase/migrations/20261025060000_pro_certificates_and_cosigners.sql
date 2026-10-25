@@ -1,0 +1,25 @@
+-- Applied 2026-10-25 (Supabase migrations "pro_certificates_and_cosigners",
+-- "certificate_assets_cosigner_upload"; can_upload_certificate_assets later widened to
+-- pending OR signed co-signers so they can replace a signature).
+--
+-- PRO certificate collection: vivid, achieve, collective, aurora, union
+--   certificate_pro_templates() / certificate_two_signature_templates() (vivid, achieve, union)
+--   validate_certificate_design(owner, design): accepts the five ids; PRO ids need
+--   certificate_can_brand(owner) (Tutor Pro, Tutor Max, organization plans, admin).
+--   design.cosigner {profile_id, username, name, title}: optional object; the creator may not
+--   supply cosigner.signature_url; profile must exist and differ from the owner.
+--
+-- Second signatory
+--   table bootcamp_certificate_cosigners (bootcamp_id pk → bootcamps, profile_id, name, title,
+--     signature_url, status pending|signed|cancelled, requested_by, requested_at, signed_at, updated_at)
+--     RLS: readable by the co-signer and the bootcamp creator; written only by functions.
+--   trigger bootcamp_certificate_cosigner_sync (after insert/update of certificate_design,
+--     certificate_enabled on bootcamps): creates/resets the row when the co-signer changes and
+--     notifies them (link /app/certifications?sign=<bootcamp>); cancels it when no longer needed.
+--   my_certificate_cosign_requests(), bootcamp_certificate_cosigner(p_bootcamp),
+--   sign_bootcamp_certificate(p_bootcamp, p_signature_url) (own PNG in certificate-assets; notifies creator)
+--   snapshot_bootcamp_certificate_design(): issuing a two-signature certificate raises until the
+--     co-signer has signed, and copies their name/title/signature into design_snapshot.cosigner.
+--
+-- Storage: certificate_assets_insert_guard / _insert_own now use can_upload_certificate_assets(uid):
+--   Tutors, organizations, admins, or anyone with a pending/signed co-sign row (own folder only).

@@ -5,6 +5,8 @@ export const certificateTemplates = [
     note: "Ivory paper, engraved gold rules and classical serif lettering. A formal academic finish.",
     color: "#956e36",
     style: "border",
+    pro: false,
+    signatures: 1,
   },
   {
     id: "cobalt",
@@ -12,6 +14,8 @@ export const certificateTemplates = [
     note: "Architectural navy details and a crisp institutional layout, with a matching credential record.",
     color: "#294b9b",
     style: "ribbon",
+    pro: false,
+    signatures: 1,
   },
   {
     id: "spectrum",
@@ -19,6 +23,8 @@ export const certificateTemplates = [
     note: "An editorial composition with a charcoal spine, bronze linework and generous white space.",
     color: "#a45e35",
     style: "left",
+    pro: false,
+    signatures: 1,
   },
   {
     id: "coral",
@@ -26,6 +32,8 @@ export const certificateTemplates = [
     note: "Warm porcelain, sculpted terracotta curves and a refined contemporary signature.",
     color: "#a65448",
     style: "right",
+    pro: false,
+    signatures: 1,
   },
   {
     id: "mosaic",
@@ -33,6 +41,8 @@ export const certificateTemplates = [
     note: "Fine emerald marquetry, balanced ceremonial typography and a detailed completion seal.",
     color: "#346451",
     style: "both",
+    pro: false,
+    signatures: 1,
   },
   {
     id: "orbit",
@@ -40,8 +50,61 @@ export const certificateTemplates = [
     note: "Technical linework in midnight teal, precise typography and a clean verification record.",
     color: "#1b7077",
     style: "orbit",
+    pro: false,
+    signatures: 1,
+  },
+  /* ── PRO collection ─────────────────────────────────────────────────── */
+  {
+    id: "vivid",
+    name: "Vivid Band",
+    note: "A bold side band with a vertical wordmark, framed learner name, two signatures and a dated seal.",
+    color: "#cc208f",
+    style: "band",
+    pro: true,
+    signatures: 2,
+  },
+  {
+    id: "achieve",
+    name: "Achievement",
+    note: "A patterned header, the learner's name in flowing script, a medal and two signatures.",
+    color: "#cc208f",
+    style: "header",
+    pro: true,
+    signatures: 2,
+  },
+  {
+    id: "collective",
+    name: "Creative Collective",
+    note: "Full-colour contour lines, a floating logo card and a ribbon medal.",
+    color: "#cc208f",
+    style: "full",
+    pro: true,
+    signatures: 1,
+  },
+  {
+    id: "aurora",
+    name: "Aurora",
+    note: "A glowing gradient, stacked arches and a starburst for creative programmes.",
+    color: "#cc208f",
+    style: "gradient",
+    pro: true,
+    signatures: 1,
+  },
+  {
+    id: "union",
+    name: "Union",
+    note: "Confident type, sweeping curves, the issue date up top and two signatures.",
+    color: "#cc208f",
+    style: "curves",
+    pro: true,
+    signatures: 2,
   },
 ] as const;
+
+export type CertificateTemplate = (typeof certificateTemplates)[number];
+export const templateById = (id?: string) => certificateTemplates.find((t) => t.id === id);
+/** True for designs that carry a second signature (the co-signer assigned to the bootcamp). */
+export const needsCosigner = (id?: string) => (templateById(id)?.signatures ?? 1) > 1;
 
 /** Brand colours offered in the studio. Any valid six-digit hex also works. */
 export const certificateAccents = [
@@ -71,6 +134,21 @@ export type CertificateDesign = {
   signer_title: string;
   back_text: string;
   appearance?: CertificateAppearance;
+  /**
+   * The second signatory on two-signature designs. The bootcamp creator picks
+   * the person; they sign from their own account, and `signature_url` is only
+   * filled in on issued certificates (and in their own signing preview).
+   */
+  cosigner?: CertificateCosigner | null;
+};
+
+export type CertificateCosigner = {
+  profile_id?: string;
+  username?: string;
+  name: string;
+  title: string;
+  signature_url?: string;
+  signed_at?: string;
 };
 
 export const emptyCertificateDesign: CertificateDesign = {
@@ -88,9 +166,13 @@ export const emptyCertificateDesign: CertificateDesign = {
     "Awarded in recognition of practical learning, commitment and demonstrated achievement.",
 };
 
-export function certificateDesignError(design: CertificateDesign | null) {
+export function certificateDesignError(design: CertificateDesign | null, options: { forDefaults?: boolean } = {}) {
   if (!design || !certificateTemplates.some((t) => t.id === design.template))
     return "Choose a certificate template.";
+  if (needsCosigner(design.template) && !options.forDefaults) {
+    if (!design.cosigner?.profile_id) return "Choose the second signatory for this certificate.";
+    if (!design.cosigner.name?.trim()) return "Add the second signatory's name.";
+  }
   if (!design.signature_url) return "Draw your signature or upload a transparent PNG signature.";
   if (!design.signer_name.trim()) return "Add the name of the person signing the certificate.";
   if (design.use_brand && (!design.brand_logo || !design.brand_name.trim()))
@@ -109,6 +191,8 @@ export const certificateFonts = {
   georgia: { label: "Classic · Georgia", family: "Georgia, 'Times New Roman', serif" },
   times: { label: "Formal · Times", family: "'Times New Roman', Times, serif" },
   trebuchet: { label: "Contemporary · Trebuchet", family: "'Trebuchet MS', Arial, sans-serif" },
+  montserrat: { label: "Geometric · Montserrat", family: "Montserrat, Arial, Helvetica, sans-serif" },
+  script: { label: "Script · Great Vibes", family: "'Great Vibes', 'Brush Script MT', cursive" },
 } as const;
 export type CertificateFont = keyof typeof certificateFonts;
 export type CertificateAppearance = {
@@ -131,6 +215,11 @@ export const certificatePalettes: Record<string, CertificatePalette> = {
   coral: { paper: "#fffaf6", ink: "#422e2d", muted: "#897370", accent: "#a65448", deep: "#643c37", metal: "#c49a82" },
   mosaic: { paper: "#fcfcf7", ink: "#203d36", muted: "#65766c", accent: "#346451", deep: "#173f34", metal: "#b3a272" },
   orbit: { paper: "#f8fbfc", ink: "#15343f", muted: "#60757d", accent: "#1b7077", deep: "#112f3b", metal: "#79b2b7" },
+  vivid: { paper: "#ffffff", ink: "#1f1f22", muted: "#4a4a50", accent: "#cc208f", deep: "#cc208f", metal: "#ffc800" },
+  achieve: { paper: "#ffffff", ink: "#151515", muted: "#3a3a3a", accent: "#cc208f", deep: "#cc208f", metal: "#ffc800" },
+  collective: { paper: "#cc208f", ink: "#ffffff", muted: "#fde4f3", accent: "#ffc800", deep: "#ffffff", metal: "#e65bbb" },
+  aurora: { paper: "#cc208f", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#f28c38", metal: "#f2a623" },
+  union: { paper: "#cc208f", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#ffffff", metal: "#ffc800" },
 };
 export const certificateColorLabels = {
   background_color: "Front background", back_background_color: "Back background",

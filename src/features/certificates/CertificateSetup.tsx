@@ -6,6 +6,8 @@ import {
   certificateAccents,
   certificateTemplates,
   emptyCertificateDesign,
+  needsCosigner,
+  templateById,
   safeAccent,
   type CertificateDesign,
 } from "./design";
@@ -18,6 +20,29 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { BrandLogoPicker } from "./BrandLogoPicker";
+import { UsernamePicker } from "@/components/UsernamePicker";
+
+/** The bootcamp creator's view of the second signatory: waiting, or signed. */
+function CosignerStatus({ bootcampId, profileId }: { bootcampId: string; profileId?: string }) {
+  const q = useQuery({
+    queryKey: ["bootcamp-certificate-cosigner", bootcampId, profileId],
+    enabled: !!bootcampId && !!profileId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("bootcamp_certificate_cosigner" as never, { p_bootcamp: bootcampId } as never);
+      if (error) throw error;
+      return data as unknown as { status: string; name: string; signed_at: string | null; username: string | null } | null;
+    },
+  });
+  if (!profileId || !q.data) return null;
+  const signed = q.data.status === "signed";
+  return (
+    <p className={`rounded-xl px-3 py-2 text-xs font-semibold ${signed ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"}`}>
+      {signed
+        ? `✓ ${q.data.name || "Your second signatory"} signed${q.data.signed_at ? ` on ${new Date(q.data.signed_at).toLocaleDateString()}` : ""}.`
+        : `Waiting for ${q.data.name || "them"}${q.data.username ? ` (@${q.data.username})` : ""} to sign. Certificates can't be issued until they do.`}
+    </p>
+  );
+}
 
 export function useCertificateStudio() {
   const { data: user } = useUser();
@@ -48,18 +73,22 @@ export function CertificateSetup({
   disabled = false,
   course,
   onBusyChange,
+  bootcampId,
 }: {
   value: CertificateDesign | null;
   onChange: (design: CertificateDesign) => void;
   disabled?: boolean;
   course?: string;
   onBusyChange?: (busy: boolean) => void;
+  /** The saved bootcamp, when editing one: shows whether the second signatory has signed. */
+  bootcampId?: string;
 }) {
   const studio = useCertificateStudio();
   const [side, setSide] = useState<"front" | "back">("front");
   const [preview, setPreview] = useState<null | "front" | "back">(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSignature, setUploadingSignature] = useState(false);
+  const [cosignerSearch, setCosignerSearch] = useState("");
   /* The artwork is drawn from a local draft, not straight from `value`.
      `value` starts empty and is filled from saved defaults asynchronously, so
      drawing from it meant the preview could show the old design for a moment —
@@ -292,48 +321,76 @@ export function CertificateSetup({
       </section>
 
       {/* ── Templates ────────────────────────────────────────────────────── */}
-      <section className="space-y-3">
-        <div>
-            <p className="text-[13px] font-semibold">Premium certificate collection</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Six coordinated front-and-back designs. Your logo, signature and chosen size carry through to the issued certificate.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {certificateTemplates.map((template) => {
-            const selected = design.template === template.id;
-            return (
-              <button
-                key={template.id}
-                type="button"
-                aria-pressed={selected}
-                onClick={() =>
-                  update({
-                    template: template.id,
-                    signer_name: design.signer_name || studio.data.issuer_name,
-                  })
-                }
-                className={`min-w-0 overflow-hidden rounded-xl border bg-white text-left transition ${selected ? "border-[#cc208f] ring-2 ring-[#cc208f]/25" : "border-border hover:border-foreground/30"}`}
-              >
-                <CertificateArtwork
-                  design={{ ...design, template: template.id }}
-                  side={side}
-                  course={course}
-                />
-                <div className="border-t border-border bg-card p-3">
-                  <p className="flex items-center gap-1.5 text-[13px] font-semibold">
-                    {template.name}
-                    {selected && <span className="text-[#cc208f]">✓</span>}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    {template.note}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      {([
+        { pro: false, title: "Free collection", note: "Six coordinated front-and-back designs, free for every Tutor and organization." },
+        { pro: true, title: "PRO collection", note: canBrand
+            ? "Bold, colour-rich designs. Recolour every part, and the two-signature designs add a space for a second signatory."
+            : "Bold, colour-rich designs for Tutor Pro, Tutor Max and organization plans. Preview them here." },
+      ] as const).map((group) => (
+        <section key={group.title} className="space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="flex items-center gap-2 text-[13px] font-semibold">
+                {group.title}
+                {group.pro && <span className="rounded-full bg-[#cc208f] px-2 py-0.5 text-[10px] font-bold tracking-wide text-white">PRO</span>}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{group.note}</p>
+            </div>
+            {group.pro && !canBrand && (
+              <Link to="/app/premium" className="text-xs font-semibold text-[#cc208f]">Go PRO →</Link>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {certificateTemplates.filter((t) => t.pro === group.pro).map((template) => {
+              const selected = design.template === template.id;
+              const locked = template.pro && !canBrand;
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  aria-pressed={selected}
+                  aria-disabled={locked}
+                  onClick={() => {
+                    if (locked) {
+                      toast("This design is part of the PRO collection", { description: "Upgrade to Tutor Pro, Tutor Max or an organization plan to use it." });
+                      return;
+                    }
+                    update({
+                      template: template.id,
+                      signer_name: design.signer_name || studio.data.issuer_name,
+                    });
+                  }}
+                  className={`relative min-w-0 overflow-hidden rounded-xl border bg-white text-left transition ${selected ? "border-[#cc208f] ring-2 ring-[#cc208f]/25" : "border-border hover:border-foreground/30"}`}
+                >
+                  <div className={locked ? "opacity-80" : undefined}>
+                    <CertificateArtwork design={{ ...design, template: template.id }} side={side} course={course} />
+                  </div>
+                  {template.pro && (
+                    <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white backdrop-blur">
+                      {locked ? "🔒 PRO" : "PRO"}
+                    </span>
+                  )}
+                  <div className="border-t border-border bg-card p-3">
+                    <p className="flex items-center gap-1.5 text-[13px] font-semibold">
+                      {template.name}
+                      {selected && <span className="text-[#cc208f]">✓</span>}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      {template.note}
+                      {template.signatures > 1 && <span className="font-semibold text-foreground"> Two signatures.</span>}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+      {templateById(design.template)?.pro && !canBrand && (
+        <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
+          This bootcamp uses a PRO design. Choose a free design, or <Link to="/app/premium" className="underline">upgrade</Link> to keep it.
+        </p>
+      )}
 
       {/* ── Signatory ────────────────────────────────────────────────────── */}
       <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
@@ -370,6 +427,54 @@ export function CertificateSetup({
           disabled={disabled}
         />
       </section>
+
+      {needsCosigner(design.template) && (
+        <section className="space-y-4 rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.035] p-4">
+          <div>
+            <p className="text-[13px] font-semibold">Second signatory</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              This design has two signatures. Choose who signs next to you, for example the tutor assigned to this bootcamp.
+              They get a notification and add their own signature from their account. Certificates can't be issued until they've signed,
+              so ask them to sign before the bootcamp starts.
+            </p>
+          </div>
+          {design.cosigner?.profile_id ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2.5">
+              <p className="min-w-0 truncate text-sm font-semibold">
+                {design.cosigner.name || design.cosigner.username}
+                {design.cosigner.username && <span className="font-normal text-muted-foreground"> · @{design.cosigner.username}</span>}
+              </p>
+              <button type="button" onClick={() => update({ cosigner: null })} className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground">
+                Change
+              </button>
+            </div>
+          ) : (
+            <UsernamePicker
+              value={cosignerSearch}
+              onChange={setCosignerSearch}
+              onPick={(user) => {
+                setCosignerSearch("");
+                update({ cosigner: { profile_id: user.id, username: user.username, name: user.full_name || user.username, title: design.cosigner?.title || "Tutor" } });
+              }}
+              placeholder="Search by @username"
+              className={input}
+            />
+          )}
+          {design.cosigner?.profile_id && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-xs font-semibold">
+                <span>Name on the certificate</span>
+                <input value={design.cosigner.name} maxLength={80} onChange={(e) => update({ cosigner: { ...design.cosigner!, name: e.target.value } })} className={input} />
+              </label>
+              <label className="space-y-1 text-xs font-semibold">
+                <span>Title</span>
+                <input value={design.cosigner.title} maxLength={80} onChange={(e) => update({ cosigner: { ...design.cosigner!, title: e.target.value } })} className={input} />
+              </label>
+            </div>
+          )}
+          {bootcampId && <CosignerStatus bootcampId={bootcampId} profileId={design.cosigner?.profile_id} />}
+        </section>
+      )}
 
       <section className="space-y-2">
         <label className="block space-y-1 text-xs font-semibold">
