@@ -1047,8 +1047,9 @@ function NotesCreatePage() {
           videoSrc={blocks.find(b => b.id === editingVideoId)?.preview || ""}
           onCancel={() => setEditingVideoId(null)}
           onSave={(blob) => {
-            const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-            const file = new File([blob], `edited-video-${Date.now()}.${ext}`, { type: blob.type });
+            const isMp4 = blob.type.includes('mp4') || !blob.type.includes('webm');
+            const ext = isMp4 ? 'mp4' : 'webm';
+            const file = new File([blob], `edited-video-${Date.now()}.${ext}`, { type: isMp4 ? 'video/mp4' : blob.type });
             const previewUrl = URL.createObjectURL(blob);
             
             setBlocks(prev => prev.map(b => b.id === editingVideoId ? { ...b, file, preview: previewUrl } : b));

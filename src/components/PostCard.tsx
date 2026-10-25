@@ -23,6 +23,7 @@ import {
   Edit3,
   Rocket,
   Play,
+  Download,
 } from "@/components/icons/glyphs";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -36,6 +37,7 @@ import { Users as UsersIcon } from "@/components/icons/glyphs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageLightbox } from "./ImageLightbox";
+import { downloadMedia } from "@/lib/downloadMedia";
 import { likePostAction, unlikePostAction } from "@/api";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { getFirstName } from "@/lib/utils";
@@ -634,6 +636,22 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
               <span className="font-medium text-sm">{isBookmarked ? "Saved" : "Save"}</span>
             </DropdownMenuItem>
+            {post.media_urls && post.media_urls.length > 0 && (
+              <DropdownMenuItem
+                className="flex items-center gap-3 py-2.5 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const firstUrl = post.media_urls[0];
+                  const hasVideo = post.media_urls.some((u: string) => isVideoUrl(u));
+                  void downloadMedia(firstUrl, { isVideo: hasVideo });
+                }}
+              >
+                <Download className="h-4 w-4" />
+                <span className="font-medium text-sm">
+                  {post.media_urls.some((u: string) => isVideoUrl(u)) ? "Download video (MP4)" : "Download media"}
+                </span>
+              </DropdownMenuItem>
+            )}
             {!isOwnPost && (
               <DropdownMenuItem
                 className="flex items-center gap-3 py-2.5 cursor-pointer"
@@ -918,6 +936,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         initialIndex={lightboxIndex}
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
+        allowDownload
       />
     </article>
   );

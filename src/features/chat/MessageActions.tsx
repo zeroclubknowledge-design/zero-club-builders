@@ -136,9 +136,9 @@ export function MessageActionsSheet({
     },
     {
       key: "download",
-      label: media.length > 1 ? `Download ${media.length} files` : "Download",
+      label: media.length > 1 ? `Download ${media.length} files` : media[0]?.type === "video" ? "Download video (MP4)" : "Download",
       icon: <Download className="h-[21px] w-[21px]" />,
-      onClick: run(() => media.forEach((m) => void downloadMedia(m.url))),
+      onClick: run(() => media.forEach((m) => void downloadMedia(m.url, { isVideo: m.type === "video", fileName: m.name }))),
       show: media.length > 0,
     },
     {

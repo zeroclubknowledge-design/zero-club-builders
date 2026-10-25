@@ -1085,8 +1085,12 @@ function ChatViewPage() {
           for (const original of mediaFiles) {
             // Shrunk before it is sent, not after. Everyone in the thread pays
             // the download cost of whatever gets stored here.
-            const file = await compressImage(original);
-            const fileExt = file.name.split('.').pop();
+            const isVideo = original.type.startsWith('video/');
+            const file = isVideo ? original : await compressImage(original);
+            const rawExt = file.name.split('.').pop()?.toLowerCase();
+            const fileExt = (!rawExt || rawExt === file.name.toLowerCase() || rawExt === 'blob' || rawExt === 'tmp')
+              ? (isVideo ? 'mp4' : 'jpg')
+              : rawExt;
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${currentUserId}/${fileName}`;
             const { error: uploadError } = await supabase.storage

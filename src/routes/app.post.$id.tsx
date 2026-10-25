@@ -1558,6 +1558,7 @@ function PostDetail() {
         initialIndex={selectedImageIndex || 0}
         isOpen={selectedImageIndex !== null}
         onClose={() => setSelectedImageIndex(null)}
+        allowDownload
       />
     </div>
   );

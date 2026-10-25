@@ -32,12 +32,24 @@ export const recordingMimeType = (mode: "audio" | "video" = "video") => (mode ==
 ] : [
   "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
   "video/mp4;codecs=avc1,mp4a",
+  "video/mp4;codecs=h264,aac",
+  "video/mp4;codecs=h264",
+  "video/mp4;codecs=avc1",
   "video/mp4",
   "video/webm;codecs=vp8,opus",
   "video/webm",
-]).find((type) => MediaRecorder.isTypeSupported(type));
+]).find((type) => {
+  try { return MediaRecorder.isTypeSupported(type); } catch { return false; }
+});
 
-export const recordingExtension = (type: string) => type.includes("mp4") ? (type.startsWith("audio/") ? "m4a" : "mp4") : type.includes("ogg") ? "ogg" : "webm";
+export const recordingExtension = (type: string) =>
+  type.includes("mp4")
+    ? (type.startsWith("audio/") ? "m4a" : "mp4")
+    : type.includes("ogg")
+      ? "ogg"
+      : type.startsWith("audio/")
+        ? "webm"
+        : "mp4";
 
 /* ── storage ── */
 interface ChunkStore {

@@ -83,8 +83,12 @@ export async function uploadFile(
 
 export async function uploadMedia(files: File[], userId: string, options: CompressOptions = {}) {
   const uploadPromises = Array.from(files).map((file) => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const rawExt = file.name.split(".").pop()?.toLowerCase();
+    const isVideo = file.type.startsWith("video/");
+    const safeExt = (!rawExt || rawExt === file.name.toLowerCase() || rawExt === "blob" || rawExt === "tmp")
+      ? (isVideo ? "mp4" : "jpg")
+      : rawExt;
+    const fileName = `${Math.random()}.${safeExt}`;
     const filePath = `${userId}/${fileName}`;
     return uploadFile("post-media", file, filePath, options);
   });
@@ -94,8 +98,12 @@ export async function uploadMedia(files: File[], userId: string, options: Compre
 
 export async function uploadNoteMedia(files: File[], userId: string) {
   const uploadPromises = Array.from(files).map((file) => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const rawExt = file.name.split(".").pop()?.toLowerCase();
+    const isVideo = file.type.startsWith("video/");
+    const safeExt = (!rawExt || rawExt === file.name.toLowerCase() || rawExt === "blob" || rawExt === "tmp")
+      ? (isVideo ? "mp4" : "jpg")
+      : rawExt;
+    const fileName = `${Math.random()}.${safeExt}`;
     const filePath = `${userId}/${fileName}`;
     return uploadFile("post-media", file, filePath);
   });

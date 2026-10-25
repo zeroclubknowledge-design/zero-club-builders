@@ -757,8 +757,9 @@ function ComposePage() {
           videoSrc={previews[trimmingInfo] || ""} 
           onCancel={() => setTrimmingInfo(null)}
           onSave={(blob) => {
-            const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-            const file = new File([blob], `edited-video-${Date.now()}.${ext}`, { type: blob.type });
+            const isMp4 = blob.type.includes('mp4') || !blob.type.includes('webm');
+            const ext = isMp4 ? 'mp4' : 'webm';
+            const file = new File([blob], `edited-video-${Date.now()}.${ext}`, { type: isMp4 ? 'video/mp4' : blob.type });
             const nextImages = [...images];
             nextImages[trimmingInfo] = file;
             setImages(nextImages);

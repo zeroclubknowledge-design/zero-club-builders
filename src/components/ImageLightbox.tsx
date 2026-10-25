@@ -30,27 +30,9 @@ interface ImageLightboxProps {
   caption?: string;
 }
 
-/** Saves the photo to the phone instead of opening the file in a browser tab. */
-export async function downloadMedia(url: string) {
-  const name = decodeURIComponent(url.split("?")[0].split("/").pop() || "zero-club-photo");
-  try {
-    const blob = await fetch(url).then((response) => {
-      if (!response.ok) throw new Error("download failed");
-      return response.blob();
-    });
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = objectUrl;
-    link.download = name.includes(".") ? name : `${name}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 4000);
-    toast.success("Saved to your downloads");
-  } catch {
-    toast.error("Could not download this photo");
-  }
-}
+import { downloadMedia as downloadMediaUtil, shareMediaFile, isVideoResource } from "@/lib/downloadMedia";
+
+export const downloadMedia = downloadMediaUtil;
 
 const QUICK_REACTIONS = ["❤️", "😂", "🔥", "👏"];
 
@@ -60,7 +42,7 @@ export function ImageLightbox({
   isOpen,
   onClose,
   sender,
-  allowDownload,
+  allowDownload = true,
   onReply,
   mediaTypes,
   caption,
@@ -105,24 +87,28 @@ export function ImageLightbox({
     return /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url) || url.includes("video");
   };
 
+  const isCurrentVideo = isVideo(currentUrl, index);
+
   const share = async () => {
     setMenuOpen(false);
+    setDownloading(true);
     try {
-      if (navigator.share) await navigator.share({ url: currentUrl });
-      else {
-        await navigator.clipboard.writeText(currentUrl);
-        toast.success("Link copied");
-      }
+      await shareMediaFile(currentUrl, { isVideo: isCurrentVideo });
     } catch {
-      /* Share sheet closed. */
+      /* Share sheet closed */
+    } finally {
+      setDownloading(false);
     }
   };
 
   const save = async () => {
     setMenuOpen(false);
     setDownloading(true);
-    await downloadMedia(currentUrl);
-    setDownloading(false);
+    try {
+      await downloadMediaUtil(currentUrl, { isVideo: isCurrentVideo });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const trimmedCaption = (caption || "").trim();
@@ -136,7 +122,7 @@ export function ImageLightbox({
           onInteractOutside={onClose}
           closeClassName="hidden"
         >
-          {/* Top bar: back, who sent it, and a menu — like a social app's viewer. */}
+          {/* Top bar: back, who sent it, download, and a menu — like a social app's viewer. */}
           <div className="relative z-[105] flex items-center gap-3 px-2 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
             <button type="button" onClick={onClose} aria-label="Back" className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white/10">
               <ArrowLeft className="h-6 w-6" />
@@ -159,22 +145,34 @@ export function ImageLightbox({
                 {index + 1} / {mediaUrls.length}
               </span>
             )}
+            {allowDownload && (
+              <button
+                type="button"
+                onClick={() => void save()}
+                aria-label={isCurrentVideo ? "Save video (MP4)" : "Save to phone"}
+                title={isCurrentVideo ? "Save video (MP4)" : "Save to phone"}
+                disabled={downloading}
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white/10 active:scale-95 disabled:opacity-50"
+              >
+                {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5 text-white/80" />}
+              </button>
+            )}
             {(
               <div className="relative shrink-0">
                 <button type="button" onClick={() => setMenuOpen((o) => !o)} aria-label="More" aria-expanded={menuOpen} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white/10">
-                  {downloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <MoreHorizontal className="h-6 w-6 rotate-90" />}
+                  <MoreHorizontal className="h-6 w-6 rotate-90" />
                 </button>
                 {menuOpen && (
                   <>
                     <button type="button" aria-label="Close menu" className="fixed inset-0 z-[106] cursor-default" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute right-1 top-12 z-[107] w-52 overflow-hidden rounded-2xl bg-[#1c1b1f] py-1.5 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
+                    <div className="absolute right-1 top-12 z-[107] w-56 overflow-hidden rounded-2xl bg-[#1c1b1f] py-1.5 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.9)] ring-1 ring-white/10">
                       {allowDownload && (
                         <button type="button" onClick={() => void save()} className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14.5px] hover:bg-white/[0.06]">
-                          <Download className="h-5 w-5 text-white/70" /> Save to phone
+                          <Download className="h-5 w-5 text-white/70" /> {isCurrentVideo ? "Save video (MP4)" : "Save to phone"}
                         </button>
                       )}
                       <button type="button" onClick={() => void share()} className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14.5px] hover:bg-white/[0.06]">
-                        <Share2 className="h-5 w-5 text-white/70" /> Share
+                        <Share2 className="h-5 w-5 text-white/70" /> {isCurrentVideo ? "Share video to socials" : "Share"}
                       </button>
                       <button
                         type="button"

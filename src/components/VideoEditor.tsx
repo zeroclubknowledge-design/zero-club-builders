@@ -250,14 +250,21 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
       // No audio track available; the clip is silent because the source was.
     }
 
-    // MP4 first: Safari cannot record WebM at all, and plenty of places cannot
-    // play it back. WebM stays as the fallback for browsers without MP4.
+    // MP4 (H.264 + AAC) first: universal compatibility across WhatsApp, Instagram,
+    // iOS Safari, Android, and desktop. WebM is strictly a fallback.
     const mimeType = [
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4;codecs=avc1,mp4a',
+      'video/mp4;codecs=h264,aac',
+      'video/mp4;codecs=h264',
       'video/mp4;codecs=avc1',
       'video/mp4',
       'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
       'video/webm',
-    ].find((type) => MediaRecorder.isTypeSupported(type)) || 'video/webm';
+    ].find((type) => {
+      try { return MediaRecorder.isTypeSupported(type); } catch { return false; }
+    }) || 'video/mp4';
 
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
     const chunks: Blob[] = [];
@@ -265,7 +272,8 @@ export function VideoEditor({ videoSrc, onSave, onCancel }: VideoEditorProps) {
     recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
     recorder.onstop = () => {
       video.muted = false;
-      const blob = new Blob(chunks, { type: mimeType });
+      const isMp4 = mimeType.includes('mp4') || !mimeType.includes('webm');
+      const blob = new Blob(chunks, { type: isMp4 ? 'video/mp4' : mimeType });
       onSave(blob);
       processingRef.current = false;
       setIsProcessing(false);

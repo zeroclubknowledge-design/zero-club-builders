@@ -248,8 +248,12 @@ function GroupChatPage() {
       if (pendingFiles.length) {
         const tokens: string[] = [];
         for (const original of pendingFiles) {
-          const file = await compressImage(original);
-          const ext = file.name.split(".").pop();
+          const isVideo = original.type.startsWith("video/");
+          const file = isVideo ? original : await compressImage(original);
+          const rawExt = file.name.split(".").pop()?.toLowerCase();
+          const ext = (!rawExt || rawExt === file.name.toLowerCase() || rawExt === "blob" || rawExt === "tmp")
+            ? (isVideo ? "mp4" : "jpg")
+            : rawExt;
           const path = `${myId}/${Math.random()}.${ext}`;
           const { error } = await supabase.storage.from("post-media").upload(path, file, { cacheControl: "31536000", contentType: file.type || undefined });
           if (error) throw error;
