@@ -1,7 +1,8 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
-import { Home } from "@/screens/Home";
-import { SentGifts } from "@/screens/Sent";
-import { ReceivedGifts } from "@/screens/Received";
+import { BrowseGifts } from "@/screens/Browse";
+import { SendGift } from "@/screens/Send";
+import { MyGifts, type MyGiftsTab } from "@/screens/MyGifts";
+import { redirect } from "@tanstack/react-router";
 import { ClaimGift } from "@/screens/Claim";
 import { AuthPage } from "@/screens/AuthPage";
 
@@ -11,9 +12,23 @@ import { AuthPage } from "@/screens/AuthPage";
  * link shape (/gift/<code>), so a card made in either place works in both.
  */
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
-const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: Home });
-const sentRoute = createRoute({ getParentRoute: () => rootRoute, path: "/sent", component: SentGifts });
-const receivedRoute = createRoute({ getParentRoute: () => rootRoute, path: "/received", component: ReceivedGifts });
+// Browse (home) · Create · My Gifts (Sent / Received).
+const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: BrowseGifts });
+const createGiftRoute = createRoute({ getParentRoute: () => rootRoute, path: "/create", component: SendGift });
+const meRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/me",
+  validateSearch: (search: Record<string, unknown>): { tab?: MyGiftsTab } => ({
+    tab: search.tab === "received" ? "received" : search.tab === "sent" ? "sent" : undefined,
+  }),
+  component: function MyGiftsPage() {
+    const { tab } = meRoute.useSearch();
+    return <MyGifts tab={tab || "sent"} />;
+  },
+});
+// Older links keep working.
+const sentRoute = createRoute({ getParentRoute: () => rootRoute, path: "/sent", beforeLoad: () => { throw redirect({ to: "/me", search: { tab: "sent" } }); } });
+const receivedRoute = createRoute({ getParentRoute: () => rootRoute, path: "/received", beforeLoad: () => { throw redirect({ to: "/me", search: { tab: "received" } }); } });
 const signInRoute = createRoute({ getParentRoute: () => rootRoute, path: "/signin", component: () => <AuthPage mode="signin" /> });
 const signUpRoute = createRoute({ getParentRoute: () => rootRoute, path: "/signup", component: () => <AuthPage mode="signup" /> });
 const giftRoute = createRoute({
@@ -33,7 +48,7 @@ const legacyGiftRoute = createRoute({
   },
 });
 
-const routeTree = rootRoute.addChildren([homeRoute, sentRoute, receivedRoute, signInRoute, signUpRoute, giftRoute, legacyGiftRoute]);
+const routeTree = rootRoute.addChildren([homeRoute, createGiftRoute, meRoute, sentRoute, receivedRoute, signInRoute, signUpRoute, giftRoute, legacyGiftRoute]);
 export const router = createRouter({ routeTree, defaultPreload: "intent", scrollRestoration: true });
 
 declare module "@tanstack/react-router" {

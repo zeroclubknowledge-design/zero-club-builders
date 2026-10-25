@@ -43,9 +43,10 @@ type GiftCard = {
   refunded_at: string | null;
   bootcamp_ids: string[] | null;
   club_ids?: string[] | null;
+  is_public?: boolean;
 };
 
-export function SentGifts() {
+export function SentGifts({ embedded = false }: { embedded?: boolean }) {
   const client = useQueryClient();
   const { format } = useWalletCurrency();
   const [tab, setTab] = useState<"collecting" | "past">("collecting");
@@ -61,7 +62,7 @@ export function SentGifts() {
       const { data, error } = await supabase
         .from("gift_cards")
         .select(
-          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at,bootcamp_ids,club_ids",
+          "id, code, amount, service, template_id, message, custom_purpose, created_at,quantity,claimed_count,expires_at,funding_source,status,refunded_at,bootcamp_ids,club_ids,is_public",
         )
         .eq("creator_id", session.user.id)
         .is("parent_gift_id", null)
@@ -142,6 +143,27 @@ export function SentGifts() {
               {status.label}
             </span>
           </div>
+          {canEdit && !expired(card) && (card.claimed_count || 0) < (card.quantity || 1) && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!!card.is_public}
+              onClick={async () => {
+                const next = !card.is_public;
+                const { error } = await supabase.rpc("set_gift_public" as never, { p_gift: card.id, p_public: next } as never);
+                if (error) { toast.error(error.message); return; }
+                toast.success(next ? "Listed on Browse" : "Removed from Browse");
+                void client.invalidateQueries({ queryKey: ["unclaimed-gifts"] });
+                void client.invalidateQueries({ queryKey: ["browse-gifts"] });
+              }}
+              className="mb-2 inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              <span className={`relative h-5 w-9 rounded-full transition-colors ${card.is_public ? "bg-[#cc208f]" : "bg-foreground/15"}`}>
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${card.is_public ? "left-[18px]" : "left-0.5"}`} />
+              </span>
+              {card.is_public ? "On Browse · anyone can claim" : "Not on Browse · link only"}
+            </button>
+          )}
           {card.expires_at && (
             <p className="mb-3 text-xs text-muted-foreground">
               {expired(card) ? "Expired" : "Claim by"} · {new Date(card.expires_at).toLocaleString()}
@@ -222,8 +244,9 @@ export function SentGifts() {
   const list = tab === "collecting" ? openGifts : pastGifts;
 
   return (
-    <AppShell brand={<Brand />} nav={NAV}>
-      <PageHead
+    <Frame embedded={embedded}>
+      <Head
+        embedded={embedded}
         eyebrow="Zero Cards"
         title="Gifts you've sent"
         sub="Every gift is funded when you create it. Share links, add claims, change details or close a gift to return what's left."
@@ -275,7 +298,7 @@ export function SentGifts() {
                 : "Gifts appear here once they sell out, expire or are closed."}
             </p>
             <Link
-              to="/"
+              to="/create"
               className="mt-7 rounded-full bg-foreground px-6 py-2.5 text-[13px] font-semibold text-background transition hover:opacity-90"
             >
               Create a gift
@@ -298,6 +321,20 @@ export function SentGifts() {
       {editing && (
         <GiftEditSheet card={editing} open={!!editing} onSaved={(saved) => setTab(saved.status === "active" ? "collecting" : "past")} onOpenChange={(open) => { if (!open) setEditing(null); }} />
       )}
-    </AppShell>
+    </Frame>
+  );
+}
+
+/** Full page on its own, or just the content inside My Gifts. */
+export function Frame({ embedded, children }: { embedded: boolean; children: React.ReactNode }) {
+  return embedded ? <>{children}</> : <AppShell brand={<Brand />} nav={NAV}>{children}</AppShell>;
+}
+export function Head({ embedded, sub, action, ...rest }: { embedded: boolean; eyebrow: string; title: string; sub: string; action?: React.ReactNode }) {
+  if (!embedded) return <PageHead {...rest} sub={sub} action={action} />;
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <p className="max-w-[560px] text-[13.5px] leading-relaxed text-muted-foreground">{sub}</p>
+      {action}
+    </div>
   );
 }

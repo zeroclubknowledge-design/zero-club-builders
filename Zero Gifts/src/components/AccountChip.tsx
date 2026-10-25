@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { AuthSheet } from "@/components/auth/AuthSheet";
 
 /** Avatar when signed in (to your page), "Sign in" otherwise — opens the account sheet in place. */
-export function AccountChip({ to = "/received" }: { to?: string }) {
+export function AccountChip({ to = "/me" }: { to?: string }) {
   const { session, profile } = useAuth();
   const [open, setOpen] = useState(false);
   if (session) {

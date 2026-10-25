@@ -49,7 +49,7 @@ export const recordingExtension = (type: string) =>
       ? "ogg"
       : type.startsWith("audio/")
         ? "webm"
-        : "mp4";
+        : "webm";
 
 /* ── storage ── */
 interface ChunkStore {

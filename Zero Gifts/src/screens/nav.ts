@@ -1,8 +1,9 @@
-import { Gift, Send, WalletCards } from "@/components/icons/glyphs";
+import { Compass, Gift, Plus } from "@/components/icons/glyphs";
 import type { NavItem } from "@/components/AppShell";
 
+/** Browse what's open to claim, create a gift, and see everything you've sent and received. */
 export const NAV: NavItem[] = [
-  { to: "/", label: "Send", icon: Send, exact: true },
-  { to: "/sent", label: "Sent", icon: Gift },
-  { to: "/received", label: "Received", icon: WalletCards },
+  { to: "/", label: "Browse", icon: Compass, exact: true },
+  { to: "/create", label: "Create", icon: Plus },
+  { to: "/me", label: "My Gifts", icon: Gift },
 ];

@@ -5,14 +5,12 @@ import { ArrowUpRight, Gift, Loader2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { zc } from "@/lib/config";
-import { AppShell, PageHead } from "@/components/AppShell";
-import { Brand } from "@/components/Brand";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
 import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { NAV } from "./nav";
+import { Frame, Head } from "./Sent";
 
 /** Where each kind of credit gets spent on Zero Club. */
 const WHERE: Record<string, { path: string; action: string }> = {
@@ -28,7 +26,7 @@ const WHERE: Record<string, { path: string; action: string }> = {
  * Everything given to you: Zero Cards you can still spend, membership and
  * Zero Club gifts waiting to be claimed, and a box for a code someone sent you.
  */
-export function ReceivedGifts() {
+export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
   const { session, profile, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { format } = useWalletCurrency();
@@ -64,8 +62,9 @@ export function ReceivedGifts() {
   const total = list.reduce((s, c) => s + Number(c.remaining_amount || 0), 0);
 
   return (
-    <AppShell brand={<Brand />} nav={NAV}>
-      <PageHead
+    <Frame embedded={embedded}>
+      <Head
+        embedded={embedded}
         eyebrow="Received"
         title="Gifts for you"
         sub="Zero Cards you can spend on Zero Club, and gifts waiting for you to claim."
@@ -131,6 +130,6 @@ export function ReceivedGifts() {
           </section>
         </aside>
       </div>
-    </AppShell>
+    </Frame>
   );
 }

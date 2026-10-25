@@ -7,6 +7,7 @@ import react from "@vitejs/plugin-react";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import path from "path";
 import { fileURLToPath } from "url";
+import { videoCodecAssets } from "./scripts/video-codec-assets";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -37,6 +38,7 @@ const zcFontScale = () => ({
 export default defineConfig(({ command }) => {
   const isVercelBuild = process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel";
   const plugins = [
+    videoCodecAssets(),
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
@@ -45,6 +47,8 @@ export default defineConfig(({ command }) => {
     react(),
     VitePWA({
       strategies: "injectManifest",
+      // Load the ~32 MB converter only after an explicit video export.
+      injectManifest: { globIgnores: ["**/ffmpeg-core*"] },
       srcDir: "src",
       filename: "sw.ts",
       // Registration is handled once in RootComponent. Keeping the plugin
@@ -186,6 +190,7 @@ export default defineConfig(({ command }) => {
   }
 
   return {
+    optimizeDeps: { exclude: ["@ffmpeg/ffmpeg"] },
     plugins,
     css: {
       postcss: { plugins: [zcFontScale()] },

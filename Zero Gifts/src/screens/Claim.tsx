@@ -88,7 +88,7 @@ export function ClaimGift({ code }: { code: string }) {
         <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.06]"><Gift className="h-5 w-5" /></div>
         <h1 className="mt-4 font-display text-[20px] font-semibold">Zero Card unavailable</h1>
         <p className="mt-2 max-w-sm text-[14px] text-muted-foreground">This link is invalid, has expired, or the card has already been claimed.</p>
-        <Link to="/received" className="mt-5 flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Your gifts</Link>
+        <Link to="/me" search={{ tab: "received" }} className="mt-5 flex h-10 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Your gifts</Link>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export function ClaimGift({ code }: { code: string }) {
   );
 
   if (claimedCard || alreadyClaimed) {
-    if (data.card.expired) return shell(<><h1 className="mt-12 text-2xl font-semibold">Your gift credit has expired</h1><p className="mt-3 text-sm text-white/65">The deadline for using this gift has passed. Your own wallet money is unaffected.</p><Link to="/received" className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
+    if (data.card.expired) return shell(<><h1 className="mt-12 text-2xl font-semibold">Your gift credit has expired</h1><p className="mt-3 text-sm text-white/65">The deadline for using this gift has passed. Your own wallet money is unaffected.</p><Link to="/me" search={{ tab: "received" }} className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
     return shell(
       <>
         <span className="mt-6 grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b] text-white"><Check className="h-6 w-6" /></span>
@@ -142,7 +142,7 @@ export function ClaimGift({ code }: { code: string }) {
           <a href={useHref} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-[#17181b]">
             {walletBacked ? "Open wallet on Zero Club" : "Use it on Zero Club"} <ArrowRight className="h-4 w-4" />
           </a>
-          <Link to="/received" className="mt-2.5 flex h-11 w-full items-center justify-center rounded-full text-[15px] font-semibold text-white/75 hover:text-white">
+          <Link to="/me" search={{ tab: "received" }} className="mt-2.5 flex h-11 w-full items-center justify-center rounded-full text-[15px] font-semibold text-white/75 hover:text-white">
             See all your gifts
           </Link>
           {data.creator?.id && (
@@ -155,7 +155,7 @@ export function ClaimGift({ code }: { code: string }) {
     );
   }
 
-  if (unavailable) return shell(<><h1 className="mt-12 text-2xl font-semibold">{data.card.expired ? "This gift has expired" : "This gift is no longer available"}</h1><p className="mt-3 text-sm text-white/60">{data.card.expired ? "The deadline for new claims has passed." : "All claims have been taken, or the creator closed this gift."}</p><Link to="/received" className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
+  if (unavailable) return shell(<><h1 className="mt-12 text-2xl font-semibold">{data.card.expired ? "This gift has expired" : "This gift is no longer available"}</h1><p className="mt-3 text-sm text-white/60">{data.card.expired ? "The deadline for new claims has passed." : "All claims have been taken, or the creator closed this gift."}</p><Link to="/me" search={{ tab: "received" }} className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
 
   return shell(
     <>

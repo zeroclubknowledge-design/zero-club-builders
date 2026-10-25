@@ -159,5 +159,6 @@ test("voice calls record mixed audio without canvas capture and preserve microph
   assert.ok(e.owned.every(t=>t.stops===1));
   assert.equal(e.recordingExtension("audio/mp4"),"m4a");
   assert.equal(e.recordingExtension("video/mp4"),"mp4");
+  assert.equal(e.recordingExtension("video/webm;codecs=vp8,opus"),"webm");
   assert.equal(e.recordingExtension("audio/ogg;codecs=opus"),"ogg");
 });

@@ -45,6 +45,7 @@ export function SendGift() {
   const [clubIds, setClubIds] = usePersistentDraft<string[]>(giftKey("clubs"), []);
   const request = useRef<{ signature: string; id: string } | null>(null);
   const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
+  const [listPublic, setListPublic] = usePersistentDraft(giftKey("public"), false);
   const [customPurpose, setCustomPurpose] = usePersistentDraft(giftKey("purpose"), "");
   const [createdCard, setCreatedCard] = usePersistentDraft<any>(giftKey("created"), null);
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
@@ -125,7 +126,10 @@ export function SendGift() {
         p_request_id: request.current!.id,
       });
       if (error) throw error;
-      return Array.isArray(data) ? data[0] : data;
+      const card = Array.isArray(data) ? data[0] : data;
+      // Listed on Browse so anyone can find and claim it (off by default: gifts are usually for people you choose).
+      if (listPublic && card?.id) await supabase.rpc("set_gift_public" as never, { p_gift: card.id, p_public: true } as never).then(() => undefined, () => undefined);
+      return card;
     },
     onSuccess: (card) => {
       refetchUnclaimed();
@@ -164,7 +168,7 @@ export function SendGift() {
     : null;
 
   const waiting = unclaimedCount > 0 ? (
-    <Link to="/sent" className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-[13px] font-semibold">
+    <Link to="/me" className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-[13px] font-semibold">
       Collecting
       <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[#cc208f] px-1 text-[11px] font-bold tabular-nums text-white">{unclaimedCount}</span>
     </Link>
@@ -211,7 +215,7 @@ export function SendGift() {
           >
             Send another
           </button>
-          <Link to="/sent" className="mt-1 text-[13px] font-semibold text-[#cc208f]">See all your gifts</Link>
+          <Link to="/me" className="mt-1 text-[13px] font-semibold text-[#cc208f]">See all your gifts</Link>
         </main>
       </AppShell>
     );
@@ -349,6 +353,24 @@ export function SendGift() {
             <span className="mt-1 block text-right text-[12px] text-muted-foreground">
               {message.length}/140
             </span>
+          </label>
+
+          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border p-3.5">
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">Show on Browse</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                Anyone on Zero Gifts can find this gift and claim it until it runs out. Leave it off to share the link only with people you choose.
+              </span>
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={listPublic}
+              onClick={() => setListPublic(!listPublic)}
+              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors ${listPublic ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+            >
+              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${listPublic ? "left-6" : "left-1"}`} />
+            </button>
           </label>
         </section>
 

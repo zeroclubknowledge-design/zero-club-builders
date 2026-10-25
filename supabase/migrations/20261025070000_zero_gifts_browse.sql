@@ -1,0 +1,7 @@
+-- Applied 2026-10-25 (Supabase migration "zero_gifts_browse").
+-- Zero Gifts → Browse. Gifts are link-only unless their creator lists them:
+--   gift_cards.is_public boolean not null default false (+ partial index on public campaigns).
+-- browse_gift_cards(p_service text, p_search text, p_limit int) → jsonb[] for anon + authenticated:
+--   public, active, unexpired campaign rows with claims left; creator, club/bootcamp limits,
+--   `mine` and `claimed` for the caller.
+-- set_gift_public(p_gift uuid, p_public boolean): creator only (campaign row).

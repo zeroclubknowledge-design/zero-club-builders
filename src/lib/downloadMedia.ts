@@ -6,293 +6,192 @@ export interface DownloadMediaOptions {
   onProgress?: (status: string) => void;
 }
 
-const MP4_MIME_CANDIDATES = [
-  "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
-  "video/mp4;codecs=avc1,mp4a",
-  "video/mp4;codecs=h264,aac",
-  "video/mp4;codecs=h264",
-  "video/mp4;codecs=avc1",
-  "video/mp4",
-];
-
-/** Return the first browser-supported MP4 recording type, if any. */
-export function getSupportedMp4MimeType(): string | null {
-  if (typeof window === "undefined" || typeof MediaRecorder === "undefined") {
-    return null;
-  }
-  for (const candidate of MP4_MIME_CANDIDATES) {
-    try {
-      if (MediaRecorder.isTypeSupported(candidate)) {
-        return candidate;
-      }
-    } catch {
-      // Browser threw on format query
-    }
-  }
-  return null;
-}
-
-/** Check if a URL or MIME type indicates a video file. */
 export function isVideoResource(url: string, mimeType?: string): boolean {
-  if (mimeType && mimeType.toLowerCase().startsWith("video/")) return true;
-  if (!url) return false;
   return (
-    /\.(mp4|webm|mov|m4v|ogg|ogv|mkv|avi|3gp|flv|ts)(\?|$)/i.test(url) ||
-    url.includes("/videos/") ||
-    url.includes("video")
+    !!mimeType?.toLowerCase().startsWith("video/") ||
+    /\.(mp4|webm|mov|m4v|ogv|mkv|avi|3gp|flv|ts)([?#]|$)/i.test(url) ||
+    /\/videos?\//i.test(url)
   );
 }
 
-/** Check if the magic bytes of a blob belong to a WebM/Matroska container. */
-export async function isWebMBytes(blob: Blob): Promise<boolean> {
+/** Inspect bytes: old uploads may have incorrect extensions and MIME types. */
+export async function mediaContainer(blob: Blob): Promise<string | null> {
+  const b = new Uint8Array(await blob.slice(0, 4096).arrayBuffer());
+  const text = (start: number, end: number) => String.fromCharCode(...b.slice(start, end));
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3)
+    return text(0, b.length).includes("matroska") ? "video/x-matroska" : "video/webm";
+  if (text(4, 8) === "ftyp") return text(8, 12) === "qt  " ? "video/quicktime" : "video/mp4";
+  if (text(0, 4) === "RIFF" && text(8, 12) === "AVI ") return "video/x-msvideo";
+  if (text(0, 3) === "FLV") return "video/x-flv";
+  return null;
+}
+
+const extensions: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+  "video/x-matroska": "mkv",
+  "video/x-msvideo": "avi",
+  "video/ogg": "ogv",
+  "video/3gpp": "3gp",
+  "video/x-flv": "flv",
+  "video/mp2t": "ts",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/svg+xml": "svg",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/webm": "webm",
+  "audio/ogg": "ogg",
+  "audio/wav": "wav",
+  "application/pdf": "pdf",
+};
+
+export function buildDownloadFilename(
+  url: string,
+  isVideo: boolean,
+  customName?: string,
+  blobType?: string,
+): string {
+  let raw = customName?.trim() || url.split(/[?#]/)[0].split("/").pop() || "zero-club-media";
   try {
-    const buffer = await blob.slice(0, 8).arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    // EBML header starts with 0x1A 0x45 0xDF 0xA3
-    return bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
+    raw = decodeURIComponent(raw);
   } catch {
-    return false;
+    /* Malformed escapes must not block saving. */
   }
-}
-
-/**
- * Transcodes a WebM blob into standard MP4 in the browser if supported.
- * Falls back to the original blob if transcoding is unavailable or fails.
- */
-export async function transcodeWebMToMp4(blob: Blob): Promise<Blob> {
-  const mp4Mime = getSupportedMp4MimeType();
-  if (!mp4Mime) {
-    return new Blob([blob], { type: "video/mp4" });
-  }
-
-  return new Promise((resolve) => {
-    let finished = false;
-    const video = document.createElement("video");
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "auto";
-    const objectUrl = URL.createObjectURL(blob);
-    video.src = objectUrl;
-
-    const cleanup = () => {
-      if (finished) return;
-      finished = true;
-      URL.revokeObjectURL(objectUrl);
-      video.pause();
-      video.removeAttribute("src");
-      video.load();
-      video.remove();
-    };
-
-    const safetyTimer = setTimeout(() => {
-      cleanup();
-      // On timeout, return blob with video/mp4 MIME type
-      resolve(new Blob([blob], { type: "video/mp4" }));
-    }, 15000);
-
-    video.onloadedmetadata = async () => {
-      try {
-        const stream = (video as any).captureStream?.() || (video as any).mozCaptureStream?.();
-        if (!stream) {
-          clearTimeout(safetyTimer);
-          cleanup();
-          return resolve(new Blob([blob], { type: "video/mp4" }));
-        }
-
-        const recorder = new MediaRecorder(stream, {
-          mimeType: mp4Mime,
-          videoBitsPerSecond: 3_000_000,
-        });
-        const chunks: Blob[] = [];
-
-        recorder.ondataavailable = (event) => {
-          if (event.data && event.data.size > 0) {
-            chunks.push(event.data);
-          }
-        };
-
-        recorder.onstop = () => {
-          clearTimeout(safetyTimer);
-          cleanup();
-          if (chunks.length > 0) {
-            resolve(new Blob(chunks, { type: "video/mp4" }));
-          } else {
-            resolve(new Blob([blob], { type: "video/mp4" }));
-          }
-        };
-
-        recorder.start(100);
-        await video.play();
-
-        video.onended = () => {
-          if (recorder.state !== "inactive") recorder.stop();
-        };
-
-        const duration = isFinite(video.duration) && video.duration > 0 ? video.duration : 10;
-        setTimeout(() => {
-          if (recorder.state !== "inactive") recorder.stop();
-        }, duration * 1000 + 1000);
-      } catch {
-        clearTimeout(safetyTimer);
-        cleanup();
-        resolve(new Blob([blob], { type: "video/mp4" }));
-      }
-    };
-
-    video.onerror = () => {
-      clearTimeout(safetyTimer);
-      cleanup();
-      resolve(new Blob([blob], { type: "video/mp4" }));
-    };
-  });
-}
-
-/** Sanitize and format a download filename to ensure the correct extension. */
-export function buildDownloadFilename(url: string, isVideo: boolean, customName?: string, blobType?: string): string {
-  let base = (customName || "").trim();
-  if (!base) {
-    const raw = decodeURIComponent(url.split("?")[0].split("/").pop() || (isVideo ? "zero-club-video" : "zero-club-media"));
-    base = raw.replace(/\.[a-z0-9_-]+$/i, "");
-  }
-
-  // Strip non-alphanumeric except dashes/underscores
-  base = base.replace(/[^a-zA-Z0-9_\-\s]/g, "").trim().replace(/\s+/g, "-") || (isVideo ? "zero-club-video" : "zero-club-media");
-
-  // Fix generic random/blob names
-  if (/^0\.\d+$/.test(base) || base === "blob" || base === "video" || base === "image") {
-    base = `ZeroClub-${isVideo ? "video" : "media"}-${Date.now().toString().slice(-6)}`;
-  }
-
-  if (isVideo) {
-    return `${base}.mp4`;
-  }
-
-  let ext = "jpg";
-  if (blobType) {
-    if (blobType.includes("png")) ext = "png";
-    else if (blobType.includes("webp")) ext = "webp";
-    else if (blobType.includes("gif")) ext = "gif";
-    else if (blobType.includes("svg")) ext = "svg";
-    else if (blobType.includes("mp3")) ext = "mp3";
-    else if (blobType.includes("wav")) ext = "wav";
-    else if (blobType.includes("pdf")) ext = "pdf";
-  } else if (/\.(png|webp|gif|svg|mp3|wav|pdf)(\?|$)/i.test(url)) {
-    const match = url.match(/\.(png|webp|gif|svg|mp3|wav|pdf)(\?|$)/i);
-    if (match) ext = match[1].toLowerCase();
-  }
-
+  const originalExtension = raw.match(/\.([a-z0-9]{1,8})$/i)?.[1].toLowerCase();
+  const ext =
+    extensions[blobType?.split(";")[0].trim().toLowerCase() || ""] ||
+    originalExtension ||
+    (isVideo ? "mp4" : "jpg");
+  const base =
+    raw
+      .replace(/\.[a-z0-9]{1,8}$/i, "")
+      .replace(/[^a-zA-Z0-9_\-\s]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 100) || `ZeroClub-${isVideo ? "video" : "media"}`;
   return `${base}.${ext}`;
 }
 
-/**
- * Downloads a video or image properly onto phones and desktops:
- * - Videos are always formatted as .mp4 with proper video/mp4 MIME type.
- * - WebM files are converted to universally playable MP4 if supported.
- * - Solves unplayable video issues when sharing downloaded files to socials like WhatsApp, Telegram, and Instagram.
- */
-export async function downloadMedia(url: string, options: DownloadMediaOptions = {}): Promise<void> {
+/** Android can consume a download well after the click returns. */
+export function saveMediaBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, 120000);
+}
+
+export async function prepareVideoDownload(
+  blob: Blob,
+  onProgress?: (status: string) => void,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  const { exportSocialVideo } = await import("./videoExport");
+  return exportSocialVideo(blob, onProgress, signal);
+}
+
+async function fetchMedia(url: string, options: DownloadMediaOptions, signal: AbortSignal) {
+  const response = await fetch(url, { mode: "cors", signal });
+  if (!response.ok)
+    throw new Error("This file could not be downloaded. Check your connection and try again.");
+  const blob = await response.blob();
+  const type = (response.headers.get("content-type") || blob.type || "").toLowerCase();
+  if (!blob.size || /text\/html|application\/json/.test(type))
+    throw new Error(
+      "This media file is unavailable. Please try again or ask the sender to upload it again.",
+    );
+  const detected = type.startsWith("audio/") ? null : await mediaContainer(blob);
+  const isVideo = options.isVideo || !!detected || isVideoResource(url, type);
+  const source = detected ? new Blob([blob], { type: detected }) : blob;
+  return { source, isVideo: !!isVideo };
+}
+
+/** Downloads and native sharing use exactly the same real MP4 bytes. */
+async function exportMedia(
+  url: string,
+  options: DownloadMediaOptions,
+  share: boolean,
+): Promise<void> {
   if (!url) {
     toast.error("No media URL to download");
     return;
   }
-
-  const toastId = toast.loading(options.isVideo || isVideoResource(url) ? "Preparing video download..." : "Downloading...");
-
+  const controller = new AbortController();
+  const id = toast.loading("Preparing download…", {
+    action: { label: "Cancel", onClick: () => controller.abort() },
+  });
+  let source: Blob | undefined;
+  let isVideo = !!options.isVideo;
+  const progress = (status: string) => {
+    options.onProgress?.(status);
+    toast.loading(status, { id, action: { label: "Cancel", onClick: () => controller.abort() } });
+  };
   try {
-    const response = await fetch(url, { mode: "cors" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const rawBlob = await response.blob();
-
-    const contentType = (response.headers.get("content-type") || rawBlob.type || "").toLowerCase();
-    const isVideo = options.isVideo || isVideoResource(url, contentType);
-
-    let finalBlob: Blob = rawBlob;
-
-    if (isVideo) {
-      const isWebm = (contentType.includes("webm") || await isWebMBytes(rawBlob));
-      if (isWebm) {
-        toast.loading("Converting video to MP4 for maximum compatibility...", { id: toastId });
-        finalBlob = await transcodeWebMToMp4(rawBlob);
-      } else {
-        // Guarantee video/mp4 MIME type so Android/iOS MediaStore assigns the proper codec
-        finalBlob = new Blob([rawBlob], { type: "video/mp4" });
-      }
-    }
-
-    const finalFileName = buildDownloadFilename(url, isVideo, options.fileName, finalBlob.type || contentType);
-
-    const objectUrl = URL.createObjectURL(finalBlob);
-    const link = document.createElement("a");
-    link.style.display = "none";
-    link.href = objectUrl;
-    link.download = finalFileName;
-    link.setAttribute("download", finalFileName);
-    link.rel = "noopener";
-    document.body.appendChild(link);
-    link.click();
-
-    setTimeout(() => {
-      link.remove();
-      URL.revokeObjectURL(objectUrl);
-    }, 15000);
-
-    toast.success(isVideo ? "Video saved in MP4 format! Ready to share." : "Saved to your downloads", { id: toastId });
-  } catch (err: any) {
-    console.error("Failed to download media:", err);
-    toast.error("Could not download this file. Please check your connection and try again.", { id: toastId });
-  }
-}
-
-/**
- * Directly shares the media file to native socials (WhatsApp, Instagram, Telegram, etc.)
- * using Web Share API with File objects, falling back to downloadMedia.
- */
-export async function shareMediaFile(url: string, options: DownloadMediaOptions = {}): Promise<void> {
-  if (!url) return;
-
-  const isVideo = options.isVideo || isVideoResource(url);
-
-  // If navigator.canShare with files is available, we prepare the actual File
-  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-    const toastId = toast.loading("Preparing file to share...");
-    try {
-      const response = await fetch(url, { mode: "cors" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const rawBlob = await response.blob();
-      const contentType = (response.headers.get("content-type") || rawBlob.type || "").toLowerCase();
-
-      let finalBlob: Blob = rawBlob;
-      if (isVideo) {
-        const isWebm = (contentType.includes("webm") || await isWebMBytes(rawBlob));
-        if (isWebm) {
-          finalBlob = await transcodeWebMToMp4(rawBlob);
-        } else {
-          finalBlob = new Blob([rawBlob], { type: "video/mp4" });
+    ({ source, isVideo } = await fetchMedia(url, options, controller.signal));
+    const result = isVideo
+      ? await prepareVideoDownload(source, progress, controller.signal)
+      : source;
+    controller.signal.throwIfAborted();
+    const filename = buildDownloadFilename(url, isVideo, options.fileName, result.type);
+    const file = new File([result], filename, { type: result.type || "application/octet-stream" });
+    if (share && typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: filename });
+        toast.dismiss(id);
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.dismiss(id);
+          return;
         }
+        // Some phones lose share activation during conversion; save the prepared file once.
       }
-
-      const fileName = buildDownloadFilename(url, isVideo, options.fileName, finalBlob.type || contentType);
-      const file = new File([finalBlob], fileName, { type: isVideo ? "video/mp4" : (finalBlob.type || contentType || "image/jpeg") });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        toast.dismiss(toastId);
-        await navigator.share({
-          files: [file],
-          title: fileName,
-        });
-        return;
-      }
-    } catch (e: any) {
-      if (e?.name === "AbortError") {
-        // User closed share dialog
-        toast.dismiss(toastId);
-        return;
-      }
-      console.warn("Native file share fallback:", e);
     }
-    toast.dismiss(toastId);
+    saveMediaBlob(result, filename);
+    toast.success(
+      isVideo ? "MP4 download started. Ready to share when it finishes." : "Download started",
+      { id },
+    );
+  } catch (error) {
+    if (controller.signal.aborted) {
+      toast.dismiss(id);
+      return;
+    }
+    toast.error(
+      error instanceof Error ? error.message : "Could not prepare this file. Please try again.",
+      {
+        id,
+        duration: 15000,
+        // Failed conversion must never produce a mislabeled or partial MP4.
+        ...(source && isVideo
+          ? {
+              action: {
+                label: "Save original",
+                onClick: () =>
+                  saveMediaBlob(
+                    source!,
+                    buildDownloadFilename(url, true, options.fileName, source!.type),
+                  ),
+              },
+            }
+          : {}),
+      },
+    );
   }
-
-  // Fallback: download the file as proper MP4 so the user has it ready in gallery/downloads
-  await downloadMedia(url, options);
 }
+
+export const downloadMedia = (url: string, options: DownloadMediaOptions = {}) =>
+  exportMedia(url, options, false);
+export const shareMediaFile = (url: string, options: DownloadMediaOptions = {}) =>
+  exportMedia(url, options, true);
