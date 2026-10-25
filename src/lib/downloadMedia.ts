@@ -141,12 +141,62 @@ function rememberVideo(url: string, blob: Blob) {
   );
 }
 
-async function fetchMedia(url: string, options: DownloadMediaOptions, signal: AbortSignal) {
+/**
+ * Supabase public files can be served as a real download (?download=name sets
+ * Content-Disposition: attachment). The browser then streams the file straight
+ * to disk at full speed, shows it in its own downloads list, and its own
+ * cancel works. Nothing is held in page memory and nothing is converted.
+ */
+function nativeDownloadUrl(url: string, filename: string): string | null {
+  try {
+    const u = new URL(url, typeof window !== "undefined" ? window.location.href : undefined);
+    if (!/\/storage\/v1\/object\/public\//.test(u.pathname)) return null;
+    u.searchParams.set("download", filename);
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+function startNativeDownload(href: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = filename;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => link.remove(), 1000);
+}
+
+/** Fetch with real progress and an immediate stop when cancelled. */
+async function fetchWithProgress(url: string, signal: AbortSignal, onProgress: (status: string) => void, label: string) {
   const response = await fetch(url, { mode: "cors", signal });
   if (!response.ok)
     throw new Error("This file could not be downloaded. Check your connection and try again.");
-  const blob = await response.blob();
-  const type = (response.headers.get("content-type") || blob.type || "").toLowerCase();
+  const total = Number(response.headers.get("content-length")) || 0;
+  const type = (response.headers.get("content-type") || "").toLowerCase();
+  if (!response.body) return { blob: await response.blob(), type };
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  signal.addEventListener("abort", () => { void reader.cancel().catch(() => undefined); }, { once: true });
+  for (;;) {
+    const { done, value } = await reader.read();
+    signal.throwIfAborted();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    const mb = (received / 1048576).toFixed(1);
+    onProgress(total ? `${label}… ${Math.min(99, Math.round((received / total) * 100))}%` : `${label}… ${mb} MB`);
+  }
+  return { blob: new Blob(chunks as BlobPart[], { type: type || undefined }), type };
+}
+
+async function fetchMedia(url: string, options: DownloadMediaOptions, signal: AbortSignal, onProgress: (status: string) => void) {
+  const label = options.isVideo || isVideoResource(url) ? "Downloading video" : "Downloading";
+  const { blob, type: headerType } = await fetchWithProgress(url, signal, onProgress, label);
+  const type = (headerType || blob.type || "").toLowerCase();
   if (!blob.size || /text\/html|application\/json/.test(type))
     throw new Error(
       "This media file is unavailable. Please try again or ask the sender to upload it again.",
@@ -157,7 +207,13 @@ async function fetchMedia(url: string, options: DownloadMediaOptions, signal: Ab
   return { source, isVideo: !!isVideo };
 }
 
-/** Downloads and native sharing use exactly the same real MP4 bytes. */
+/**
+ * Save: the original file, handed straight to the browser's downloader when
+ * possible (instant, full speed, cancellable in the downloads list).
+ * Share: the file is needed in the page, so it is fetched with progress;
+ * MP4s are shared as they are, and only other containers (.mov, .webm…) are
+ * converted to a shareable MP4.
+ */
 async function exportMedia(
   url: string,
   options: DownloadMediaOptions,
@@ -167,27 +223,63 @@ async function exportMedia(
     toast.error("No media URL to download");
     return;
   }
+
+  if (!share) {
+    const filename = buildDownloadFilename(url, !!options.isVideo || isVideoResource(url), options.fileName);
+    const href = nativeDownloadUrl(url, filename);
+    if (href) {
+      startNativeDownload(href, filename);
+      toast.success("Download started", {
+        description: "It's saving to your downloads. You can follow or cancel it there.",
+      });
+      return;
+    }
+  }
+
   const controller = new AbortController();
-  const id = toast.loading("Preparing download…", {
-    action: { label: "Cancel", onClick: () => controller.abort() },
-  });
-  let source: Blob | undefined;
-  let isVideo = !!options.isVideo;
+  // One stable action and throttled updates: re-creating the toast many times a
+  // second meant the Cancel button was redrawn under the finger and taps were lost.
+  const action = { label: "Cancel", onClick: () => controller.abort() };
+  const id = toast.loading("Preparing…", { action, duration: Infinity });
+  let shown = "";
+  let lastAt = 0;
+  let pending: ReturnType<typeof setTimeout> | undefined;
   const progress = (status: string) => {
     options.onProgress?.(status);
-    toast.loading(status, { id, action: { label: "Cancel", onClick: () => controller.abort() } });
+    if (controller.signal.aborted || status === shown) return;
+    const show = () => {
+      if (controller.signal.aborted) return;
+      shown = status;
+      lastAt = Date.now();
+      toast.loading(status, { id, action, duration: Infinity });
+    };
+    clearTimeout(pending);
+    if (Date.now() - lastAt >= 400) show();
+    else pending = setTimeout(show, 400 - (Date.now() - lastAt));
   };
+  const finish = () => clearTimeout(pending);
+  let source: Blob | undefined;
+  let isVideo = !!options.isVideo;
   try {
     let result = cachedVideo(url);
     if (result) {
       source = result;
       isVideo = true;
     } else {
-      ({ source, isVideo } = await fetchMedia(url, options, controller.signal));
-      result = isVideo ? await prepareVideoDownload(source, progress, controller.signal) : source;
-      if (isVideo) rememberVideo(url, result);
+      ({ source, isVideo } = await fetchMedia(url, options, controller.signal, progress));
+      if (isVideo) {
+        const container = source.type || (await mediaContainer(source)) || "";
+        // MP4 is shared as-is (fast); only other containers are converted.
+        result = container === "video/mp4" || /\.(mp4|m4v)([?#]|$)/i.test(url)
+          ? (source.type === "video/mp4" ? source : new Blob([source], { type: "video/mp4" }))
+          : await prepareVideoDownload(source, progress, controller.signal);
+        rememberVideo(url, result);
+      } else {
+        result = source;
+      }
     }
     controller.signal.throwIfAborted();
+    finish();
     const filename = buildDownloadFilename(url, isVideo, options.fileName, result.type);
     const file = new File([result], filename, { type: result.type || "application/octet-stream" });
     if (share && typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
@@ -200,17 +292,15 @@ async function exportMedia(
           toast.dismiss(id);
           return;
         }
-        // Some phones lose share activation during conversion; save the prepared file once.
+        // Some phones lose share activation during a long fetch; save the file once instead.
       }
     }
     saveMediaBlob(result, filename);
-    toast.success(
-      isVideo ? "MP4 download started. Ready to share when it finishes." : "Download started",
-      { id },
-    );
+    toast.success(isVideo ? "Video saved" : "Download started", { id, duration: 4000 });
   } catch (error) {
+    finish();
     if (controller.signal.aborted) {
-      toast.dismiss(id);
+      toast.message("Cancelled", { id, duration: 2000 });
       return;
     }
     toast.error(

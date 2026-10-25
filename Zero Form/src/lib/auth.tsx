@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
+import { sharedSignInOff, trySharedSignIn, turnSharedSignInOff, turnSharedSignInOn } from "./sso";
 
 /**
  * Who is using the app, resolved once and shared. The account is a Zero Club
@@ -53,16 +54,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!alive) return;
       setSession(data.session);
-      if (data.session) void loadProfile(data.session.user.id);
-      else setLoading(false);
+      if (data.session) { void loadProfile(data.session.user.id); return; }
+      // Signed in to Zero Club in this browser? Then you're signed in here too.
+      const ok = await trySharedSignIn();
+      if (alive && !ok) setLoading(false);
     });
+    // Signed in to Zero Club in another tab after opening this one: pick it up on return.
+    let lastTry = Date.now();
+    const onFocus = () => {
+      if (document.visibilityState !== "visible" || Date.now() - lastTry < 30_000 || sharedSignInOff()) return;
+      lastTry = Date.now();
+      void supabase.auth.getSession().then(({ data }) => { if (!data.session) void trySharedSignIn(); });
+    };
+    document.addEventListener("visibilitychange", onFocus);
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (!alive) return;
       setSession(next);
       if (next && (event === "SIGNED_IN" || event === "USER_UPDATED")) void loadProfile(next.user.id);
+      if (event === "SIGNED_IN") turnSharedSignInOn();
       if (!next) {
         setProfile(null);
         setLoading(false);
@@ -70,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         client.clear();
       }
     });
-    return () => { alive = false; sub.subscription.unsubscribe(); };
+    return () => { alive = false; sub.subscription.unsubscribe(); document.removeEventListener("visibilitychange", onFocus); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => { turnSharedSignInOff(); await supabase.auth.signOut(); },
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
