@@ -8,10 +8,11 @@ import createCore from '@ffmpeg/core';
 function load(file, imports={},extra={}) {
   const exports={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,
-    {exports,require:name=>{if(name in imports)return imports[name];throw new Error(name);},Blob,Uint8Array,AbortController,Error,setTimeout,clearTimeout,...extra});
+    {exports,require:name=>{if(name in imports)return imports[name];if(name==='./mp4Compatibility')return mp4;throw new Error(name);},Blob,Uint8Array,AbortController,Error,setTimeout,clearTimeout,...extra});
   return exports;
 }
 const video=load('src/lib/videoExport.ts',{'@ffmpeg/ffmpeg':{},'@ffmpeg/core?url':{},'virtual:zero-video-codec':{}});
+const mp4=load('src/lib/mp4Compatibility.ts');
 const media=load('src/lib/downloadMedia.ts',{sonner:{toast:{}}});
 
 test('file bytes override a misleading MP4 filename and MIME type',async()=>{
@@ -64,6 +65,23 @@ test('cancelled export shows neither an error nor a download',async()=>{
   assert.deepEqual(messages,['dismiss']);
 });
 
+test('compatible downloads never load the converter and repeat downloads reuse the prepared file',async()=>{
+  let fetches=0,checks=0,saves=0;
+  const source=new Blob(['compatible MP4'],{type:'video/mp4'});
+  const api=load('src/lib/downloadMedia.ts',{
+    './mp4Compatibility':{isShareableMp4:async()=>{checks++;return true;}},
+    './videoExport':{exportSocialVideo:()=>{throw Error('Converter must not load');}},
+    sonner:{toast:{loading:()=>1,error:message=>assert.fail(message),success(){}}},
+  },{
+    fetch:async()=>{fetches++;return {ok:true,headers:new Headers({'content-type':'video/mp4'}),blob:async()=>source};},
+    File,URL:{createObjectURL:()=>{saves++;return 'blob:mp4';},revokeObjectURL(){}},
+    document:{createElement:()=>({style:{},click(){},remove(){}}),body:{appendChild(){}}},setTimeout:()=>0,
+  });
+  await api.downloadMedia('/ready.mp4',{isVideo:true});
+  await api.downloadMedia('/ready.mp4',{isVideo:true});
+  assert.equal(fetches,1);assert.equal(checks,1);assert.equal(saves,2);
+});
+
 test('actual encoder preserves a video longer than 15 seconds, sound and MP4 compatibility',async()=>{
   // The production WASM core, running against its virtual filesystem in Node.
   globalThis.self={location:{href:'file:///ffmpeg-core.js'}};
@@ -79,6 +97,15 @@ test('actual encoder preserves a video longer than 15 seconds, sound and MP4 com
   assert.equal(output.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
   assert.ok(Number(output.format.duration)>=19.9);
   const bytes=Buffer.from(core.FS.readFile('output.mp4'));
+  const compatible=new Blob([bytes],{type:'video/mp4'});
+  assert.equal(await mp4.isShareableMp4(compatible),true,'compatible MP4 skips the converter');
+  assert.equal(await media.prepareVideoDownload(compatible),compatible,'original compatible bytes are returned without loading FFmpeg');
+  assert.equal(await mp4.isShareableMp4(compatible.slice(0,compatible.size-100)),false,'truncated MP4 is not trusted');
+  const hevc=Buffer.from(bytes);hevc.write('hvc1',hevc.indexOf('avc1',hevc.indexOf('moov')));
+  assert.equal(await mp4.isShareableMp4(new Blob([hevc])),false,'HEVC requires conversion');
+  run('-i','output.mp4','-c','copy','-movflags','frag_keyframe+empty_moov','fragmented.mp4');
+  assert.equal(await mp4.isShareableMp4(new Blob([core.FS.readFile('fragmented.mp4')])),false,'fragmented recordings still require remuxing');
+  assert.equal(await mp4.isShareableMp4(new Blob([core.FS.readFile('input')],{type:'video/mp4'})),false,'mislabeled WebM still needs conversion');
   assert.equal(bytes.toString('ascii',4,8),'ftyp');
   assert.ok(bytes.indexOf('moov')<bytes.indexOf('mdat'),'metadata comes before video data for sharing/streaming');
   // Decoding the full output verifies that this is playable media, not just a renamed file.

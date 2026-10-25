@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { isShareableMp4 } from "./mp4Compatibility";
 
 export interface DownloadMediaOptions {
   fileName?: string;
@@ -97,8 +98,47 @@ export async function prepareVideoDownload(
   onProgress?: (status: string) => void,
   signal?: AbortSignal,
 ): Promise<Blob> {
+  signal?.throwIfAborted();
+  if (await isShareableMp4(blob, signal)) {
+    onProgress?.("Video is ready to download…");
+    return blob.type === "video/mp4" ? blob : new Blob([blob], { type: "video/mp4" });
+  }
   const { exportSocialVideo } = await import("./videoExport");
   return exportSocialVideo(blob, onProgress, signal);
+}
+
+// Short-lived, bounded memory cache; never persist private media on disk.
+const preparedVideos = new Map<string, { blob: Blob; expires: number }>();
+const CACHE_BYTES = 64 * 1024 * 1024;
+function cachedVideo(url: string) {
+  const item = preparedVideos.get(url);
+  if (!item) return undefined;
+  if (item.expires <= Date.now()) {
+    preparedVideos.delete(url);
+    return undefined;
+  }
+  preparedVideos.delete(url);
+  preparedVideos.set(url, item);
+  return item.blob;
+}
+function rememberVideo(url: string, blob: Blob) {
+  if (blob.size > CACHE_BYTES) return;
+  for (const [key, item] of preparedVideos)
+    if (item.expires <= Date.now() || key === url) preparedVideos.delete(key);
+  let bytes = [...preparedVideos.values()].reduce((sum, item) => sum + item.blob.size, 0);
+  for (const [key, item] of preparedVideos) {
+    if (bytes + blob.size <= CACHE_BYTES && preparedVideos.size < 4) break;
+    preparedVideos.delete(key);
+    bytes -= item.blob.size;
+  }
+  const expires = Date.now() + 5 * 60 * 1000;
+  preparedVideos.set(url, { blob, expires });
+  setTimeout(
+    () => {
+      if (preparedVideos.get(url)?.expires === expires) preparedVideos.delete(url);
+    },
+    5 * 60 * 1000,
+  );
 }
 
 async function fetchMedia(url: string, options: DownloadMediaOptions, signal: AbortSignal) {
@@ -138,10 +178,15 @@ async function exportMedia(
     toast.loading(status, { id, action: { label: "Cancel", onClick: () => controller.abort() } });
   };
   try {
-    ({ source, isVideo } = await fetchMedia(url, options, controller.signal));
-    const result = isVideo
-      ? await prepareVideoDownload(source, progress, controller.signal)
-      : source;
+    let result = cachedVideo(url);
+    if (result) {
+      source = result;
+      isVideo = true;
+    } else {
+      ({ source, isVideo } = await fetchMedia(url, options, controller.signal));
+      result = isVideo ? await prepareVideoDownload(source, progress, controller.signal) : source;
+      if (isVideo) rememberVideo(url, result);
+    }
     controller.signal.throwIfAborted();
     const filename = buildDownloadFilename(url, isVideo, options.fileName, result.type);
     const file = new File([result], filename, { type: result.type || "application/octet-stream" });

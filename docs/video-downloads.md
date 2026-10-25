@@ -4,7 +4,16 @@ Downloads from posts, chat actions and the media viewer, native file sharing,
 live-call recordings and recovered recordings use the shared MP4 export path.
 The original video is processed on the user's device, not sent to a third party.
 
-The exporter probes the real streams, copies compatible H.264/yuv420p video and
+The download path first checks MP4 metadata using small blob slices, skipping the
+media payload even when the metadata is at the end. Verified H.264 (Baseline,
+Main or High up to level 4.2, at most 1920 pixels) with AAC-LC mono/stereo audio,
+or without audio, is saved directly without loading FFmpeg, remuxing or encoding.
+Unknown codecs, misleading extensions and malformed metadata still take the
+conversion path. Native downloads and sharing reuse up to four prepared videos
+for five minutes, with a combined 64 MiB memory limit and automatic expiry. No
+private media cache is persisted on disk.
+
+For videos needing conversion, the exporter probes the real streams, copies compatible H.264/yuv420p video and
 AAC audio, and converts other readable formats to H.264 Main/yuv420p with AAC
 stereo audio. Converted video is limited to 1280 pixels on its longest side and
 30 fps. Compatible H.264 up to 1920 pixels is remuxed without re-encoding. MP4
@@ -31,6 +40,7 @@ is prepared; in that case the same prepared file is downloaded, without fetching
 or converting it twice.
 
 Device conversion accepts inputs up to 512 MiB and runs for at most 30 minutes.
+Compatible MP4 files bypass this conversion limit.
 Corrupt, unsupported or oversized inputs show an error and an explicit **Save
 original** option with the actual container extension. This option does not imply
 social-app compatibility. Larger recordings need a server-side video processing
