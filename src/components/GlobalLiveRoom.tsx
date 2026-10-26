@@ -1254,6 +1254,16 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     ),
   );
 
+  /* Anyone can save a copy of the class for themselves (it records what they
+     see and hear, to their own device). Others are told, quietly, so nobody
+     is recorded without knowing. */
+  const othersSavingCopy = Object.values(presenceState).reduce((count: number, users: any[]) =>
+    count + users.filter((user) =>
+      !user.isAdmin && user.recording === true &&
+      String(user.agora_uid) !== String(client.uid) &&
+      remoteUsers.some((remote) => String(remote.uid) === String(user.agora_uid)),
+    ).length, 0);
+
   const hasSeenOthers = useRef(false);
   const hadAdmin = useRef(false);
   const emptyRoomTimer = useRef<any>(null);
@@ -2223,7 +2233,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
      * floating card over the page. Tap the title to go back into the class,
      * the round button to mute or unmute, the cross to leave.
      */
-    const recordingNow = isRecording || remoteRecording;
+    // Recording is personal: REC means *you* are recording.
+    const recordingNow = isRecording;
     const presenterName = remotePresenterUser ? (userNames[remotePresenterUser.uid] || "Someone") : null;
     const subtitle = isScreenSharing
       ? "You're presenting"
@@ -2325,7 +2336,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <span className="h-1.5 w-1.5 rounded-full bg-white" />
           LIVE <SessionElapsed className="tabular-nums" />
         </span>
-        {(isRecording || remoteRecording) && (<span role="status" className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-2 text-[12px] font-bold text-white"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />REC{isRecording ? ` ${Math.floor(recording.elapsed / 3600) ? `${Math.floor(recording.elapsed / 3600)}:` : ""}${String(Math.floor((recording.elapsed % 3600) / 60)).padStart(Math.floor(recording.elapsed / 3600) ? 2 : 1, "0")}:${String(recording.elapsed % 60).padStart(2, "0")}` : ""}</span>)}
+        {isRecording && (<span role="status" className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-2 text-[12px] font-bold text-white"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />REC{isRecording ? ` ${Math.floor(recording.elapsed / 3600) ? `${Math.floor(recording.elapsed / 3600)}:` : ""}${String(Math.floor((recording.elapsed % 3600) / 60)).padStart(Math.floor(recording.elapsed / 3600) ? 2 : 1, "0")}:${String(recording.elapsed % 60).padStart(2, "0")}` : ""}</span>)}
         <span className="flex h-6 shrink-0 items-center gap-1 rounded-md bg-white/[0.12] px-2 text-[12px] font-semibold text-white">
           <Eye className="h-3.5 w-3.5" />
           <span className="tabular-nums">{totalCount}</span>
@@ -2347,12 +2358,13 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <Share2 className="h-[19px] w-[19px]" />
         </button>
       </header>
-      {(isAdmin || remoteRecording) && (
+      {(
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-white/5 bg-white/[0.03] px-3 py-2 text-xs md:px-5">
           {isRecording && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />Recording</span>}
-          {!isRecording && remoteRecording && <span role="status" className="flex items-center gap-1.5 font-semibold text-red-300"><span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />This class is being recorded</span>}
-          {isAdmin && <button type="button" disabled={isLeaving || recording.phase === "starting" || recording.phase === "saving"} onClick={() => void (isRecording ? recording.stop() : recording.start())} className={`rounded-full px-3 py-2 font-semibold disabled:opacity-50 ${isRecording ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"}`} aria-pressed={isRecording}>{recording.phase === "starting" ? "Starting…" : recording.phase === "saving" ? "Saving…" : isRecording ? "Stop recording" : "Record"}</button>}
-          {isAdmin && !isRecording && recording.phase === "idle" && <span className="text-white/50">Records for hours · Saves to this device as a video file</span>}
+          {remoteRecording && <span className="text-white/50">A host is saving a copy too</span>}
+          <button type="button" disabled={isLeaving || recording.phase === "starting" || recording.phase === "saving"} onClick={() => void (isRecording ? recording.stop() : recording.start())} className={`rounded-full px-3 py-2 font-semibold disabled:opacity-50 ${isRecording ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"}`} aria-pressed={isRecording}>{recording.phase === "starting" ? "Starting…" : recording.phase === "saving" ? "Saving…" : isRecording ? "Stop recording" : isAdmin ? "Record" : "Record for myself"}</button>
+          {!isRecording && recording.phase === "idle" && <span className="text-white/50">{isAdmin ? "Records for hours · Saves to this device as a video file" : "Saves a copy to your device only"}</span>}
+          {othersSavingCopy > 0 && <span className="text-white/50">{othersSavingCopy === 1 ? "1 person is" : `${othersSavingCopy} people are`} saving a copy for themselves</span>}
           {isAdmin && (
             <button
               type="button"
@@ -2623,7 +2635,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 <Radio className="w-2.5 h-2.5" />
                 <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
               </span>
-              {(isRecording || remoteRecording) && (
+              {isRecording && (
                 <span className="flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-white">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                   <span className="text-[8px] font-semibold tracking-[0.08em]">REC</span>
