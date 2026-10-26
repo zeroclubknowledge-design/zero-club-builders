@@ -39,7 +39,7 @@ function ToastAvatar({ tone }: { tone: "success" | "error" | "info" | "warning" 
   const Icon = tone === "success" ? Check : tone === "error" ? X : tone === "loading" ? Loader2 : tone === "warning" ? AlertCircle : Info;
   return (
     <span className="zc-pop-avatar">
-      <img src="/brand/zero-gifts-mark.svg" alt="" className="zc-pop-avatar-img" />
+      <img src="/brand/zero-gifts-icon.png" alt="" className="zc-pop-avatar-img" style={{ objectFit: "contain", padding: 5, background: "var(--card)" }} />
       <span className={`zc-pop-badge zc-toast-badge--${tone}`}>
         <Icon className={`h-[11px] w-[11px] ${tone === "loading" ? "animate-spin" : ""}`} strokeWidth={2.8} />
       </span>

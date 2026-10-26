@@ -2,7 +2,7 @@
 export function Brand() {
   return (
     <>
-      <img src="/brand/zero-gifts-mark.svg" alt="" className="h-8 w-8 shrink-0" />
+      <img src="/brand/zero-gifts-logo.png" alt="" className="h-8 w-auto shrink-0" />
       <span className="font-display text-[17px] font-bold tracking-tight">
         Zero <span className="text-[#c3217e]">Gifts</span>
       </span>

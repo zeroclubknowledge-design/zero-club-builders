@@ -200,7 +200,7 @@ function SignedOutClaim({ card, onAuthed }: { card: any; onAuthed: () => void })
   return (
     <div className="flex min-h-screen flex-col items-center bg-[#17181b] text-white">
       <header className="flex h-14 w-full max-w-[680px] items-center justify-between px-3 pt-[env(safe-area-inset-top)]">
-        <Link to="/" className="flex items-center gap-2 text-[15px] font-bold"><img src="/brand/zero-gifts-mark.svg" alt="" className="h-7 w-7" /> Zero Gifts</Link>
+        <Link to="/" className="flex items-center gap-2 text-[15px] font-bold"><img src="/brand/zero-gifts-logo.png" alt="" className="h-7 w-auto" /> Zero Gifts</Link>
       </header>
       <main className="flex w-full max-w-[440px] flex-1 flex-col items-center px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] text-center">
         {!card?.found ? (
