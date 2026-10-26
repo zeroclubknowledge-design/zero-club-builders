@@ -1,6 +1,7 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMicRecovery, useOngoingCallNotification } from "@/features/calls/backgroundCall";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
+import { cameraQualityStep } from "@/features/calls/videoQuality";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -57,40 +58,17 @@ const CAMERA_QUALITY_OPTIONS: Array<{
   bitrateMax: number;
 }> = [
   { value: "480p", label: "Standard (480p)", note: "Uses least data", width: 640, height: 480, frameRate: 24, bitrateMin: 250, bitrateMax: 600 },
-  { value: "540p", label: "Smooth (540p)", note: "Recommended", width: 960, height: 540, frameRate: 24, bitrateMin: 350, bitrateMax: 900 },
-  { value: "720p", label: "HD (720p)", note: "Needs a strong connection", width: 1280, height: 720, frameRate: 30, bitrateMin: 800, bitrateMax: 1800 },
+  { value: "540p", label: "Smooth (540p)", note: "Uses less data", width: 960, height: 540, frameRate: 24, bitrateMin: 350, bitrateMax: 900 },
+  { value: "720p", label: "HD (720p)", note: "Recommended", width: 1280, height: 720, frameRate: 30, bitrateMin: 800, bitrateMax: 1800 },
   { value: "1080p", label: "Full HD (1080p)", note: "Sharper video", width: 1920, height: 1080, frameRate: 30, bitrateMin: 1500, bitrateMax: 3200 },
   { value: "1440p", label: "2K (1440p)", note: "Fast connection", width: 2560, height: 1440, frameRate: 30, bitrateMin: 2500, bitrateMax: 5200 },
   { value: "2160p", label: "4K (2160p)", note: "Studio connection", width: 3840, height: 2160, frameRate: 30, bitrateMin: 4000, bitrateMax: 8500 },
 ];
 
-// v2: the old key stored the 720p default for everyone who ever joined, so
-// those saved values are discarded rather than honoured.
-const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality-v2";
-/*
- * HD by default.
- *
- * This was dropped to 540p to stop mid-range phones stuttering, and that fixed
- * the stutter at a cost that turned out to be too high: Zero Club is a
- * teaching platform, and a tutor sharing work needs to be seen properly. The
- * stutter is better addressed where it actually comes from — the receive side,
- * which was pulling every non-presenter at 160x120 — than by degrading what
- * everybody sends.
- *
- * Anyone on a weak connection can still pick Standard or Smooth in Camera
- * settings, and Agora drops the sender's bitrate on its own when the uplink
- * cannot sustain it.
- */
-/*
- * Smooth (540p) by default — voice first.
- *
- * 720p asked a phone on Airtel/MTN mobile data to upload up to ~2.3 Mbps
- * (1.8 Mbps camera + the 500 kbps companion stream). When the uplink could not
- * sustain that, it was the host's AUDIO that broke up for the class. 540p is
- * still clear for teaching; anyone on a strong connection can pick HD in Camera
- * settings, and the room now steps video down by itself on a weak uplink.
- */
-const DEFAULT_CAMERA_QUALITY: CameraQuality = "540p";
+// v2 automatically saved the old 540p default for every visitor.
+const CAMERA_QUALITY_STORAGE_KEY = "zc-live-camera-quality-v3";
+// Begin in HD, step down on sustained congestion and recover after stability.
+const DEFAULT_CAMERA_QUALITY: CameraQuality = "720p";
 
 const cameraProfile = (quality: CameraQuality) =>
   CAMERA_QUALITY_OPTIONS.find((option) => option.value === quality) ||
@@ -235,16 +213,16 @@ export function GlobalLiveRoom() {
        * broken, and it was also what everyone dropped to whenever the room
        * was minimised.
        *
-       * 480x270 at 500kbps still costs a fraction of the high stream and
+       * 640x360 at 400kbps still costs a fraction of the high stream and
        * survives being shown at a reasonable size.
        */
       // Kept modest: every publisher uploads this on top of their main
       // stream, and on mobile data that extra upload competes with their voice.
       rtcClient.setLowStreamParameter({
-        width: 424,
-        height: 240,
+        width: 640,
+        height: 360,
         framerate: 15,
-        bitrate: 280,
+        bitrate: 400,
       });
 
       Promise.all([
@@ -533,6 +511,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [selfVolume, setSelfVolume] = useState(0);
   const [mirrorSelf, setMirrorSelf] = useState(true);
   const [cameraQuality, setCameraQuality] = useState<CameraQuality>(DEFAULT_CAMERA_QUALITY);
+  const preferredCameraQuality = useRef<CameraQuality>(DEFAULT_CAMERA_QUALITY);
   const [cameraResolution, setCameraResolution] = useState("");
   const [theater, setTheater] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -587,18 +566,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
      upscaling a low-resolution camera frame. */
   const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
     encoderConfig: {
-      width: 960,
-      height: 540,
-      frameRate: 24,
-      bitrateMin: 350,
-      bitrateMax: 900,
+      width: 1280,
+      height: 720,
+      frameRate: 30,
+      bitrateMin: 600,
+      bitrateMax: 1800,
     },
-    optimizationMode: "motion",
+    optimizationMode: "balanced",
   });
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(CAMERA_QUALITY_STORAGE_KEY) as CameraQuality | null;
+      const old = window.localStorage.getItem("zc-live-camera-quality-v2");
+      const saved = (window.localStorage.getItem(CAMERA_QUALITY_STORAGE_KEY) || (old !== "540p" ? old : null)) as CameraQuality | null;
       if (saved && CAMERA_QUALITY_OPTIONS.some((option) => option.value === saved)) setCameraQuality(saved);
     } catch {
       /* Storage can be unavailable in private browsing; HD remains the default. */
@@ -649,6 +629,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     try {
       // Only a choice the person made is remembered, not an automatic step-down.
       if (autoQualityRef.current) { autoQualityRef.current = false; return; }
+      preferredCameraQuality.current = cameraQuality;
       window.localStorage.setItem(CAMERA_QUALITY_STORAGE_KEY, cameraQuality);
     } catch {
       /* The setting still works for this call when storage is unavailable. */
@@ -792,6 +773,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const [weakUplink, setWeakUplink] = useState(false);
   const autoQualityRef = useRef(false);
   const poorUplinkCount = useRef(0);
+  const goodUplinkCount = useRef(0);
   const qualityToastShown = useRef(false);
   const cameraQualityRef = useRef(cameraQuality);
   const cameraOnRef = useRef(cameraOn);
@@ -804,15 +786,18 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     const onQuality = (quality: { uplinkNetworkQuality: number }) => {
       // 4 = poor, 5 = bad, 6 = down. 0 means "not measured yet".
       const poor = quality.uplinkNetworkQuality >= 4;
+      const good = quality.uplinkNetworkQuality >= 1 && quality.uplinkNetworkQuality <= 2;
+      goodUplinkCount.current = good ? goodUplinkCount.current + 1 : 0;
       setWeakUplink(poor);
       poorUplinkCount.current = poor ? poorUplinkCount.current + 1 : 0;
-      if (poorUplinkCount.current < 3 || !cameraOnRef.current) return;
-      poorUplinkCount.current = 0;
+      if (!cameraOnRef.current) return;
       const order = CAMERA_QUALITY_OPTIONS.map((option) => option.value);
-      const index = order.indexOf(cameraQualityRef.current);
-      if (index > 0) {
+      const next = cameraQualityStep(order, cameraQualityRef.current, preferredCameraQuality.current, poorUplinkCount.current, goodUplinkCount.current);
+      if (next) {
+        poorUplinkCount.current = 0;
+        goodUplinkCount.current = 0;
         autoQualityRef.current = true;
-        setCameraQuality(order[index - 1]);
+        setCameraQuality(next);
       }
     };
     const renewToken = async () => {
@@ -1994,7 +1979,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
       const isStageVideo = stageUid != null && userId === String(stageUid);
       const isTutor = adminUids.has(userId);
       const isSpeaking = activeSpeaker != null && userId === String(activeSpeaker);
-      const wantsHigh = isStageVideo || isTutor || isSpeaking || remotePresenters[userId] != null;
+      const wantsHigh = isStageVideo || isTutor || isSpeaking || cameraOnUsers.length <= 4 || remotePresenters[userId] != null;
       const streamType = !isMinimized && wantsHigh ? 0 : 1;
       if (appliedStreamPolicy.current.get(userId) === streamType) return;
 

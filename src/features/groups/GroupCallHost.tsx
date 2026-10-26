@@ -34,6 +34,7 @@ import { GroupAvatar } from "./components";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useGroupCall, type GroupCallSession } from "./GroupCallContext";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
+import { CALL_CAMERA_CONFIG, CALL_LOW_STREAM, groupVideoStream } from "@/features/calls/videoQuality";
 
 import { confirmCard } from "@/components/ConfirmCard";
 /*
@@ -219,7 +220,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   /* The track opens on the side last used; flipping switches the live track in place (see switchCamera). */
   const facingRef = useRef(facing);
   facingRef.current = facing;
-  const { localCameraTrack, error: cameraError } = useLocalCameraTrack(camOn, { facingMode: facingRef.current, encoderConfig: "480p_1" });
+  const { localCameraTrack, error: cameraError } = useLocalCameraTrack(camOn, { ...CALL_CAMERA_CONFIG, facingMode: facingRef.current });
   usePublish([localMicrophoneTrack, localCameraTrack]);
   const remoteUsers = useRemoteUsers();
 
@@ -600,7 +601,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   /* Send a small second camera stream so thumbnails and weak connections use less data. */
   useEffect(() => {
     if (!connected) return;
-    client.setLowStreamParameter({ width: 320, height: 180, framerate: 15, bitrate: 200 });
+    client.setLowStreamParameter(CALL_LOW_STREAM);
     void client.enableDualStream().catch(() => {});
   }, [client, connected]);
   const people_ = remoteUsers.filter((u) => !isScreenUid(u.uid));
@@ -614,20 +615,26 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
    * through; the screen drops to its small copy instead of freezing.
    */
   const remoteKey = remoteUsers.map((u) => `${u.uid}:${u.hasVideo ? 1 : 0}`).join(",");
+  const streamPolicy = useRef(new Map<string, number>());
   useEffect(() => {
-    if (!connected) return;
-    const crowded = people_.length + 1 > 4;
+    if (!connected) { streamPolicy.current.clear(); return; }
+    const cameraUids = remoteUsers.filter(u => !isScreenUid(u.uid) && u.hasVideo).map(u => String(u.uid));
+    const present = new Set(remoteUsers.map(u => String(u.uid)));
+    for (const key of streamPolicy.current.keys()) if (!present.has(key)) streamPolicy.current.delete(key);
     for (const u of remoteUsers) {
-      if (isScreenUid(u.uid)) {
-        void client.setRemoteVideoStreamType(u.uid, 0 as any).catch(() => {});
-        void client.setStreamFallbackOption(u.uid, FALLBACK_LOW as any).catch(() => {});
-      } else {
-        void client.setRemoteVideoStreamType(u.uid, (stageOn || crowded ? 1 : 0) as any).catch(() => {});
-        void client.setStreamFallbackOption(u.uid, FALLBACK_AUDIO_ONLY as any).catch(() => {});
-      }
+      if (!u.hasVideo) { streamPolicy.current.delete(String(u.uid)); continue; }
+      const screen = isScreenUid(u.uid);
+      const stream = groupVideoStream({ screen, minimized, presentation: stageOn, cameraIndex: cameraUids.indexOf(String(u.uid)), speaking: speaking.has(String(u.uid)) });
+      const key = String(u.uid);
+      if (streamPolicy.current.get(key) === stream) continue;
+      streamPolicy.current.set(key, stream);
+      void Promise.all([
+        client.setRemoteVideoStreamType(u.uid, stream as any),
+        client.setStreamFallbackOption(u.uid, (screen ? FALLBACK_LOW : FALLBACK_AUDIO_ONLY) as any),
+      ]).catch(() => { if (streamPolicy.current.get(key) === stream) streamPolicy.current.delete(key); });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, connected, remoteKey, stageOn]);
+  }, [client, connected, remoteKey, stageOn, minimized, speaking]);
   const tiles = people_.length + 1;
   const visibleProfiles = new Set<string>([me?.id || "", ...people_.map((u) => byUid.get(String(u.uid))?.profile_id || "")].filter(Boolean));
   const reactionsFor = (profileId?: string) => (profileId ? signals.reactions.filter((r) => r.target === profileId) : []);
