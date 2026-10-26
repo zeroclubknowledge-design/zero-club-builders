@@ -232,7 +232,7 @@ export function ClubQuizzes({ clubId, embedded = false }: { clubId: string; embe
                 <div className="flex items-start gap-3">
                   <span
                     className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
-                      !taken ? "bg-[#cc208f]/10 text-[#cc208f]" : passed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-muted-foreground"
+                      !taken ? "bg-[#c3217e]/10 text-[#c3217e]" : passed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-foreground/[0.06] text-muted-foreground"
                     }`}
                   >
                     {!taken ? <HelpCircle className="h-[22px] w-[22px]" /> : passed ? <Check className="h-[22px] w-[22px]" /> : <Clock className="h-[22px] w-[22px]" />}
@@ -247,7 +247,7 @@ export function ClubQuizzes({ clubId, embedded = false }: { clubId: string; embe
                       {isAdmin && <> · {quiz.attempt_count} sat</>}
                     </p>
                     {taken && (
-                      <p className={`mt-1.5 text-[13px] font-semibold tabular-nums ${passed ? "text-[#1a7f4b]" : "text-[#cc208f]"}`}>
+                      <p className={`mt-1.5 text-[13px] font-semibold tabular-nums ${passed ? "text-[#1a7f4b]" : "text-[#c3217e]"}`}>
                         {passed ? `Passed · ${percent}%` : `Not passed yet · ${percent}%`}
                       </p>
                     )}
@@ -415,7 +415,7 @@ export function ClubQuizzes({ clubId, embedded = false }: { clubId: string; embe
                     questions[qi] = { ...question, options: [...question.options, ""] };
                     setDraft({ ...draft, questions });
                   }}
-                  className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#a3186f]"
+                  className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#9a1963]"
                 >
                   <Plus className="h-4 w-4" /> Add option
                 </button>
@@ -438,7 +438,7 @@ export function ClubQuizzes({ clubId, embedded = false }: { clubId: string; embe
           <button
             onClick={saveQuiz}
             disabled={saving}
-            className="mt-4 flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-[#cc208f] text-[16px] font-semibold text-white disabled:opacity-40"
+            className="mt-4 flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-[#c3217e] text-[16px] font-semibold text-white disabled:opacity-40"
           >
             {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Publish quiz"}
           </button>
@@ -561,7 +561,7 @@ function QuizRunner({
                             showCorrect
                               ? "border-[#1a7f4b] bg-[#1a7f4b]/[0.06] text-foreground"
                               : chosen
-                                ? "border-[#cc208f] bg-[#cc208f]/[0.06] text-foreground"
+                                ? "border-[#c3217e] bg-[#c3217e]/[0.06] text-foreground"
                                 : "border-foreground/12 text-foreground"
                           } ${readOnly ? "" : "hover:bg-foreground/[0.03]"}`}
                         >
@@ -571,7 +571,7 @@ function QuizRunner({
                               Correct
                             </span>
                           )}
-                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${chosen ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"}`}>
+                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${chosen ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/25"}`}>
                             {chosen && <Check className="h-3 w-3" strokeWidth={3} />}
                           </span>
                         </button>

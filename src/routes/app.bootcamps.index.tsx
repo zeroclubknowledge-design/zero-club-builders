@@ -57,7 +57,7 @@ function CampBadges({ camp }: { camp: any }) {
   if (camp.certificate_enabled !== false) badges.push({ text: "Certificate", tone: "good", icon: Award });
   if (Number(camp.rating_count) > 0) badges.push({ text: `${Number(camp.rating_avg).toFixed(1)} (${camp.rating_count})`, tone: "plain", icon: Star });
   if (!badges.length) return null;
-  const tone = { brand: "bg-[#cc208f]/10 text-[#a3186f]", plain: "bg-foreground/[0.05] text-foreground/75", good: "bg-success/10 text-success" };
+  const tone = { brand: "bg-[#c3217e]/10 text-[#9a1963]", plain: "bg-foreground/[0.05] text-foreground/75", good: "bg-success/10 text-success" };
   return (
     <div className="mt-1.5 flex flex-wrap gap-1">
       {badges.slice(0, 5).map(({ text, tone: t, icon: Icon }) => (
@@ -163,7 +163,7 @@ function Bootcamps() {
           </div>
           <div className="no-scrollbar mt-2 flex gap-1.5 overflow-x-auto">
             {KINDS.map((k) => (
-              <button key={k} onClick={() => setKind(k)} className={`h-7 shrink-0 rounded-full px-3 text-[12.5px] font-semibold ${kind === k ? 'bg-[#cc208f] text-white' : 'bg-foreground/[0.05] text-foreground/70'}`}>{k}</button>
+              <button key={k} onClick={() => setKind(k)} className={`h-7 shrink-0 rounded-full px-3 text-[12.5px] font-semibold ${kind === k ? 'bg-[#c3217e] text-white' : 'bg-foreground/[0.05] text-foreground/70'}`}>{k}</button>
             ))}
           </div>
         </div>
@@ -172,7 +172,7 @@ function Bootcamps() {
       <main className="zc-page-width mx-auto w-full max-w-[900px]">
         <UpcomingRegistrations />
         <Link to="/app/bootcamps/requests" className="mt-2 flex items-center gap-3 bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]"><Building2 className="h-[18px] w-[18px]" /></span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]"><Building2 className="h-[18px] w-[18px]" /></span>
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-semibold">Teams & group seats</span>
             <span className="block truncate text-[12.5px] text-muted-foreground">Use a seat code, manage seats you bought, or request a private bootcamp</span>

@@ -320,7 +320,7 @@ export function MediaCropper({
           onClick={handleDone}
           disabled={!rotated || saving}
           aria-label="Apply"
-          className="grid h-10 w-10 place-items-center rounded-full bg-[#cc208f] text-white transition active:scale-95 disabled:opacity-45"
+          className="grid h-10 w-10 place-items-center rounded-full bg-[#c3217e] text-white transition active:scale-95 disabled:opacity-45"
         >
           {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
         </button>

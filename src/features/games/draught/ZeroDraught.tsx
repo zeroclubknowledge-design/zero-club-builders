@@ -30,7 +30,7 @@ import { LiveMatches } from "./LiveMatches";
 import { MatchComments } from "./MatchComments";
 
 const primary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#ff6fcf,#cc208f)] px-5 text-sm font-bold text-white shadow-[0_14px_32px_-14px_rgba(255,79,195,0.9)] transition active:scale-[0.98] disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#fd69be,#c3217e)] px-5 text-sm font-bold text-white shadow-[0_14px_32px_-14px_rgba(253,73,176,0.9)] transition active:scale-[0.98] disabled:opacity-40";
 const gold =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(145deg,#ffe7a3,#ffca75_45%,#d99a2b)] px-5 text-sm font-bold text-[#3a2006] shadow-[0_14px_32px_-14px_rgba(255,202,117,0.9)] transition active:scale-[0.98] disabled:opacity-40";
 const secondary =
@@ -364,7 +364,7 @@ export function ZeroDraught({
       <style>{PAGE_CSS}</style>
       {/* Ambient glows */}
       <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full bg-[#cc208f]/[0.18] blur-[130px]" />
+        <div className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full bg-[#c3217e]/[0.18] blur-[130px]" />
         <div className="absolute -right-48 top-1/3 h-[520px] w-[520px] rounded-full bg-[#ffca75]/[0.08] blur-[130px]" />
         <div className="absolute bottom-[-200px] left-1/4 h-[460px] w-[460px] rounded-full bg-[#6a4cff]/[0.10] blur-[130px]" />
       </div>
@@ -406,13 +406,13 @@ export function ZeroDraught({
                 <h2 className="mt-4 font-display text-[38px] font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-[52px]">
                   The classic,
                   <br />
-                  <span className="bg-gradient-to-r from-[#ff8bd7] via-[#ffca75] to-[#ff8bd7] bg-clip-text text-transparent">beautifully played.</span>
+                  <span className="bg-gradient-to-r from-[#fd85ca] via-[#ffca75] to-[#fd85ca] bg-clip-text text-transparent">beautifully played.</span>
                 </h2>
                 <p className="mt-4 max-w-[460px] text-[15px] leading-relaxed text-white/60">
                   Your pieces wear your face. Outthink Zero Bot, or challenge a friend to a live match others can watch and cheer on.
                 </p>
                 <div className="mt-6 flex items-center gap-3">
-                  <span className="inline-flex rounded-full p-[2px]" style={{ background: "linear-gradient(135deg,#ff8fcf,#a71862)" }}>
+                  <span className="inline-flex rounded-full p-[2px]" style={{ background: "linear-gradient(135deg,#fd89cc,#9e1965)" }}>
                     <GameAvatar id={you.id} name={you.name} photo={you.photo} className="h-14 w-14 ring-2 ring-[#09050d]" />
                   </span>
                   <span className="font-display text-[13px] font-bold uppercase tracking-[0.2em] text-white/35">vs</span>
@@ -431,9 +431,9 @@ export function ZeroDraught({
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               {/* Zero Bot */}
-              <section className="relative overflow-hidden rounded-[28px] p-[1px]" style={{ background: "linear-gradient(150deg,rgba(255,79,195,0.5),rgba(255,255,255,0.06) 45%,rgba(255,255,255,0.03))" }}>
+              <section className="relative overflow-hidden rounded-[28px] p-[1px]" style={{ background: "linear-gradient(150deg,rgba(253,73,176,0.5),rgba(255,255,255,0.06) 45%,rgba(255,255,255,0.03))" }}>
                 <div className="relative h-full rounded-[27px] bg-[#130a17] p-5 sm:p-6">
-                  <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff4fc3]/20 blur-3xl" />
+                  <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#fd49b0]/20 blur-3xl" />
                   <div className="relative flex items-center gap-3">
                     <GameAvatar id={bot.id} name={bot.name} className="h-12 w-12" />
                     <div>
@@ -558,7 +558,7 @@ export function ZeroDraught({
                         className="group flex items-center gap-3 rounded-2xl bg-white/[0.04] p-4 text-left ring-1 ring-white/[0.08] transition hover:bg-white/[0.07] hover:ring-white/[0.14] active:scale-[0.99]"
                         onClick={() => onNavigate(match.id)}
                       >
-                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${live ? "bg-emerald-400/15 text-emerald-300" : waiting ? "bg-[#ffca75]/15 text-[#ffca75]" : mine ? "bg-[#ff4fc3]/15 text-[#ff8bd7]" : "bg-white/[0.06] text-white/50"}`}>
+                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${live ? "bg-emerald-400/15 text-emerald-300" : waiting ? "bg-[#ffca75]/15 text-[#ffca75]" : mine ? "bg-[#fd49b0]/15 text-[#fd85ca]" : "bg-white/[0.06] text-white/50"}`}>
                           {live ? <Play className="h-4 w-4 fill-current" /> : waiting ? <Users className="h-4 w-4" /> : <Trophy className="h-4 w-4" />}
                         </span>
                         <span className="min-w-0 flex-1">
@@ -598,7 +598,7 @@ export function ZeroDraught({
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   {spectator && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.07] px-3 py-1.5 text-[12px] font-semibold ring-1 ring-white/10">
-                      <Eye className="h-3.5 w-3.5 text-[#ff9bdd]" /> Watching live
+                      <Eye className="h-3.5 w-3.5 text-[#fe94d1]" /> Watching live
                     </span>
                   )}
                   {stakeLine && (
@@ -630,7 +630,7 @@ export function ZeroDraught({
                   <div className="zd-rise absolute inset-0 z-10 grid place-items-center rounded-[14px] bg-[#09050d]/55 backdrop-blur-[3px] sm:rounded-[18px]">
                     <div
                       className="relative w-[min(90%,440px)] overflow-hidden rounded-[28px] p-[1.5px] sm:rounded-[30px] shadow-[0_40px_90px_-24px_rgba(0,0,0,0.95)]"
-                      style={{ background: won ? "linear-gradient(150deg,rgba(255,202,117,0.85),rgba(255,255,255,0.08) 45%,rgba(255,79,195,0.55))" : "linear-gradient(150deg,rgba(255,255,255,0.22),rgba(255,255,255,0.05) 50%,rgba(255,255,255,0.14))" }}
+                      style={{ background: won ? "linear-gradient(150deg,rgba(255,202,117,0.85),rgba(255,255,255,0.08) 45%,rgba(253,73,176,0.55))" : "linear-gradient(150deg,rgba(255,255,255,0.22),rgba(255,255,255,0.05) 50%,rgba(255,255,255,0.14))" }}
                     >
                       <div className="relative flex flex-col items-center justify-center rounded-[26.5px] bg-[#150b19]/97 px-5 py-6 text-center sm:min-h-[360px] sm:rounded-[28.5px] sm:px-10 sm:py-10">
                         <span aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-3xl" style={{ background: won ? "rgba(255,202,117,0.28)" : drawn ? "rgba(148,163,184,0.2)" : "rgba(108,90,133,0.3)" }} />
@@ -664,8 +664,8 @@ export function ZeroDraught({
 
             <aside className="min-w-0 space-y-4">
               <div className="overflow-hidden rounded-[26px] bg-white/[0.035] ring-1 ring-white/[0.08]">
-                <div className={`flex items-center gap-3 px-5 py-4 ${myTurn ? "bg-[linear-gradient(110deg,rgba(255,79,195,0.18),transparent_70%)]" : ""}`}>
-                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${myTurn ? "bg-[#ff4fc3] text-white shadow-[0_0_24px_-4px_rgba(255,79,195,0.9)]" : "bg-white/[0.07] text-white/60"}`}>
+                <div className={`flex items-center gap-3 px-5 py-4 ${myTurn ? "bg-[linear-gradient(110deg,rgba(253,73,176,0.18),transparent_70%)]" : ""}`}>
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${myTurn ? "bg-[#fd49b0] text-white shadow-[0_0_24px_-4px_rgba(253,73,176,0.9)]" : "bg-white/[0.07] text-white/60"}`}>
                     {ended ? <Trophy className="h-5 w-5" /> : myTurn ? <Play className="h-4 w-4 fill-current" /> : <Loader2 className={`h-4 w-4 ${data?.room.status === "waiting" ? "" : "animate-spin"}`} />}
                   </span>
                   <div className="min-w-0">
@@ -782,8 +782,8 @@ function PlayerBar({
   return (
     <div className={`flex min-w-0 items-center gap-3 rounded-[20px] px-3 py-2.5 transition ${active ? "bg-white/[0.07] ring-1 ring-white/15" : "bg-white/[0.025] ring-1 ring-white/[0.05]"}`}>
       <span
-        className={`relative inline-flex shrink-0 rounded-full p-[2px] ${active ? "shadow-[0_0_22px_-4px_rgba(255,79,195,0.9)]" : ""}`}
-        style={{ background: red ? "linear-gradient(135deg,#ff8fcf,#a71862)" : "linear-gradient(135deg,#8b7aa8,#1c1426)" }}
+        className={`relative inline-flex shrink-0 rounded-full p-[2px] ${active ? "shadow-[0_0_22px_-4px_rgba(253,73,176,0.9)]" : ""}`}
+        style={{ background: red ? "linear-gradient(135deg,#fd89cc,#9e1965)" : "linear-gradient(135deg,#8b7aa8,#1c1426)" }}
       >
         <GameAvatar id={player.id} name={player.name} photo={player.photo} className="h-10 w-10 ring-2 ring-[#09050d]" />
         {active && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-[#09050d]" />}
@@ -794,7 +794,7 @@ function PlayerBar({
           {label && <span>{label}</span>}
           {label && <span>·</span>}
           <span className="inline-flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: red ? "radial-gradient(circle at 35% 30%,#ff8fcf,#a71862)" : "radial-gradient(circle at 35% 30%,#6c5a85,#1c1426)" }} />
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: red ? "radial-gradient(circle at 35% 30%,#fd89cc,#9e1965)" : "radial-gradient(circle at 35% 30%,#6c5a85,#1c1426)" }} />
             {captured > 0 ? `${captured} captured` : red ? "Red" : "Black"}
           </span>
         </p>

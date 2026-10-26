@@ -65,7 +65,7 @@ export const Highlighter = Extension.create({
  */
 export const NOTE_TEXT_COLORS: { name: string; value: string }[] = [
   { name: "Default", value: "" },
-  { name: "Brand", value: "#cc208f" },
+  { name: "Brand", value: "#c3217e" },
   { name: "Crimson", value: "#c0392b" },
   { name: "Amber", value: "#a86a12" },
   { name: "Forest", value: "#2f7a4f" },

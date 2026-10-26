@@ -119,7 +119,7 @@ export function MessageActionsSheet({
     {
       key: "pin",
       label: pinned ? "Unpin" : "Pin",
-      icon: <Pin className={`h-[21px] w-[21px] ${pinned ? "fill-current text-[#cc208f]" : ""}`} />,
+      icon: <Pin className={`h-[21px] w-[21px] ${pinned ? "fill-current text-[#c3217e]" : ""}`} />,
       onClick: run(() => onTogglePin?.()),
       show: Boolean(onTogglePin),
     },
@@ -128,7 +128,7 @@ export function MessageActionsSheet({
       label: highlighted ? "Remove from favourites" : "Add to favourites",
       icon: (
         <Star
-          className={`h-[21px] w-[21px] ${highlighted ? "fill-[#cc208f] text-[#cc208f]" : ""}`}
+          className={`h-[21px] w-[21px] ${highlighted ? "fill-[#c3217e] text-[#c3217e]" : ""}`}
         />
       ),
       onClick: run(onToggleHighlight),
@@ -293,7 +293,7 @@ export function ForwardSheet({
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : isError ? (
-            <div role="alert" className="px-3 py-8 text-center text-sm">Couldn't load chats. <button type="button" onClick={() => void refetch()} className="font-semibold text-[#cc208f] underline">Try again</button></div>
+            <div role="alert" className="px-3 py-8 text-center text-sm">Couldn't load chats. <button type="button" onClick={() => void refetch()} className="font-semibold text-[#c3217e] underline">Try again</button></div>
           ) : list.length === 0 ? (
             <p className="px-3 py-8 text-center text-[14px] text-muted-foreground">
               No chats to forward to yet.
@@ -329,7 +329,7 @@ export function ForwardSheet({
                     )}
                   </span>
                   <span
-                    className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 ${on ? "border-[#cc208f] bg-[#cc208f] text-white" : "border-foreground/25"}`}
+                    className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 ${on ? "border-[#c3217e] bg-[#c3217e] text-white" : "border-foreground/25"}`}
                   >
                     {on && <Check className="h-3.5 w-3.5" />}
                   </span>
@@ -343,7 +343,7 @@ export function ForwardSheet({
             type="button"
             onClick={send}
             disabled={picked.length === 0 || sending}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15.5px] font-semibold text-white disabled:opacity-40"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[15.5px] font-semibold text-white disabled:opacity-40"
           >
             {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             {picked.length > 1 ? `Forward to ${picked.length} chats` : "Forward"}

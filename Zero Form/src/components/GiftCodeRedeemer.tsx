@@ -68,12 +68,12 @@ export function GiftCodeRedeemer({
   };
 
   const shell = dark ? "border-white/12 bg-white/[0.045]" : "border-border bg-card";
-  const iconShell = dark ? "bg-white/10 text-[#f06ac3]" : "bg-[#cc208f]/10 text-[#cc208f]";
+  const iconShell = dark ? "bg-white/10 text-[#ee64b3]" : "bg-[#c3217e]/10 text-[#c3217e]";
   const title = dark ? "text-white" : "text-foreground";
   const muted = dark ? "text-white/55" : "text-muted-foreground";
   const field = dark
-    ? "border-white/20 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-[#f06ac3]/60"
-    : "border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:border-[#cc208f]/50";
+    ? "border-white/20 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-[#ee64b3]/60"
+    : "border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:border-[#c3217e]/50";
 
   return (
     <div className={`mt-2.5 overflow-hidden rounded-xl border transition-colors ${shell}`}>
@@ -127,7 +127,7 @@ export function GiftCodeRedeemer({
             <button
               type="submit"
               disabled={!code.trim() || claim.isPending}
-              className="flex h-11 shrink-0 items-center gap-2 rounded-lg bg-[#cc208f] px-4 text-xs font-semibold text-white transition hover:bg-[#b41c7e] disabled:opacity-40"
+              className="flex h-11 shrink-0 items-center gap-2 rounded-lg bg-[#c3217e] px-4 text-xs font-semibold text-white transition hover:bg-[#ab1d6f] disabled:opacity-40"
             >
               {claim.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
               Redeem

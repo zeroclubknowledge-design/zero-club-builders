@@ -18,7 +18,7 @@ type BrowseResult = { forms: BrowseForm[]; clubs: BrowseClub[]; kinds: string[] 
 
 /** What each kind of Zero Form is called. Unknown future kinds get a readable name automatically. */
 const KIND: Record<string, { label: string; plural: string; action: string; tone: string }> = {
-  bootcamp: { label: "Bootcamp", plural: "Bootcamps", action: "Register", tone: "bg-[#cc208f] text-white" },
+  bootcamp: { label: "Bootcamp", plural: "Bootcamps", action: "Register", tone: "bg-[#c3217e] text-white" },
   waitlist: { label: "Waitlist", plural: "Waitlists", action: "Join the waitlist", tone: "bg-violet-600 text-white" },
 };
 const kindInfo = (kind: string) => KIND[kind] || {
@@ -85,7 +85,7 @@ export function BrowseForms({ compact = false }: { compact?: boolean }) {
     <section>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#cc208f]">Open for registration</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c3217e]">Open for registration</p>
           <h1 className={`mt-1 font-display font-bold leading-tight tracking-tight ${compact ? "text-[22px]" : "text-[26px] sm:text-[30px]"}`}>Find something to join</h1>
           <p className="mt-1 max-w-[560px] text-[14px] leading-relaxed text-muted-foreground">Every open Zero Form on Zero Club: bootcamps, waitlists and more. Pick one and register.</p>
         </div>
@@ -98,7 +98,7 @@ export function BrowseForms({ compact = false }: { compact?: boolean }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search forms, skills or clubs"
-          className="h-12 w-full rounded-full border border-border bg-card pl-11 pr-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/10"
+          className="h-12 w-full rounded-full border border-border bg-card pl-11 pr-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#c3217e]/50 focus:ring-4 focus:ring-[#c3217e]/10"
         />
         {search && (
           <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.06]">
@@ -137,7 +137,7 @@ export function BrowseForms({ compact = false }: { compact?: boolean }) {
           </div>
         ) : forms.length === 0 ? (
           <div className="rounded-[22px] border border-dashed border-border bg-card px-6 py-14 text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Compass className="h-6 w-6" /></span>
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Compass className="h-6 w-6" /></span>
             <h3 className="mt-3 text-[16px] font-bold">{narrowed ? "No open forms match" : "No open forms right now"}</h3>
             <p className="mx-auto mt-1 max-w-[340px] text-[13.5px] text-muted-foreground">
               {narrowed ? "Try another search or filter." : "When someone opens a bootcamp registration or a waitlist, it shows up here."}
@@ -158,7 +158,7 @@ function FormCard({ form }: { form: BrowseForm }) {
   const info = kindInfo(form.kind);
   return (
     <Link to="/form/$slug" params={{ slug: form.slug }} className="group flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
-      <div className="relative aspect-[16/9] bg-cover bg-center" style={{ backgroundImage: form.banner_url ? `url(${form.banner_url})` : "linear-gradient(120deg,#e94fb0,#b62ba4 55%,#7c3aed)" }}>
+      <div className="relative aspect-[16/9] bg-cover bg-center" style={{ backgroundImage: form.banner_url ? `url(${form.banner_url})` : "linear-gradient(120deg,#e64aa4,#ae2b76 55%,#7c3aed)" }}>
         <span className="absolute left-3 top-3 flex items-center gap-1.5">
           <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold uppercase tracking-wide shadow-sm ${info.tone}`}>{info.label}</span>
           <span className="rounded-full bg-black/55 px-2.5 py-1 text-[12px] font-bold text-white backdrop-blur">{priceLabel(form)}</span>
@@ -189,7 +189,7 @@ function FormCard({ form }: { form: BrowseForm }) {
           {form.category && <span>{form.category}</span>}
         </div>
         {form.registration_deadline && <p className="mt-1 text-[12px] text-muted-foreground">Register by {day(form.registration_deadline)}</p>}
-        <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-[13.5px] font-semibold text-[#cc208f]">
+        <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-[13.5px] font-semibold text-[#c3217e]">
           {form.registered ? "View my registration" : info.action} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
         </span>
       </div>

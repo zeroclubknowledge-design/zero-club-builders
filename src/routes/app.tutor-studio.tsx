@@ -60,7 +60,7 @@ function TutorStudioLayout() {
           </div>
         </header>
         <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
-          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><IconPresentation className="h-7 w-7" /></span>
+          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><IconPresentation className="h-7 w-7" /></span>
           <h1 className="mt-5 font-display text-[24px] font-semibold leading-tight">Tutor Studio is in Tutor mode</h1>
           <p className="mt-2 max-w-[360px] text-[15px] leading-relaxed text-muted-foreground">
             Same account, different hat. Switch to Tutor mode to run bootcamps and live classes. You can switch back any time from the menu.

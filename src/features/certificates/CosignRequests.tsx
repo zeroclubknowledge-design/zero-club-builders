@@ -44,7 +44,7 @@ export function CosignRequests() {
   return (
     <section className="space-y-3">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#a3186f]">Co-signing</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#9a1963]">Co-signing</p>
         <h2 className="mt-1 font-display text-xl font-semibold">
           {pending ? `Waiting for your signature (${pending})` : "Certificates you co-signed"}
         </h2>
@@ -85,7 +85,7 @@ function CosignCard({ request, highlight }: { request: CosignRequest; highlight:
   const signed = request.status === "signed";
 
   return (
-    <article ref={ref} className={`overflow-hidden rounded-2xl border bg-card ${highlight ? "border-[#cc208f] ring-2 ring-[#cc208f]/20" : "border-border"}`}>
+    <article ref={ref} className={`overflow-hidden rounded-2xl border bg-card ${highlight ? "border-[#c3217e] ring-2 ring-[#c3217e]/20" : "border-border"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3 p-4">
         <div className="min-w-0">
           <p className="text-[15px] font-semibold">{request.bootcamp_title}</p>

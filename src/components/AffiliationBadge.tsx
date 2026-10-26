@@ -120,7 +120,7 @@ export function AmbassadorChip({ profile }: { profile: BadgeProfile }) {
       href={ZEROSTART_URL}
       target="_blank"
       rel="noreferrer"
-      className="mt-0.5 inline-block text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#b81b80] dark:text-[#f28fd0]"
+      className="mt-0.5 inline-block text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#af1c70] dark:text-[#f089c4]"
     >
       {ambassadorRank(profile)} · Zero Ambassador
     </a>

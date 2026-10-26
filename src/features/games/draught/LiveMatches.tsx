@@ -11,10 +11,10 @@ export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
     <section className="my-8">
       <div className="mb-3 flex items-end justify-between">
         <div>
-          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff9bdd]">
+          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#fe94d1]">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ff4fc3] opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff4fc3]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#fd49b0] opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#fd49b0]" />
             </span>
             Live now
           </p>
@@ -25,7 +25,7 @@ export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
       {live.error ? (
         <div role="alert" className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-sm text-white/60">
           <p>{draughtWatchError(live.error)}</p>
-          <button type="button" disabled={live.isFetching} onClick={() => void live.refetch()} className="mt-3 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#ff9bdd] disabled:opacity-40">Try again</button>
+          <button type="button" disabled={live.isFetching} onClick={() => void live.refetch()} className="mt-3 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#fe94d1] disabled:opacity-40">Try again</button>
         </div>
       ) : !live.data?.length ? (
         <p className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-white/45">
@@ -38,11 +38,11 @@ export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
               key={m.id}
               type="button"
               onClick={() => onWatch(m.id)}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-[#ff4fc3]/40 hover:bg-white/[0.06] active:scale-[0.99]"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-[#fd49b0]/40 hover:bg-white/[0.06] active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  <GameAvatar id={m.red.id} name={m.red.name} photo={m.red.photo} className="h-10 w-10 ring-2 ring-[#ff4fc3]" />
+                  <GameAvatar id={m.red.id} name={m.red.name} photo={m.red.photo} className="h-10 w-10 ring-2 ring-[#fd49b0]" />
                   <GameAvatar id={m.black.id} name={m.black.name} photo={m.black.photo} className="h-10 w-10 ring-2 ring-white/70" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -60,7 +60,7 @@ export function LiveMatches({ onWatch }: { onWatch: (room: string) => void }) {
                   </span>
                 )}
               </div>
-              <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#ff9bdd] transition group-hover:gap-2">
+              <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#fe94d1] transition group-hover:gap-2">
                 <Eye className="h-3.5 w-3.5" /> Watch and comment
               </span>
             </button>

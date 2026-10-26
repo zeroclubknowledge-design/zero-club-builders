@@ -205,7 +205,7 @@ function SignInPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(120% 90% at 50% 22%, rgba(255,61,176,0.85) 0%, rgba(204,32,143,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
+                "radial-gradient(120% 90% at 50% 22%, rgba(252,56,169,0.85) 0%, rgba(195,33,126,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
             }}
           />
           <div aria-hidden className="zc-grain absolute inset-0 opacity-[0.14]" />
@@ -213,7 +213,7 @@ function SignInPage() {
           {/* The copy that used to live in the old right-hand panel, kept
               word for word and rehoused here. */}
           <div className="relative">
-            <p className="text-sm font-medium text-[#f2a8dc]">Your work, made visible</p>
+            <p className="text-sm font-medium text-[#f0a2cf]">Your work, made visible</p>
             <h2 className="mt-3 font-display text-[34px] font-normal leading-[1.08] text-white">
               Every login returns you to momentum.
             </h2>
@@ -228,7 +228,7 @@ function SignInPage() {
                 key={item.label}
                 className="flex items-center gap-3.5 rounded-2xl bg-black/25 p-3.5 ring-1 ring-white/10 backdrop-blur-xl"
               >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/25 text-[#f2a8dc] ring-1 ring-[#cc208f]/30">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e]/25 text-[#f0a2cf] ring-1 ring-[#c3217e]/30">
                   <item.Icon className="h-5 w-5" active />
                 </div>
                 <div className="min-w-0">
@@ -244,7 +244,7 @@ function SignInPage() {
               decoding="async"
               src="/logo.png"
               alt=""
-              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(204,32,143,0.7)]"
+              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(195,33,126,0.7)]"
             />
             <p className="mt-3 font-display text-[19px] font-medium tracking-tight text-white">Zero Club</p>
             <p className="mt-1 text-[12.5px] text-white/55">The social network for builders.</p>
@@ -261,7 +261,7 @@ function SignInPage() {
                 decoding="async"
                 src="/logo.png"
                 alt="Zero Club"
-                className="mx-auto mb-4 h-10 w-10 object-contain drop-shadow-[0_0_22px_rgba(204,32,143,0.6)] lg:hidden"
+                className="mx-auto mb-4 h-10 w-10 object-contain drop-shadow-[0_0_22px_rgba(195,33,126,0.6)] lg:hidden"
               />
               <p className="zc-eyebrow mb-3">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
@@ -290,7 +290,7 @@ function SignInPage() {
                       placeholder="ada@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                      className="h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10"
                     />
                   </span>
                 </label>
@@ -298,7 +298,7 @@ function SignInPage() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c3217e] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(195,33,126,0.8)] transition hover:bg-[#a41c6a] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Send code <ArrowRight className="h-4 w-4" /></>}
                 </button>
@@ -322,7 +322,7 @@ function SignInPage() {
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c3217e] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(195,33,126,0.8)] transition hover:bg-[#a41c6a] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Verify code <ArrowRight className="h-4 w-4" /></>}
                 </button>

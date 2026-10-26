@@ -92,9 +92,9 @@ export function OtpInput({
           }}
           className={`h-14 w-full min-w-0 rounded-xl border bg-[#fbfaf7] text-center font-display text-[22px] font-medium tabular-nums text-[#171417] outline-none transition-all duration-150 dark:bg-white/[0.04] dark:text-white disabled:opacity-60 ${
             focused === index
-              ? "border-[#cc208f]/60 bg-white shadow-[0_0_0_4px_rgba(204,32,143,0.12)] dark:bg-white/[0.07]"
+              ? "border-[#c3217e]/60 bg-white shadow-[0_0_0_4px_rgba(195,33,126,0.12)] dark:bg-white/[0.07]"
               : digit
-                ? "border-[#cc208f]/30 dark:border-[#cc208f]/40"
+                ? "border-[#c3217e]/30 dark:border-[#c3217e]/40"
                 : "border-black/10 dark:border-white/12"
           }`}
         />
@@ -138,7 +138,7 @@ export function ResendRow({
           await onResend();
           setRemaining(cooldownSeconds);
         }}
-        className="font-medium text-[#9d176d] transition hover:text-[#cc208f] disabled:text-[#8c8187] dark:text-[#f2a8dc] dark:disabled:text-white/40"
+        className="font-medium text-[#94185f] transition hover:text-[#c3217e] disabled:text-[#8c8187] dark:text-[#f0a2cf] dark:disabled:text-white/40"
       >
         {remaining > 0 ? `Resend code in 0:${String(remaining).padStart(2, "0")}` : "Resend code"}
       </button>

@@ -64,16 +64,16 @@ export function NoteAudiencePicker({
               <button
                 type="button"
                 onClick={() => onModeChange(opt.key)}
-                className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
               >
-                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"}`}>
+                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#c3217e]/10 text-[#9a1963]" : "bg-foreground/[0.05] text-muted-foreground"}`}>
                   <opt.Icon className="h-[22px] w-[22px]" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-semibold text-foreground">{opt.title}</span>
                   <span className="mt-0.5 block text-[13px] text-muted-foreground">{opt.meta}</span>
                 </span>
-                <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/20"}`}>
                   {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                 </span>
               </button>
@@ -92,8 +92,8 @@ export function NoteAudiencePicker({
                       {(bootcamps.data || []).map((b) => {
                         const on = bootcampIds.includes(b.id);
                         return (
-                          <button key={b.id} type="button" onClick={() => toggle(b.id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${on ? "bg-[#cc208f]/[0.07]" : "hover:bg-foreground/[0.04]"}`}>
-                            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md ${on ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"}`}>
+                          <button key={b.id} type="button" onClick={() => toggle(b.id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${on ? "bg-[#c3217e]/[0.07]" : "hover:bg-foreground/[0.04]"}`}>
+                            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md ${on ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/25"}`}>
                               {on && <Check className="h-3 w-3" strokeWidth={3} />}
                             </span>
                             <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-foreground">{b.title}</span>

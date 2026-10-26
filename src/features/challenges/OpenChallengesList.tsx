@@ -23,8 +23,8 @@ export function OpenChallengesList() {
   if (data.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-card px-8 pb-28 pt-16 text-center md:rounded-xl md:border md:border-border md:pb-16">
-        <span className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10">
-          <Trophy className="h-5 w-5 text-[#cc208f]" />
+        <span className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#c3217e]/10">
+          <Trophy className="h-5 w-5 text-[#c3217e]" />
         </span>
         <h3 className="font-display text-[18px] font-semibold">No open challenges right now</h3>
         <p className="mt-1.5 max-w-[300px] text-[14px] leading-relaxed text-muted-foreground">
@@ -58,14 +58,14 @@ export function OpenChallengesList() {
                   className="aspect-[16/7] w-full object-cover"
                 />
               ) : (
-                <div className="aspect-[16/7] w-full bg-gradient-to-br from-[#7a1e66] via-[#cc208f] to-[#ff4fc3]" />
+                <div className="aspect-[16/7] w-full bg-gradient-to-br from-[#721e4e] via-[#c3217e] to-[#fd49b0]" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11.5px] font-semibold text-white backdrop-blur">
                 {taskLabel(c.task_type)}
               </span>
               <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-3">
-                <span className="rounded-xl bg-white px-3 py-1.5 font-display text-[18px] font-bold leading-none text-[#cc208f] shadow-lg">
+                <span className="rounded-xl bg-white px-3 py-1.5 font-display text-[18px] font-bold leading-none text-[#c3217e] shadow-lg">
                   {formatPrize(c.prize_total, c.prize_type)}
                 </span>
                 <span

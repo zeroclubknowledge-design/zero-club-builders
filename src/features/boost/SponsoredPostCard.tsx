@@ -97,7 +97,7 @@ export function SponsoredPostCard({ item, compact = false, preview = false }: { 
       aria-label={`Sponsored post by ${name}`}
       className={`relative overflow-hidden bg-card ${compact ? "rounded-2xl border border-border" : "border-b border-border/60 md:rounded-xl md:border md:my-2"}`}
     >
-      <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#cc208f]/10 blur-2xl" />
+      <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#c3217e]/10 blur-2xl" />
       <div className="relative px-4 pb-3 pt-3.5">
         <div className="flex items-center gap-2.5">
           <Link to="/app/profile/$id" params={{ id: item.author.username || item.author.id }} className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
@@ -108,7 +108,7 @@ export function SponsoredPostCard({ item, compact = false, preview = false }: { 
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold leading-tight text-foreground">{name}</p>
             <p className="flex items-center gap-1 text-[12.5px] text-muted-foreground">
-              <Rocket className="h-3 w-3 text-[#cc208f]" /> Sponsored{item.author.username ? ` · @${item.author.username}` : ""}
+              <Rocket className="h-3 w-3 text-[#c3217e]" /> Sponsored{item.author.username ? ` · @${item.author.username}` : ""}
             </p>
           </div>
         </div>
@@ -123,7 +123,7 @@ export function SponsoredPostCard({ item, compact = false, preview = false }: { 
         </Link>
 
         {/* The ask and the reward, in one bar. */}
-        <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#cc208f]/20 bg-gradient-to-r from-[#cc208f]/[0.08] to-[#ff7ac8]/[0.04] p-2.5 pl-3">
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#c3217e]/20 bg-gradient-to-r from-[#c3217e]/[0.08] to-[#fd74c3]/[0.04] p-2.5 pl-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-foreground">{earned ? "Reward collected" : ask}</p>
             <p className="text-[12px] text-muted-foreground">{earned ? "Thanks for supporting this builder" : `Earn ${item.reward_zp} ZP + ${item.reward_xp} XP`}</p>
@@ -137,7 +137,7 @@ export function SponsoredPostCard({ item, compact = false, preview = false }: { 
             type="button"
             onClick={() => void run()}
             disabled={busy || earned || (!preview && !me?.id)}
-            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition active:scale-95 disabled:opacity-80 ${earned ? "bg-emerald-500/15 text-emerald-600" : "bg-[#cc208f] text-white shadow-[0_8px_18px_-10px_rgba(204,32,143,0.9)] hover:brightness-110"}`}
+            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition active:scale-95 disabled:opacity-80 ${earned ? "bg-emerald-500/15 text-emerald-600" : "bg-[#c3217e] text-white shadow-[0_8px_18px_-10px_rgba(195,33,126,0.9)] hover:brightness-110"}`}
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ActionIcon className="h-3.5 w-3.5" />}
             {label}

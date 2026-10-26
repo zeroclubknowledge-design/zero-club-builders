@@ -34,7 +34,7 @@ function ChatSettingsPage() {
           <div className="bg-card/50 border border-border/50 rounded-2xl overflow-hidden divide-y divide-border/30">
             <div className="flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 shrink-0 rounded-xl bg-[#cc208f]/10 flex items-center justify-center text-[#cc208f]">
+                <div className="h-10 w-10 shrink-0 rounded-xl bg-[#c3217e]/10 flex items-center justify-center text-[#c3217e]">
                   <Send className="h-5 w-5" />
                 </div>
                 <div>

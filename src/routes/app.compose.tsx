@@ -478,7 +478,7 @@ function ComposePage() {
               type="button"
               onClick={() => setAudienceOpen(true)}
               className={`mt-0.5 inline-flex h-[24px] max-w-[220px] items-center gap-1 rounded-full border px-2.5 text-[12px] font-semibold transition active:scale-95 ${
-                audienceClub ? "border-[#cc208f]/50 bg-[#cc208f]/[0.06] text-[#cc208f]" : "border-foreground/25 text-muted-foreground"
+                audienceClub ? "border-[#c3217e]/50 bg-[#c3217e]/[0.06] text-[#c3217e]" : "border-foreground/25 text-muted-foreground"
               }`}
             >
               {audienceClub ? <Users className="h-3 w-3 shrink-0" /> : <Globe className="h-3 w-3 shrink-0" />}
@@ -506,7 +506,7 @@ function ComposePage() {
                       key={c.id}
                       type="button"
                       onClick={() => { setAudience(c.id); setAudienceOpen(false); }}
-                      className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+                      className={`flex w-full items-center gap-3.5 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#c3217e]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
                     >
                       {everyone ? (
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-foreground"><Globe className="h-5 w-5" /></span>
@@ -519,7 +519,7 @@ function ComposePage() {
                         <span className="block truncate text-[15.5px] font-semibold text-foreground">{everyone ? "Everyone" : `${c.name} members`}</span>
                         <span className="block truncate text-[13px] text-muted-foreground">{everyone ? "Anyone on or off Zero Club" : "Only people in this club can see it"}</span>
                       </span>
-                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/20"}`}>
                         {active && <Check className="h-3 w-3" strokeWidth={3} />}
                       </span>
                     </button>
@@ -619,13 +619,13 @@ function ComposePage() {
           {enrolledBootcamps.length > 0 && (
             <div className="mt-4">
               {selectedBootcamp ? (
-                <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#cc208f]/10 pl-3 pr-1.5 text-[13px] font-semibold text-[#a3186f]">
+                <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#c3217e]/10 pl-3 pr-1.5 text-[13px] font-semibold text-[#9a1963]">
                   <GraduationCap className="h-4 w-4" /> {selectedBootcamp.title}
                   <button
                     type="button"
                     aria-label="Remove bootcamp tag"
                     onClick={() => { setSelectedBootcampId(null); setIsBuild(false); }}
-                    className="grid h-6 w-6 place-items-center rounded-full hover:bg-[#cc208f]/15"
+                    className="grid h-6 w-6 place-items-center rounded-full hover:bg-[#c3217e]/15"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>

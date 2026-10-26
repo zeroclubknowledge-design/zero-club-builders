@@ -238,14 +238,14 @@ function AccountSettings() {
                         onClick={() => setNewAccountType(type)}
                         className={`flex w-full items-center justify-between rounded-2xl border-[1.5px] p-4 text-left transition-colors ${
                           selected
-                            ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                            ? "border-[#c3217e] bg-[#c3217e]/[0.06]"
                             : "border-foreground/12 hover:bg-foreground/[0.04]"
                         }`}
                       >
                         <span className="text-[15px] font-semibold text-foreground">{type}</span>
                         <span
                           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                            selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/25"
+                            selected ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/25"
                           }`}
                         >
                           {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}

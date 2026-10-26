@@ -117,7 +117,7 @@ function OpenLinkSheetBody({ url, onOpenInternal, onOpenExternal }: { url: strin
 
 // Links are Zero Club pink in every theme, so they never read as plain text.
 // (--primary is ink on light themes and white on dark ones.)
-const LINK_CLASS = "text-[#cc208f] font-semibold hover:underline underline-offset-2";
+const LINK_CLASS = "text-[#c3217e] font-semibold hover:underline underline-offset-2";
 
 export function LinkifiedText({
   text,

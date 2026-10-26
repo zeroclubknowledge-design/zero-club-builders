@@ -149,8 +149,8 @@ export function InstitutionOnboardingDrawer({
           ) : (
             <>
               {hasApplication && (
-                <div className={`mt-3 rounded-2xl p-4 ${isActive ? "bg-[#1a7f4b]/[0.07]" : "bg-[#cc208f]/[0.06]"}`}>
-                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${isActive ? "bg-[#1a7f4b]/15 text-[#1a7f4b]" : trialDaysLeft > 0 ? "bg-[#cc208f]/12 text-[#a3186f]" : "bg-foreground/[0.08] text-muted-foreground"}`}>
+                <div className={`mt-3 rounded-2xl p-4 ${isActive ? "bg-[#1a7f4b]/[0.07]" : "bg-[#c3217e]/[0.06]"}`}>
+                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${isActive ? "bg-[#1a7f4b]/15 text-[#1a7f4b]" : trialDaysLeft > 0 ? "bg-[#c3217e]/12 text-[#9a1963]" : "bg-foreground/[0.08] text-muted-foreground"}`}>
                     {isActive ? "Active" : trialDaysLeft > 0 ? "Trial" : "Trial ended"}
                   </span>
                   <p className="mt-2 text-[15px] font-semibold">
@@ -194,14 +194,14 @@ export function InstitutionOnboardingDrawer({
                           key={option.key}
                           type="button"
                           onClick={() => set("organization_size", option.key)}
-                          className={`flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                          className={`flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${selected ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
                         >
                           <span className="min-w-0 flex-1">
                             <span className="block text-[15px] font-semibold">{option.title}</span>
                             <span className="mt-0.5 block text-[13px] text-muted-foreground">{option.detail}</span>
                             <span className="mt-2 block text-[15px] font-semibold tabular-nums">{formatNaira(option.amount)} <span className="text-[13px] font-medium text-muted-foreground">/ year</span></span>
                           </span>
-                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                          <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/20"}`}>
                             {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                           </span>
                         </button>
@@ -265,7 +265,7 @@ export function InstitutionOnboardingDrawer({
                       <button
                         onClick={() => activate.mutate()}
                         disabled={activate.isPending || balance < walletDue}
-                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white disabled:opacity-40"
+                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#c3217e] px-5 text-[16px] font-semibold text-white disabled:opacity-40"
                         title={balance < walletDue ? "Fund your wallet to activate" : undefined}
                       >
                         {activate.isPending && <Loader2 className="h-5 w-5 animate-spin" />}

@@ -34,7 +34,7 @@ import { getLevelFromXp } from "@/lib/utils";
 import { ROLE_LABEL, staffLabel, workspaceApi, type WorkspaceRole } from "./api";
 
 import { confirmCard } from "@/components/ConfirmCard";
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 
 export function MemberDossier({
   orgId,
@@ -115,7 +115,7 @@ export function MemberDossier({
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover" />
                       ) : (
-                        <span className="grid h-20 w-20 place-items-center rounded-full bg-[#cc208f]/15 font-display text-[28px] font-semibold text-[#cc208f]">{name.charAt(0)}</span>
+                        <span className="grid h-20 w-20 place-items-center rounded-full bg-[#c3217e]/15 font-display text-[28px] font-semibold text-[#c3217e]">{name.charAt(0)}</span>
                       )}
                       {active !== null && active < 5 && <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-emerald-500 ring-[3px] ring-background" />}
                     </span>
@@ -131,7 +131,7 @@ export function MemberDossier({
                   <h2 className="mt-3 font-display text-[23px] font-semibold leading-tight tracking-tight">{name}</h2>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
                     <span>@{p.username}</span>
-                    <span className="inline-flex h-[22px] items-center rounded-full bg-[#cc208f]/12 px-2 text-[11px] font-semibold text-[#cc208f]">{ROLE_LABEL(role, kind)}</span>
+                    <span className="inline-flex h-[22px] items-center rounded-full bg-[#c3217e]/12 px-2 text-[11px] font-semibold text-[#c3217e]">{ROLE_LABEL(role, kind)}</span>
                     {m?.status === "invited" && <span className="inline-flex h-[22px] items-center rounded-full bg-amber-500/12 px-2 text-[11px] font-semibold text-amber-600">Invite pending</span>}
                     {m?.title && <span className="font-medium text-foreground/80">{m.title}</span>}
                   </p>
@@ -202,7 +202,7 @@ export function MemberDossier({
                     <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Assigned training</p>
                     {d.data.training.map((t: any) => (
                       <Link key={t.bootcamp_id} to="/app/bootcamps/$id" params={{ id: t.bootcamp_id }} className="flex items-center gap-2.5 rounded-xl bg-foreground/[0.03] px-3 py-2">
-                        <GraduationCap className="h-4 w-4 shrink-0 text-[#cc208f]" />
+                        <GraduationCap className="h-4 w-4 shrink-0 text-[#c3217e]" />
                         <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">{t.title}</span>
                         <span className={`shrink-0 text-[11.5px] font-semibold ${t.enrolled_at ? "text-emerald-600" : "text-amber-600"}`}>{t.enrolled_at ? `Enrolled ${monthYear(t.enrolled_at)}` : "Not started"}</span>
                       </Link>
@@ -221,18 +221,18 @@ export function MemberDossier({
                       return (
                         <Link key={post.id} to="/app/post/$id" params={{ id: post.id }} className="group overflow-hidden rounded-xl border border-border bg-card">
                           <div className="aspect-[16/10] overflow-hidden bg-foreground/[0.04]">
-                            {img ? <img src={img} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" /> : <span className="grid h-full place-items-center px-2 text-center text-[12px] font-semibold text-[#cc208f]">{t}</span>}
+                            {img ? <img src={img} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" /> : <span className="grid h-full place-items-center px-2 text-center text-[12px] font-semibold text-[#c3217e]">{t}</span>}
                           </div>
                           <p className="flex items-center gap-1 px-2.5 py-2 text-[12.5px] font-semibold">
                             <span className="truncate">{t}</span>
-                            {post.is_verified_build && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-[#cc208f]" />}
+                            {post.is_verified_build && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-[#c3217e]" />}
                           </p>
                         </Link>
                       );
                     })}
                   </div>
                   {d.data.portfolio?.status === "published" && p.username && (
-                    <a href={`/@${p.username}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] font-semibold text-[#cc208f]">
+                    <a href={`/@${p.username}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] font-semibold text-[#c3217e]">
                       Open their portfolio <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}
@@ -252,7 +252,7 @@ export function MemberDossier({
                   <ol>
                     {d.data.experiences.map((e: any, i: number) => (
                       <li key={e.id} className={`relative border-l border-border pl-5 ${i === d.data.experiences.length - 1 ? "" : "pb-5"}`}>
-                        <span className={`absolute -left-[5px] top-1.5 h-[9px] w-[9px] rounded-full ${e.is_current ? "bg-[#cc208f]" : "bg-foreground/25"}`} />
+                        <span className={`absolute -left-[5px] top-1.5 h-[9px] w-[9px] rounded-full ${e.is_current ? "bg-[#c3217e]" : "bg-foreground/25"}`} />
                         <p className="text-[14.5px] font-semibold">{e.title}</p>
                         <p className="text-[13px] text-muted-foreground">{e.company}{e.employment_type ? ` · ${e.employment_type}` : ""}{e.location ? ` · ${e.location}` : ""}</p>
                         <p className="text-[12px] text-muted-foreground">{experienceSpan(e)}</p>
@@ -284,13 +284,13 @@ export function MemberDossier({
                   <div className="space-y-2">
                     {d.data.certificates.map((c: any) => (
                       <div key={c.id} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
-                        <Award className="mt-0.5 h-4 w-4 shrink-0 text-[#cc208f]" />
+                        <Award className="mt-0.5 h-4 w-4 shrink-0 text-[#c3217e]" />
                         <div className="min-w-0 flex-1">
                           <p className="text-[13.5px] font-semibold">{c.name}</p>
                           <p className="text-[12px] text-muted-foreground">{c.issuer}{c.issued_on ? ` · ${monthYear(c.issued_on)}` : ""}</p>
                         </div>
                         {c.credential_url && (
-                          <a href={c.credential_url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[12px] font-semibold text-[#cc208f]">Verify</a>
+                          <a href={c.credential_url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[12px] font-semibold text-[#c3217e]">Verify</a>
                         )}
                       </div>
                     ))}
@@ -322,7 +322,7 @@ function Block({ title, icon, note, children }: { title: string; icon: ReactNode
   return (
     <section className="mx-5 mt-5 rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#cc208f]/10 text-[#cc208f]">{icon}</span>
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#c3217e]/10 text-[#c3217e]">{icon}</span>
         <h3 className="flex-1 font-display text-[15px] font-semibold">{title}</h3>
         {note && <span className="text-[11.5px] font-medium text-muted-foreground">{note}</span>}
       </div>

@@ -162,7 +162,7 @@ function WelcomePage() {
           )}
           <div className="flex flex-1 gap-1.5 px-2" aria-label={`Step ${stepIndex + 1} of ${steps.length}`}>
             {steps.map((item, index) => (
-              <span key={item} className={`h-1 flex-1 rounded-full transition-colors ${index <= stepIndex ? "bg-[#cc208f]" : "bg-foreground/10"}`} />
+              <span key={item} className={`h-1 flex-1 rounded-full transition-colors ${index <= stepIndex ? "bg-[#c3217e]" : "bg-foreground/10"}`} />
             ))}
           </div>
           {stepIndex > 0 && !isLast ? (
@@ -194,17 +194,17 @@ function WelcomePage() {
                     type="button"
                     onClick={() => setMode(option)}
                     className={`flex items-start gap-3.5 rounded-2xl border-[1.5px] p-4 text-left transition ${
-                      selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:border-foreground/25"
+                      selected ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:border-foreground/25"
                     }`}
                   >
-                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#cc208f] text-white" : "bg-foreground/[0.06]"}`}>
+                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? "bg-[#c3217e] text-white" : "bg-foreground/[0.06]"}`}>
                       <Icon active={selected} className="h-[22px] w-[22px]" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-[16px] font-semibold">{MODES[option].verb}</span>
                       <span className="mt-0.5 block text-[14px] leading-snug text-muted-foreground">{MODES[option].blurb}</span>
                     </span>
-                    <span className={`mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.5px] ${selected ? "border-[#cc208f] bg-[#cc208f] text-white" : "border-foreground/25"}`}>
+                    <span className={`mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.5px] ${selected ? "border-[#c3217e] bg-[#c3217e] text-white" : "border-foreground/25"}`}>
                       {selected && <Check className="h-3 w-3" />}
                     </span>
                   </button>
@@ -214,7 +214,7 @@ function WelcomePage() {
             <button
               type="button"
               onClick={() => void finish("/app/premium?institution=1")}
-              className="mt-5 self-start text-[14px] font-semibold text-[#a3186f]"
+              className="mt-5 self-start text-[14px] font-semibold text-[#9a1963]"
             >
               Setting up for a school, academy or company?
             </button>
@@ -266,7 +266,7 @@ function WelcomePage() {
               )}
             </button>
             <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={(event) => void pickPhoto(event.target.files?.[0])} />
-            <p className="mt-2 text-center text-[14px] font-semibold text-[#a3186f]">{avatarUrl ? "Change photo" : "Add a photo"}</p>
+            <p className="mt-2 text-center text-[14px] font-semibold text-[#9a1963]">{avatarUrl ? "Change photo" : "Add a photo"}</p>
 
             <label className="mt-6 block">
               <span className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">Name</span>
@@ -295,7 +295,7 @@ function WelcomePage() {
 
         {step === "notifications" && (
           <div className="flex flex-1 flex-col items-center pt-8 text-center">
-            <span className="grid h-20 w-20 place-items-center rounded-3xl bg-[#cc208f]/10 text-[#cc208f]">
+            <span className="grid h-20 w-20 place-items-center rounded-3xl bg-[#c3217e]/10 text-[#c3217e]">
               <Bell className="h-9 w-9" />
             </span>
             <h1 className="mt-6 font-display text-[26px] font-semibold leading-tight tracking-[-0.02em]">Don't miss a message</h1>

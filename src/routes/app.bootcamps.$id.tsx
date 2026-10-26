@@ -417,7 +417,7 @@ function BootcampDetail() {
         ) : bootcamp.video_url ? (
           <BootcampPreviewVideo key={bootcamp.video_url} src={bootcamp.video_url} />
         ) : (
-          <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#cc208f,#6b2a8f 55%,#1d1b3a)" }} />
+          <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#c3217e,#6b2a8f 55%,#1d1b3a)" }} />
         )}
         <button
           type="button"
@@ -439,7 +439,7 @@ function BootcampDetail() {
 
       <div className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2">
         <section className="bg-card p-4 md:rounded-b-xl md:border md:border-t-0 md:border-border">
-          {bootcamp.category && <span className="text-[12px] font-semibold text-[#a3186f]">{bootcamp.category}</span>}
+          {bootcamp.category && <span className="text-[12px] font-semibold text-[#9a1963]">{bootcamp.category}</span>}
           <h1 className="mt-1 font-display text-[24px] font-semibold leading-[1.15] text-foreground">{bootcamp.title}</h1>
           <div className="mt-3 flex items-center gap-2.5">
             <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -453,7 +453,7 @@ function BootcampDetail() {
               {bootcamp.profiles?.id ? (
                 <Link to="/app/profile/$id" params={{ id: bootcamp.profiles.id }} className="flex items-center gap-1 text-[14px] font-semibold text-foreground hover:underline">
                   <span className="truncate">{creatorName}</span>
-                  {isInstitution && <BadgeCheck className="h-4 w-4 shrink-0 text-[#cc208f]" />}
+                  {isInstitution && <BadgeCheck className="h-4 w-4 shrink-0 text-[#c3217e]" />}
                 </Link>
               ) : (
                 <p className="text-[14px] font-semibold">{creatorName}</p>
@@ -482,7 +482,7 @@ function BootcampDetail() {
             </div>
           ) : canManageBootcamp ? (
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#a3186f]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#c3217e]/10 px-2.5 py-1 text-[12px] font-semibold text-[#9a1963]">
                 <ShieldCheck className="h-3.5 w-3.5" /> Instructor view
               </span>
               <h2 className="mt-2.5 font-display text-[18px] font-semibold">You're teaching this bootcamp</h2>
@@ -547,7 +547,7 @@ function BootcampDetail() {
                     )}
                   </div>
                   {basePrice > 0 && (
-                    <button type="button" onClick={() => setCouponOpen((open) => !open)} className="text-[13px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+                    <button type="button" onClick={() => setCouponOpen((open) => !open)} className="text-[13px] font-semibold text-[#c3217e] hover:text-[#9a1963]">
                       {appliedCoupon ? `${couponDiscountPct}% coupon applied` : "Have a coupon?"}
                     </button>
                   )}
@@ -559,7 +559,7 @@ function BootcampDetail() {
                   aria-pressed={isWishlisted}
                   aria-label={isWishlisted ? "Saved to your wishlist" : "Save for later"}
                   title={isWishlisted ? "Saved to your wishlist" : "Save for later"}
-                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border transition active:scale-[0.96] disabled:opacity-60 ${isWishlisted ? "border-[#cc208f]/40 bg-[#cc208f]/10 text-[#cc208f]" : "border-border text-foreground hover:bg-foreground/[0.05]"}`}
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border transition active:scale-[0.96] disabled:opacity-60 ${isWishlisted ? "border-[#c3217e]/40 bg-[#c3217e]/10 text-[#c3217e]" : "border-border text-foreground hover:bg-foreground/[0.05]"}`}
                 >
                   {wishlistLoading ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Bookmark className={`h-[18px] w-[18px] ${isWishlisted ? "fill-current" : ""}`} />}
                 </button>
@@ -572,7 +572,7 @@ function BootcampDetail() {
                 </button>
               </div>
               {discountPct > 0 && (
-                <p className="mt-2 text-[13px] font-semibold text-[#a3186f]">{discountPct * 100}% {tier} discount included</p>
+                <p className="mt-2 text-[13px] font-semibold text-[#9a1963]">{discountPct * 100}% {tier} discount included</p>
               )}
 
               {couponOpen && basePrice > 0 && (
@@ -708,9 +708,9 @@ function BootcampDetail() {
               {modules.map((module: any, i: number) => (
                 <AccordionItem key={i} value={`item-${i}`} className="border-foreground/10 last:border-b-0">
                   <AccordionTrigger className="gap-2.5 px-3 py-3 text-left hover:no-underline data-[state=open]:bg-foreground/[0.03]">
-                    <span className="w-5 shrink-0 text-[12px] font-semibold text-[#cc208f]/70">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="w-5 shrink-0 text-[12px] font-semibold text-[#c3217e]/70">{String(i + 1).padStart(2, "0")}</span>
                     <span className="flex-1">
-                      <span className="block text-[15px] font-semibold text-[#cc208f]">{module.title}</span>
+                      <span className="block text-[15px] font-semibold text-[#c3217e]">{module.title}</span>
                       <span className="block text-[12px] font-normal text-muted-foreground">{module.lessons?.length || 0} lessons</span>
                     </span>
                   </AccordionTrigger>
@@ -810,7 +810,7 @@ function looksFormatted(text?: string | null) {
 function JoinOption({ icon, title, hint, badge, onClick }: { icon: React.ReactNode; title: string; hint: string; badge?: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-foreground/[0.03] active:bg-foreground/[0.05]">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f] ring-1 ring-inset ring-[#cc208f]/15">{icon}</span>
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e] ring-1 ring-inset ring-[#c3217e]/15">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="text-[14.5px] font-semibold leading-snug text-foreground">{title}</span>

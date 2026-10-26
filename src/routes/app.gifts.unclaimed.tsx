@@ -189,7 +189,7 @@ function GiftCampaignsPage() {
                       : "Change the design, message, purpose or date · raise the amount or claims"}
                 </span>
               </span>
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">
                 <Pencil className="h-4 w-4" />
               </span>
             </button>

@@ -368,7 +368,7 @@ function ChatInboxPage() {
 
         {activeTab === "Groups" && items.length > 0 && !searchQuery && (
           <Link to="/app/chat/g/new" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-foreground/[0.02] md:px-6">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#d6309b,#7c3aed)] text-white">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#d22c8b,#7c3aed)] text-white">
               <Users className="h-6 w-6" />
             </span>
             <span className="text-[15px] font-semibold text-foreground">New group</span>

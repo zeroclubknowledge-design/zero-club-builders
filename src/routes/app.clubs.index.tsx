@@ -963,7 +963,7 @@ function Clubs() {
                         aria-pressed={selected}
                         className={`flex items-center justify-between gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-colors ${
                           selected
-                            ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                            ? "border-[#c3217e] bg-[#c3217e]/[0.06]"
                             : "border-foreground/12 hover:bg-foreground/[0.03]"
                         }`}
                       >
@@ -978,7 +978,7 @@ function Clubs() {
                         <span
                           className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
                             selected
-                              ? "bg-[#cc208f] text-white"
+                              ? "bg-[#c3217e] text-white"
                               : "border-[1.5px] border-foreground/25"
                           }`}
                         >
@@ -1024,7 +1024,7 @@ function Clubs() {
       <Drawer open={showUpgrade} onOpenChange={setShowUpgrade}>
         <DrawerContent className="mx-auto max-w-lg overflow-hidden border-none bg-background p-0">
           <div className="flex flex-col items-center px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 text-center">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <DrawerTitle className="mt-4 font-display text-[20px] font-semibold leading-tight text-foreground">
@@ -1066,7 +1066,7 @@ function Clubs() {
                 Notifications
               </DrawerTitle>
               {pendingRequestsGrouped.length + unreadClubMessages.length > 0 && (
-                <span className="rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold tabular-nums text-[#a3186f]">
+                <span className="rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold tabular-nums text-[#9a1963]">
                   {pendingRequestsGrouped.length + unreadClubMessages.length}
                 </span>
               )}
@@ -1235,7 +1235,7 @@ function Clubs() {
                             }}
                             className="flex cursor-pointer items-center gap-3 py-3 transition-opacity active:opacity-70"
                           >
-                            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+                            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]">
                               <MessageCircle className="h-5 w-5" />
                             </div>
 
@@ -1280,7 +1280,7 @@ function Clubs() {
                       decoding="async"
                     />
                   ) : (
-                    <div className="zc-join-banner h-full w-full bg-[radial-gradient(120%_90%_at_15%_10%,#cc208f_0%,transparent_55%),radial-gradient(90%_80%_at_90%_100%,#6d28d9_0%,transparent_60%),linear-gradient(135deg,#1b1420,#2a1830)]" />
+                    <div className="zc-join-banner h-full w-full bg-[radial-gradient(120%_90%_at_15%_10%,#c3217e_0%,transparent_55%),radial-gradient(90%_80%_at_90%_100%,#6d28d9_0%,transparent_60%),linear-gradient(135deg,#1b1420,#2a1830)]" />
                   )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                   {Boolean((selectedClub as any).category) && (
@@ -1359,10 +1359,10 @@ function Clubs() {
 
                   {joinNeedsApproval && (
                     <div
-                      className="zc-join-rise mt-4 flex items-start gap-3 rounded-2xl bg-[#cc208f]/[0.07] p-4"
+                      className="zc-join-rise mt-4 flex items-start gap-3 rounded-2xl bg-[#c3217e]/[0.07] p-4"
                       style={{ animationDelay: "290ms" }}
                     >
-                      <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
+                      <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#c3217e]" />
                       <div>
                         <p className="text-[14px] font-semibold text-foreground">
                           Admins review requests
@@ -1427,7 +1427,7 @@ function Clubs() {
                     setShowJoinModal(false);
                   }}
                   disabled={joiningClubId === selectedClub.id}
-                  className="h-12 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.8)] transition hover:bg-[#b01c7b] active:scale-[0.98] disabled:opacity-40"
+                  className="h-12 rounded-full bg-[#c3217e] text-[15px] font-semibold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.8)] transition hover:bg-[#a71d6c] active:scale-[0.98] disabled:opacity-40"
                 >
                   {joiningClubId === selectedClub.id
                     ? "Sending…"

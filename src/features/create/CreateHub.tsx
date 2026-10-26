@@ -87,7 +87,7 @@ const OPTIONS = [
     Icon: Rocket,
     label: "Ship",
     copy: "Share proof of work",
-    tint: "bg-[#cc208f]/10 text-[#cc208f]",
+    tint: "bg-[#c3217e]/10 text-[#c3217e]",
   },
   {
     to: "/app/notes/create",

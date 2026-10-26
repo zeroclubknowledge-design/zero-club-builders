@@ -244,11 +244,11 @@ function Panel({
             disabled={o.disabled}
             onClick={() => onChoose(o.value)}
             className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-[14.5px] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 ${
-              on ? "bg-[#cc208f]/[0.09] font-semibold text-foreground ring-2 ring-[#cc208f]/45" : "bg-foreground/[0.035] text-foreground hover:bg-foreground/[0.07]"
+              on ? "bg-[#c3217e]/[0.09] font-semibold text-foreground ring-2 ring-[#c3217e]/45" : "bg-foreground/[0.035] text-foreground hover:bg-foreground/[0.07]"
             }`}
           >
             <span className="min-w-0 flex-1 break-words leading-snug">{o.label || "—"}</span>
-            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition ${on ? "bg-[#cc208f] text-white" : "ring-2 ring-foreground/20"}`}>
+            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition ${on ? "bg-[#c3217e] text-white" : "ring-2 ring-foreground/20"}`}>
               {on && <Check className="h-3 w-3" strokeWidth={3} />}
             </span>
           </button>

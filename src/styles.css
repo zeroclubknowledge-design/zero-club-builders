@@ -92,7 +92,7 @@
   --muted-foreground: oklch(48% 0.012 260);
 
   /* Accent is Zero Club pink. */
-  --accent: #cc208f;
+  --accent: #c3217e;
   --accent-foreground: oklch(100% 0 0);
 
   --destructive: #b42318;
@@ -100,7 +100,7 @@
   --success: oklch(68% 0.16 155);
   --success-foreground: oklch(100% 0 0);
   /* Brand warnings use Zero Club pink instead of the former brown accent. */
-  --warning: #cc208f;
+  --warning: #c3217e;
   --warning-foreground: oklch(100% 0 0);
   
   --border: oklch(18% 0.005 260 / 0.06);
@@ -170,11 +170,11 @@
   --muted: oklch(22% 0.02 330);
   --muted-foreground: oklch(70% 0 0);
 
-  --accent: #cc208f;
+  --accent: #c3217e;
   --accent-foreground: oklch(100% 0 0);
 
   /* Keep attention states unmistakably on-brand in every dark variant. */
-  --warning: #cc208f;
+  --warning: #c3217e;
   --warning-foreground: oklch(100% 0 0);
 
   --border: oklch(100% 0 0 / 8%);
@@ -225,11 +225,11 @@
 
   /* The one dark theme where primary is the brand colour rather than white —
      pink on black is the whole point of it. */
-  --primary: #cc208f;
+  --primary: #c3217e;
   --primary-foreground: oklch(1 0 0);
-  --primary-glow: color-mix(in oklab, #cc208f 42%, transparent);
+  --primary-glow: color-mix(in oklab, #c3217e 42%, transparent);
 
-  --accent: #cc208f;
+  --accent: #c3217e;
   --accent-foreground: oklch(1 0 0);
 
   --border: oklch(0.72 0.16 350 / 18%);
@@ -240,7 +240,7 @@
 
   --gradient-card: linear-gradient(160deg, oklch(0.175 0.05 348), oklch(0.1 0.03 350));
   --gradient-hero: radial-gradient(circle at top right, oklch(0.72 0.18 350 / 0.16), transparent 66%);
-  --shadow-glow: 0 10px 34px -14px color-mix(in oklab, #cc208f 55%, transparent);
+  --shadow-glow: 0 10px 34px -14px color-mix(in oklab, #c3217e 55%, transparent);
 
   /* Two blooms of the SAME brand pink at different depths, not two different
      hues. The corner bloom used to be #7a2bff, a blue-violet — it gave the
@@ -248,8 +248,8 @@
      purple glow in the bottom corner of every page. A deeper magenta gets the
      same depth from lightness instead of from hue. */
   --zc-noir-veil:
-    radial-gradient(115% 80% at 50% -12%, rgba(204, 32, 143, 0.34) 0%, rgba(204, 32, 143, 0.10) 34%, transparent 64%),
-    radial-gradient(95% 65% at 105% 105%, rgba(163, 26, 118, 0.20) 0%, transparent 62%),
+    radial-gradient(115% 80% at 50% -12%, rgba(195, 33, 126, 0.34) 0%, rgba(195, 33, 126, 0.10) 34%, transparent 64%),
+    radial-gradient(95% 65% at 105% 105%, rgba(154, 27, 100, 0.20) 0%, transparent 62%),
     linear-gradient(180deg, #150710 0%, #0a0409 48%, #000000 100%);
 }
 
@@ -276,8 +276,8 @@
 .dark.rose-noir .zc-noir-surface {
   background-color: transparent;
   background-image:
-    radial-gradient(125% 150% at 10% 0%, rgba(204, 32, 143, 0.40) 0%, rgba(204, 32, 143, 0.13) 38%, transparent 70%),
-    radial-gradient(90% 120% at 100% 100%, rgba(163, 26, 118, 0.22) 0%, transparent 65%),
+    radial-gradient(125% 150% at 10% 0%, rgba(195, 33, 126, 0.40) 0%, rgba(195, 33, 126, 0.13) 38%, transparent 70%),
+    radial-gradient(90% 120% at 100% 100%, rgba(154, 27, 100, 0.22) 0%, transparent 65%),
     linear-gradient(158deg, #1d0c17 0%, #120810 48%, #0a0509 100%);
   background-attachment: scroll;
   background-repeat: no-repeat;
@@ -293,18 +293,18 @@
 .dark.rose-noir .zc-noir-sidebar {
   background-color: #0d050b;
   background-image:
-    radial-gradient(120% 50% at 0% 0%, rgba(204, 32, 143, 0.26) 0%, rgba(204, 32, 143, 0.07) 45%, transparent 72%),
-    linear-gradient(125deg, transparent 38%, rgba(255, 79, 195, 0.045) 50%, transparent 62%),
-    radial-gradient(90% 38% at 100% 100%, rgba(163, 26, 118, 0.20) 0%, transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23cc208f' fill-opacity='0.10' fill-rule='evenodd' d='M41.02 1.32 L21.91 9.27 L30.27 30.27 L9.27 21.91 L1.32 41.02 L22.07 50.00 L1.32 58.98 L9.27 78.09 L30.27 69.72 L21.91 90.72 L41.02 98.68 L50.00 77.92 L58.98 98.68 L78.09 90.72 L69.72 69.72 L90.72 78.09 L98.68 58.98 L77.92 50.00 L98.68 41.02 L90.72 21.91 L69.72 30.27 L78.09 9.27 L58.98 1.32 L50.00 22.07Z M43.81 16.82 L50.00 30.82 L56.19 16.82 L69.16 22.21 L63.54 36.46 L77.79 30.84 L83.18 43.81 L69.17 50.00 L83.18 56.19 L77.79 69.16 L63.54 63.54 L69.16 77.79 L56.19 83.18 L50.00 69.17 L43.81 83.18 L30.84 77.79 L36.46 63.54 L22.21 69.16 L16.82 56.19 L30.82 50.00 L16.82 43.81 L22.21 30.84 L36.46 36.46 L30.84 22.21Z'/%3E%3C/svg%3E");
+    radial-gradient(120% 50% at 0% 0%, rgba(195, 33, 126, 0.26) 0%, rgba(195, 33, 126, 0.07) 45%, transparent 72%),
+    linear-gradient(125deg, transparent 38%, rgba(253, 73, 176, 0.045) 50%, transparent 62%),
+    radial-gradient(90% 38% at 100% 100%, rgba(154, 27, 100, 0.20) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23c3217e' fill-opacity='0.10' fill-rule='evenodd' d='M41.02 1.32 L21.91 9.27 L30.27 30.27 L9.27 21.91 L1.32 41.02 L22.07 50.00 L1.32 58.98 L9.27 78.09 L30.27 69.72 L21.91 90.72 L41.02 98.68 L50.00 77.92 L58.98 98.68 L78.09 90.72 L69.72 69.72 L90.72 78.09 L98.68 58.98 L77.92 50.00 L98.68 41.02 L90.72 21.91 L69.72 30.27 L78.09 9.27 L58.98 1.32 L50.00 22.07Z M43.81 16.82 L50.00 30.82 L56.19 16.82 L69.16 22.21 L63.54 36.46 L77.79 30.84 L83.18 43.81 L69.17 50.00 L83.18 56.19 L77.79 69.16 L63.54 63.54 L69.16 77.79 L56.19 83.18 L50.00 69.17 L43.81 83.18 L30.84 77.79 L36.46 63.54 L22.21 69.16 L16.82 56.19 L30.82 50.00 L16.82 43.81 L22.21 30.84 L36.46 36.46 L30.84 22.21Z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: 100% 100%, 100% 100%, 100% 100%, 300px 300px;
   background-position: 0 0, 0 0, 0 0, calc(100% + 90px) calc(100% + 70px);
   background-attachment: scroll;
-  border-color: rgba(204, 32, 143, 0.28);
-  box-shadow: inset -1px 0 0 rgba(255, 79, 195, 0.22), 18px 0 60px -30px rgba(204, 32, 143, 0.55);
+  border-color: rgba(195, 33, 126, 0.28);
+  box-shadow: inset -1px 0 0 rgba(253, 73, 176, 0.22), 18px 0 60px -30px rgba(195, 33, 126, 0.55);
 }
-.dark.rose-noir .zc-noir-sidebar .border-border { border-color: rgba(204, 32, 143, 0.18); }
+.dark.rose-noir .zc-noir-sidebar .border-border { border-color: rgba(195, 33, 126, 0.18); }
 
 .premium {
   /* Premium Ivory Theme — #f7f8ef */
@@ -317,7 +317,7 @@
   --popover: oklch(0.96 0.02 105);
   --popover-foreground: oklch(0.15 0.02 70);
 
-  --primary: oklch(0.52 0.22 330);
+  --primary: oklch(0.517 0.183 353);
   --primary-foreground: oklch(1 0 0);
 
   --secondary: oklch(0.93 0.02 100);
@@ -325,25 +325,25 @@
   --muted: oklch(0.93 0.03 100);
   --muted-foreground: oklch(0.45 0.03 80);
 
-  --accent: oklch(0.52 0.22 330);
+  --accent: oklch(0.517 0.183 353);
   --accent-foreground: oklch(1 0 0);
 
   --destructive: oklch(0.5 0.2 25);
   --destructive-foreground: oklch(1 0 0);
   --success: oklch(0.7 0.15 150);
   --success-foreground: oklch(0.02 0.01 85);
-  --warning: oklch(0.52 0.22 330);
+  --warning: oklch(0.517 0.183 353);
   --warning-foreground: oklch(1 0 0);
 
   --border: oklch(0.3 0.02 80 / 12%);
   --input: oklch(0.3 0.02 80 / 6%);
-  --ring: oklch(0.52 0.22 330);
+  --ring: oklch(0.517 0.183 353);
 
-  --gradient-primary: linear-gradient(135deg, oklch(0.52 0.22 330), oklch(0.42 0.18 330));
-  --gradient-hero: radial-gradient(circle at top right, oklch(0.52 0.22 330 / 0.06), transparent 70%),
+  --gradient-primary: linear-gradient(135deg, oklch(0.517 0.183 353), oklch(0.42 0.15 353));
+  --gradient-hero: radial-gradient(circle at top right, oklch(0.517 0.183 353 / 0.06), transparent 70%),
                    radial-gradient(circle at bottom left, oklch(0.6 0.12 90 / 0.06), transparent 60%);
   --gradient-card: linear-gradient(160deg, oklch(0.96 0.02 100), oklch(0.94 0.02 105));
-  --shadow-glow: 0 10px 40px -10px oklch(0.52 0.22 330 / 0.25);
+  --shadow-glow: 0 10px 40px -10px oklch(0.517 0.183 353 / 0.25);
   --shadow-soft: 0 10px 30px -10px oklch(0.3 0.02 80 / 0.12);
 }
 
@@ -745,7 +745,7 @@
    * catching one edge and blooming softly behind it.
    *
    * Everything below is that one idea at different scales: an eyebrow pill, a
-   * card edge, a section bloom, a spotlight cone. All in #cc208f, because the
+   * card edge, a section bloom, a spotlight cone. All in #c3217e, because the
    * reference's orange is its brand and this one is ours.
    */
 
@@ -762,12 +762,12 @@
     font-weight: 650;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #a8156f;
+    color: #9f1665;
     background: rgb(204 32 143 / 0.07);
     box-shadow: inset 0 0 0 1px rgb(204 32 143 / 0.22);
   }
   .dark .zc-eyebrow {
-    color: #ff86cd;
+    color: #fd80c8;
     background: rgb(204 32 143 / 0.10);
     box-shadow:
       inset 0 0 0 1px rgb(204 32 143 / 0.30),
@@ -1058,14 +1058,14 @@
     place-items: center;
     border-radius: 999px;
     background: #120d11;
-    color: #ff86cd;
+    color: #fd80c8;
     box-shadow:
       0 0 0 1.5px rgb(204 32 143 / 0.9),
       0 0 26px -4px rgb(204 32 143 / 0.75),
       inset 0 0 18px -6px rgb(204 32 143 / 0.55);
   }
   .zc-node.is-done {
-    background: #cc208f;
+    background: #c3217e;
     color: #fff;
     box-shadow:
       0 0 0 1.5px rgb(255 134 205 / 0.9),
@@ -1410,7 +1410,7 @@ html.zc-biz-page body {
 .zc-pop-avatar-fallback {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #cc208f, #6d28d9);
+  background: linear-gradient(135deg, #c3217e, #6d28d9);
   color: white;
   font-size: 13px;
   font-weight: 700;
@@ -1535,8 +1535,8 @@ html.zc-biz-page body {
 .zc-apply-input::placeholder { color: color-mix(in oklab, var(--foreground) 38%, transparent); }
 .zc-apply-input:focus,
 .zc-apply-input:focus-within {
-  border-color: #cc208f;
-  box-shadow: 0 0 0 4px color-mix(in oklab, #cc208f 16%, transparent);
+  border-color: #c3217e;
+  box-shadow: 0 0 0 4px color-mix(in oklab, #c3217e 16%, transparent);
 }
 textarea.zc-apply-input { resize: vertical; }
 .zc-apply-step { animation: zc-apply-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -1565,9 +1565,9 @@ html[data-zc-focus-flow] [data-zc-bottom-nav] {
 /* Profile photo: a slow ring of Zero Club light around the picture. */
 @property --zc-ring-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 .zc-avatar-ring {
-  background: conic-gradient(from var(--zc-ring-angle), #cc208f, #ff7ac8, #7a1e66, #f06ac3, #cc208f);
+  background: conic-gradient(from var(--zc-ring-angle), #c3217e, #fd74c3, #721e4e, #ee64b3, #c3217e);
   animation: zc-ring-spin 6s linear infinite;
-  filter: drop-shadow(0 0 10px rgba(204, 32, 143, 0.35));
+  filter: drop-shadow(0 0 10px rgba(195, 33, 126, 0.35));
 }
 @keyframes zc-ring-spin { to { --zc-ring-angle: 360deg; } }
 @media (prefers-reduced-motion: reduce) {
@@ -1727,7 +1727,7 @@ html:not(.dark) [data-zc-live-room] .bg-\[\#0A0A0C\] { background-color: #f6f2f6
 html:not(.dark) [data-zc-live-room] :is(.bg-\[\#141117\], .bg-\[\#101014\], .bg-\[\#0f0d10\], .bg-\[\#1a1a20\]) { background-color: #ffffff; }
 html:not(.dark) [data-zc-live-room] .bg-\[\#29202e\] { background-color: #f1e7f0; }
 html:not(.dark) [data-zc-live-room] :is(
-  [class*="bg-[#cc208f]"], [class*="bg-[#e0245e]"], [class*="bg-[#c81f53]"], [class*="bg-[#ff4fc3]"],
+  [class*="bg-[#c3217e]"], [class*="bg-[#e0245e]"], [class*="bg-[#c81f53]"], [class*="bg-[#fd49b0]"],
   [class*="bg-red-"], [class*="bg-green-"], [class*="bg-emerald-"], [class*="bg-black/"], video
 ) {
   --color-white: #ffffff;
@@ -1813,7 +1813,7 @@ html:not(.dark) [data-zc-live-room] :is(
    the page: brighter on the dark themes, lighter still on Rose Noir (whose
    surfaces are pink-tinted), and white on a pink bubble. */
 .zc-mention {
-  color: #cc208f;
+  color: #c3217e;
   background-color: rgb(204 32 143 / 0.11);
   border-radius: 5px;
   padding: 0 3px;
@@ -1825,7 +1825,7 @@ html:not(.dark) [data-zc-live-room] :is(
   transition: background-color 0.15s;
 }
 .zc-mention:hover { background-color: rgb(204 32 143 / 0.2); }
-.dark .zc-mention { color: #ff7dcf; background-color: rgb(255 125 207 / 0.15); }
+.dark .zc-mention { color: #fd77c4; background-color: rgb(255 125 207 / 0.15); }
 .dark.rose-noir .zc-mention {
   color: #ffd0ee;
   background-color: rgb(255 125 207 / 0.24);
@@ -1839,12 +1839,12 @@ html:not(.dark) [data-zc-live-room] :is(
 .zc-mention.zc-mention-on-brand:hover { background-color: rgb(255 255 255 / 0.32) !important; }
 
 /* In the composer: colour and background only, so the caret stays aligned. */
-.zc-tag-ink { color: #cc208f; background-color: rgb(204 32 143 / 0.1); }
-.zc-tag-ink-text { color: #cc208f; }
-.dark .zc-tag-ink, .zc-tag-ink.zc-tag-ink-dark { color: #ff7dcf; background-color: rgb(255 125 207 / 0.16); }
-.dark .zc-tag-ink-text, .zc-tag-ink-text.zc-tag-ink-dark { color: #ff7dcf; }
+.zc-tag-ink { color: #c3217e; background-color: rgb(204 32 143 / 0.1); }
+.zc-tag-ink-text { color: #c3217e; }
+.dark .zc-tag-ink, .zc-tag-ink.zc-tag-ink-dark { color: #fd77c4; background-color: rgb(255 125 207 / 0.16); }
+.dark .zc-tag-ink-text, .zc-tag-ink-text.zc-tag-ink-dark { color: #fd77c4; }
 .dark.rose-noir .zc-tag-ink { color: #ffd0ee; background-color: rgb(255 125 207 / 0.26); }
-.dark.rose-noir .zc-tag-ink-text { color: #ffb3e3; }
+.dark.rose-noir .zc-tag-ink-text { color: #feacdb; }
 
 
 /* ── App toasts, dressed as the in-app pop card ──────────────────────────
@@ -1938,13 +1938,13 @@ html:not(.dark) [data-zc-live-room] :is(
 .zc-toast-badge--error { background: #f43f5e; color: white; }
 .zc-toast-badge--info { background: #1d9bf0; color: white; }
 .zc-toast-badge--warning { background: #f59e0b; color: #1a1205; }
-.zc-toast-badge--loading { background: #cc208f; color: white; }
+.zc-toast-badge--loading { background: #c3217e; color: white; }
 .zc-toast-action {
   flex: none;
   height: 32px;
   padding: 0 12px;
   border-radius: 9999px;
-  background: #cc208f;
+  background: #c3217e;
   color: white;
   font-size: 12.5px;
   font-weight: 600;

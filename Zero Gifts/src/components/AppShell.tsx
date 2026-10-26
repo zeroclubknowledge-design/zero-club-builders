@@ -48,7 +48,7 @@ export function AppShell({ brand, nav, children }: { brand: ReactNode; nav: NavI
                 key={item.to}
                 to={item.to}
                 aria-current={on ? "page" : undefined}
-                className={`flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-[20px] transition active:scale-95 ${on ? "bg-[#cc208f]/[0.12] text-[#cc208f]" : "text-muted-foreground"}`}
+                className={`flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-[20px] transition active:scale-95 ${on ? "bg-[#c3217e]/[0.12] text-[#c3217e]" : "text-muted-foreground"}`}
               >
                 <Icon className={`h-[20px] w-[20px] ${on ? "scale-110" : ""}`} />
                 <span className="max-w-full truncate px-0.5 text-[9.5px] font-semibold leading-none">{item.label}</span>
@@ -66,7 +66,7 @@ export function PageHead({ eyebrow, title, sub, action }: { eyebrow?: string; ti
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#cc208f]">{eyebrow}</p>}
+        {eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c3217e]">{eyebrow}</p>}
         <h1 className="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight sm:text-[30px]">{title}</h1>
         {sub && <p className="mt-1 max-w-[560px] text-[14px] leading-relaxed text-muted-foreground">{sub}</p>}
       </div>

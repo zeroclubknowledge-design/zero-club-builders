@@ -144,11 +144,11 @@ function CertificatePage() {
           <article
             className={`relative overflow-hidden rounded-[28px] border border-border bg-white p-7 text-[#16171a] shadow-[0_30px_60px_-30px_rgba(0,0,0,.35)] sm:p-12 print:rounded-none print:border-0 print:shadow-none ${c.revoked ? "opacity-60" : ""}`}
           >
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#cc208f] opacity-[0.12] blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-[#cc208f] opacity-[0.08] blur-3xl" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#c3217e] opacity-[0.12] blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-[#c3217e] opacity-[0.08] blur-3xl" />
             <div className="relative flex items-center justify-between gap-4">
               <p className="font-display text-[18px] font-extrabold tracking-tight">Zero Club</p>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-3 py-1 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#cc208f]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#c3217e]/10 px-3 py-1 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#c3217e]">
                 <Award className="h-3.5 w-3.5" /> Certificate of completion
               </span>
             </div>
@@ -162,7 +162,7 @@ function CertificatePage() {
             <p className="relative mt-5 max-w-[560px] text-[15px] leading-relaxed text-[#45474d]">
               has successfully completed the {c.format === "workshop" ? "workshop" : "bootcamp"}
             </p>
-            <p className="relative mt-1 font-display text-[22px] font-bold leading-snug tracking-tight text-[#cc208f] sm:text-[28px]">
+            <p className="relative mt-1 font-display text-[22px] font-bold leading-snug tracking-tight text-[#c3217e] sm:text-[28px]">
               {c.bootcamp_title}
             </p>
             {c.hours ? (

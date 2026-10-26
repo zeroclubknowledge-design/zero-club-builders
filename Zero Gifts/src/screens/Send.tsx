@@ -135,6 +135,7 @@ export function SendGift() {
       refetchUnclaimed();
       void client.invalidateQueries({ queryKey: ["gift-card-profile"] });
       void client.invalidateQueries({ queryKey: ["profile", "current"] });
+      void client.invalidateQueries({ queryKey: ["wallet-balance"] });
       setCreatedCard(card);
       void refreshProfile();
       setMessage("");
@@ -170,7 +171,7 @@ export function SendGift() {
   const waiting = unclaimedCount > 0 ? (
     <Link to="/me" className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-[13px] font-semibold">
       Collecting
-      <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[#cc208f] px-1 text-[11px] font-bold tabular-nums text-white">{unclaimedCount}</span>
+      <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[#c3217e] px-1 text-[11px] font-bold tabular-nums text-white">{unclaimedCount}</span>
     </Link>
   ) : null;
 
@@ -215,7 +216,7 @@ export function SendGift() {
           >
             Send another
           </button>
-          <Link to="/me" className="mt-1 text-[13px] font-semibold text-[#cc208f]">See all your gifts</Link>
+          <Link to="/me" className="mt-1 text-[13px] font-semibold text-[#c3217e]">See all your gifts</Link>
         </main>
       </AppShell>
     );
@@ -367,7 +368,7 @@ export function SendGift() {
               role="switch"
               aria-checked={listPublic}
               onClick={() => setListPublic(!listPublic)}
-              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors ${listPublic ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors ${listPublic ? "bg-[#c3217e]" : "bg-foreground/15"}`}
             >
               <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${listPublic ? "left-6" : "left-1"}`} />
             </button>
@@ -404,7 +405,7 @@ export function SendGift() {
         {!session && <p className="text-center text-[12.5px] text-muted-foreground">Design your card now. You'll sign in or create a free Zero Club account to fund and send it.</p>}
         <AuthSheet open={authOpen} onClose={() => setAuthOpen(false)} onDone={() => { void client.invalidateQueries({ queryKey: ["gift-card-profile"] }); }} />
         {session && !isPlatformAdmin && !hasGiftFunds && (
-          <a href={zc("/app/wallet/add-money")} target="_blank" rel="noreferrer" className="mx-auto mt-1 text-[13px] font-semibold text-[#cc208f]">Add money to your Zero Club wallet</a>
+          <a href={zc("/app/wallet/add-money")} target="_blank" rel="noreferrer" className="mx-auto mt-1 text-[13px] font-semibold text-[#c3217e]">Add money to your Zero Club wallet</a>
         )}
       </main>
     </AppShell>

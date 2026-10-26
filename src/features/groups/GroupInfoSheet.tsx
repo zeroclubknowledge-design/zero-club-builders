@@ -100,8 +100,8 @@ export function GroupInfoSheet({
           />
           {editing ? (
             <div className="mt-4 w-full space-y-2">
-              <input value={name} onChange={(e) => setName(e.target.value.slice(0, 60))} className="h-11 w-full rounded-xl bg-foreground/[0.05] px-3.5 text-center text-[16px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40" />
-              <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 500))} rows={3} placeholder="Group description" className="w-full resize-none rounded-xl bg-foreground/[0.05] px-3.5 py-2.5 text-[14px] outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40" />
+              <input value={name} onChange={(e) => setName(e.target.value.slice(0, 60))} className="h-11 w-full rounded-xl bg-foreground/[0.05] px-3.5 text-center text-[16px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40" />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 500))} rows={3} placeholder="Group description" className="w-full resize-none rounded-xl bg-foreground/[0.05] px-3.5 py-2.5 text-[14px] outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40" />
               <div className="flex gap-2">
                 <button type="button" onClick={() => { setEditing(false); setName(group.name); setDescription(group.description || ""); }} className="h-10 flex-1 rounded-full bg-foreground/[0.06] text-[14px] font-semibold">Cancel</button>
                 <button
@@ -146,8 +146,8 @@ export function GroupInfoSheet({
             {group.invite_enabled ? (
               <>
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#cc208f]/12 text-[#cc208f]"><Link2 className="h-5 w-5" /></span>
-                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-[#cc208f]">{link.replace(/^https?:\/\//, "")}</span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#c3217e]/12 text-[#c3217e]"><Link2 className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1 truncate text-[13.5px] text-[#c3217e]">{link.replace(/^https?:\/\//, "")}</span>
                   <button type="button" onClick={async () => { await navigator.clipboard.writeText(link); toast.success("Invite link copied"); }} aria-label="Copy link" className="grid h-9 w-9 place-items-center rounded-full hover:bg-foreground/[0.06]">
                     <Copy className="h-4 w-4" />
                   </button>
@@ -175,7 +175,7 @@ export function GroupInfoSheet({
         <Section title={`${members.length} members`}>
           {isAdmin && (
             <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-foreground/[0.03]">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#cc208f] text-white"><UserPlus className="h-5 w-5" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#c3217e] text-white"><UserPlus className="h-5 w-5" /></span>
               <span className="text-[14.5px] font-semibold">Add people</span>
             </button>
           )}
@@ -191,7 +191,7 @@ export function GroupInfoSheet({
                   </span>
                 </Link>
                 {m.role !== "member" && (
-                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${m.role === "owner" ? "bg-amber-500/12 text-amber-600 dark:text-amber-400" : "bg-[#cc208f]/12 text-[#cc208f]"}`}>
+                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${m.role === "owner" ? "bg-amber-500/12 text-amber-600 dark:text-amber-400" : "bg-[#c3217e]/12 text-[#c3217e]"}`}>
                     {m.role === "owner" ? <Crown className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />} {m.role === "owner" ? "Owner" : "Admin"}
                   </span>
                 )}
@@ -234,7 +234,7 @@ export function GroupInfoSheet({
                 type="checkbox"
                 checked={group.admins_only_send}
                 onChange={(e) => void run("send", () => updateGroup(group.id, { adminsOnlySend: e.target.checked }))}
-                className="h-5 w-5 shrink-0 accent-[#cc208f]"
+                className="h-5 w-5 shrink-0 accent-[#c3217e]"
               />
             </label>
           </Section>
@@ -291,7 +291,7 @@ export function GroupInfoSheet({
 function QuickAction({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="flex flex-col items-center gap-1.5 rounded-2xl bg-foreground/[0.05] py-3 text-[12.5px] font-semibold text-foreground transition active:scale-95">
-      <span className="text-[#cc208f]">{icon}</span>
+      <span className="text-[#c3217e]">{icon}</span>
       {label}
     </button>
   );

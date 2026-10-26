@@ -82,7 +82,7 @@ export function useMentionResults(
   return { sections, flat };
 }
 
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 
 /** The suggestion list: sections of people with photo, name and @username. */
 export function MentionList({
@@ -124,7 +124,7 @@ export function MentionList({
                 }}
                 onMouseEnter={() => onHover(i)}
                 className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${
-                  selected ? (dark ? "bg-white/[0.08]" : "bg-[#cc208f]/[0.08]") : ""
+                  selected ? (dark ? "bg-white/[0.08]" : "bg-[#c3217e]/[0.08]") : ""
                 }`}
               >
                 <span
@@ -148,7 +148,7 @@ export function MentionList({
                   <span className={`block truncate text-[12px] zc-tag-ink-text ${dark ? "zc-tag-ink-dark" : ""}`}>@{person.username}</span>
                 </span>
                 {person.badge && (
-                  <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${dark ? "text-[#f28fd0]" : "text-muted-foreground"}`}>
+                  <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide ${dark ? "text-[#f089c4]" : "text-muted-foreground"}`}>
                     {person.badge}
                   </span>
                 )}

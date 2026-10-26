@@ -73,7 +73,7 @@ function NewMessagePage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
                 <span className="truncate text-[15px] font-semibold text-foreground">{follower.full_name || follower.username}</span>
-                {follower.verified && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#cc208f] text-white" />}
+                {follower.verified && <BadgeCheck className="h-4 w-4 shrink-0 fill-[#c3217e] text-white" />}
               </div>
               <span className="block truncate text-[13px] text-muted-foreground">@{follower.username || getFirstName(follower)}</span>
             </div>

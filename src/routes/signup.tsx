@@ -309,13 +309,13 @@ function SignUpPage() {
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(120% 90% at 50% 20%, rgba(255,61,176,0.85) 0%, rgba(204,32,143,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
+                "radial-gradient(120% 90% at 50% 20%, rgba(252,56,169,0.85) 0%, rgba(195,33,126,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
             }}
           />
           <div aria-hidden className="zc-grain absolute inset-0 opacity-[0.14]" />
 
           <div className="relative max-w-md">
-            <p className="text-sm font-medium text-[#f2a8dc]">Join the network</p>
+            <p className="text-sm font-medium text-[#f0a2cf]">Join the network</p>
             <h2 className="mt-3 font-display text-[34px] font-normal leading-[1.08] text-white xl:text-[38px]">
               Build a profile people can trust.
             </h2>
@@ -336,7 +336,7 @@ function SignUpPage() {
               <div
                 key={item.n}
                 className={`zc-notch p-4 ${
-                  item.done ? "bg-white/[0.10] ring-1 ring-[#cc208f]/30" : "bg-black/30 ring-1 ring-white/10"
+                  item.done ? "bg-white/[0.10] ring-1 ring-[#c3217e]/30" : "bg-black/30 ring-1 ring-white/10"
                 }`}
               >
                 <span className={`zc-node h-7 w-7 text-[12px] font-semibold ${item.done ? "is-done" : ""}`}>
@@ -360,7 +360,7 @@ function SignUpPage() {
               decoding="async"
               src="/logo.png"
               alt=""
-              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(204,32,143,0.7)]"
+              className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(195,33,126,0.7)]"
             />
             <p className="mt-3 font-display text-[19px] font-medium tracking-tight text-white">Zero Club</p>
             <p className="mt-1 text-[12.5px] text-white/55">Social proof for builders.</p>
@@ -407,7 +407,7 @@ function SignUpPage() {
                         placeholder="adabuilds"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10"
                       />
                     </span>
                   </label>
@@ -421,7 +421,7 @@ function SignUpPage() {
                         placeholder="ada@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10"
+                        className="h-12 w-full min-w-0 rounded-xl border border-black/10 bg-[#fbfaf7] dark:border-white/12 dark:bg-white/[0.04] px-4 pl-11 text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10"
                       />
                     </span>
                   </label>
@@ -436,9 +436,9 @@ function SignUpPage() {
                       placeholder="Enter referral code"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      className={`h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#cc208f]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#cc208f]/10 ${referralCode ? "border-[#cc208f]/35" : "border-black/10 dark:border-white/12"}`}
+                      className={`h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10 ${referralCode ? "border-[#c3217e]/35" : "border-black/10 dark:border-white/12"}`}
                     />
-                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#9d176d]">Applied</span>}
+                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#94185f]">Applied</span>}
                   </span>
                 </label>
 
@@ -447,10 +447,10 @@ function SignUpPage() {
                     type="checkbox"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#cc208f] dark:border-white/25"
+                    className="mt-1 h-4 w-4 rounded border-black/20 accent-[#c3217e] dark:border-white/25"
                   />
                   <span className="text-xs leading-5 text-[#746970] dark:text-white/55">
-                    I agree to the <a href="/terms" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#cc208f] underline underline-offset-2">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#cc208f] underline underline-offset-2">Privacy Policy</a>.
+                    I agree to the <a href="/terms" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#c3217e] underline underline-offset-2">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} className="font-medium text-[#c3217e] underline underline-offset-2">Privacy Policy</a>.
                   </span>
                 </label>
 
@@ -460,7 +460,7 @@ function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c3217e] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(195,33,126,0.8)] transition hover:bg-[#a41c6a] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending code</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
                 </button>
@@ -484,7 +484,7 @@ function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading || code.length < 6}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c3217e] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(195,33,126,0.8)] transition hover:bg-[#a41c6a] active:scale-[0.99] disabled:opacity-60"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying</> : <>Complete signup <ArrowRight className="h-4 w-4" /></>}
                 </button>

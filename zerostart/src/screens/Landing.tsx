@@ -23,7 +23,7 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
           <img src="/logo.png" alt="" className="h-4 w-4" /> Zero Ambassadors
         </span>
         <h1 className="mt-5 max-w-[560px] font-display text-[34px] font-bold leading-[1.05] tracking-tight sm:text-[52px]">
-          Rep Zero Club. <span className="text-[#f28fd0]">Get paid weekly or monthly.</span>
+          Rep Zero Club. <span className="text-[#f089c4]">Get paid weekly or monthly.</span>
         </h1>
         <p className="mt-4 max-w-[480px] text-[15px] leading-relaxed text-white/70">
           Bring people to Zero Club and our partners — in your campus, city or community. Earn commission on

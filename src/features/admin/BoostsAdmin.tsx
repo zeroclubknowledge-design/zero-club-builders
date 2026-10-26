@@ -53,7 +53,7 @@ export function BoostsAdmin() {
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#cc208f]">Sponsored posts</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c3217e]">Sponsored posts</p>
           <h1 className="mt-1 text-[22px] font-semibold">Boosts</h1>
           <p className="mt-1 max-w-[560px] text-[14px] text-muted-foreground">Members boost their own posts from the Boost page. Review what is running, pause anything that needs a look, or remove it.</p>
         </div>

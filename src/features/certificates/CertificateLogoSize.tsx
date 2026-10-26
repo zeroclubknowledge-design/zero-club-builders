@@ -23,7 +23,7 @@ export function CertificateLogoSize({ design, disabled, onChange }: {
         <input id={id} type="range" min={LOGO_SCALE_MIN} max={LOGO_SCALE_MAX} step={0.05}
           disabled={disabled} value={scale} aria-valuetext={`${Math.round(scale * 100)} percent`}
           onChange={(event) => onChange(Number(event.currentTarget.value))}
-          className="h-11 min-w-0 flex-1 cursor-pointer accent-[#cc208f]" />
+          className="h-11 min-w-0 flex-1 cursor-pointer accent-[#c3217e]" />
         <span className="text-[11px] text-muted-foreground">Bigger</span>
       </div>
       <p className="text-[11px] text-muted-foreground">Updates both sides immediately. This size will be used on the issued certificate.</p>

@@ -68,6 +68,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listTournaments, previewPrizeLine } from "@/features/games/v2/api";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { getDeviceId } from "@/lib/device";
+import { useWelcomeEmail } from "@/features/welcome/useWelcomeEmail";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -162,7 +163,7 @@ function AccountAvatar({ url, initial }: { url?: string | null; initial: string 
 
 function AccountSelectedDot({ selected }: { selected: boolean }) {
   return (
-    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/20"}`}>
       {selected && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
     </span>
   );
@@ -363,7 +364,7 @@ function SidebarContent({
                   return (
                     <div
                       key={acc.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${isActive ? "bg-[#cc208f]/[0.06]" : "hover:bg-foreground/[0.04]"}`}
+                      className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${isActive ? "bg-[#c3217e]/[0.06]" : "hover:bg-foreground/[0.04]"}`}
                       onClick={async () => {
                         if (!isActive) {
                           await switchAccount(acc);
@@ -829,14 +830,14 @@ function DesktopWorkspaceRail({
     <aside className="zc-workspace-rail sticky top-0 hidden h-screen w-[336px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/40 bg-background/75 px-5 py-5 xl:flex no-scrollbar">
       {/* Who you are and where you stand */}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[0_18px_44px_-34px_rgba(0,0,0,0.5)]">
-        <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#cc208f]/20 blur-2xl" />
-        <ZeroMark size={88} className="pointer-events-none absolute -bottom-6 -right-5 rotate-12 text-[#cc208f] opacity-[0.07]" />
+        <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#c3217e]/20 blur-2xl" />
+        <ZeroMark size={88} className="pointer-events-none absolute -bottom-6 -right-5 rotate-12 text-[#c3217e] opacity-[0.07]" />
         <div className="relative flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[12px] font-medium text-muted-foreground">{hello}{firstName ? `,` : ""}</p>
             <h2 className="truncate text-[20px] font-bold tracking-[-0.02em] text-foreground">{firstName || "Welcome back"}</h2>
           </div>
-          <span className="shrink-0 rounded-full border border-[#cc208f]/25 bg-[#cc208f]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#cc208f]">
+          <span className="shrink-0 rounded-full border border-[#c3217e]/25 bg-[#c3217e]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#c3217e]">
             {isAdmin ? "Admin" : role}
           </span>
         </div>
@@ -860,7 +861,7 @@ function DesktopWorkspaceRail({
         <div className="mb-2 flex items-center justify-between px-1">
           <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Quick actions</h3>
           {unreadNotificationsCount > 0 && (
-            <Link to="/app/notifications" className="rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[11px] font-semibold text-[#cc208f]">
+            <Link to="/app/notifications" className="rounded-full bg-[#c3217e]/10 px-2.5 py-1 text-[11px] font-semibold text-[#c3217e]">
               {unreadNotificationsCount} new
             </Link>
           )}
@@ -870,10 +871,10 @@ function DesktopWorkspaceRail({
             <Link
               key={action.label}
               to={action.to}
-              className="group flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 text-[14px] font-semibold tracking-tight transition hover:-translate-y-px hover:border-[#cc208f]/30 hover:shadow-[0_10px_24px_-18px_rgba(204,32,143,0.6)]"
+              className="group flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 text-[14px] font-semibold tracking-tight transition hover:-translate-y-px hover:border-[#c3217e]/30 hover:shadow-[0_10px_24px_-18px_rgba(195,33,126,0.6)]"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground/[0.04] transition group-hover:bg-[#cc208f]/10">
-                <action.Icon className="h-[17px] w-[17px] text-muted-foreground transition group-hover:text-[#cc208f]" />
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground/[0.04] transition group-hover:bg-[#c3217e]/10">
+                <action.Icon className="h-[17px] w-[17px] text-muted-foreground transition group-hover:text-[#c3217e]" />
               </span>
               <span className="min-w-0 flex-1 truncate">{action.label}</span>
               <ChevronRight className="h-4 w-4 text-muted-foreground/50 transition group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -888,7 +889,7 @@ function DesktopWorkspaceRail({
           <h3 className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#e0245e]" /> Live on Zero Games
           </h3>
-          <Link to="/app/games" className="text-[12px] font-semibold text-[#cc208f]">See all</Link>
+          <Link to="/app/games" className="text-[12px] font-semibold text-[#c3217e]">See all</Link>
         </div>
         {spotlight.length ? spotlight.map((t) => (
           <Link
@@ -898,7 +899,7 @@ function DesktopWorkspaceRail({
             search={{ code: undefined } as any}
             className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-foreground/[0.04]"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white"><IconGames className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#c3217e] to-[#721e4e] text-white"><IconGames className="h-5 w-5" /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13.5px] font-semibold text-foreground">{t.title}</span>
               <span className="block truncate text-[12px] text-muted-foreground">{previewPrizeLine(t)} · {t.players} {t.players === 1 ? "player" : "players"}</span>
@@ -1005,6 +1006,8 @@ function AppLayout() {
   const [visible, setVisible] = useState(true);
   const [session, setSession] = useState<any>(getInitialSession);
   const [loading, setLoading] = useState(!getInitialSession());
+  // New members get the one-time welcome email once their email is confirmed.
+  useWelcomeEmail(session);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Desktop sidebar: full menu or an icons-only rail, remembered per browser.
@@ -1859,7 +1862,7 @@ function AppLayout() {
                       ? "Black, lit with Zero Club pink"
                       : `Black, lit with Zero Club pink · ${noirAccess.daysLeft} ${noirAccess.daysLeft === 1 ? "day" : "days"} free`
                     : "Black, lit with Zero Club pink · members only",
-                  swatch: "bg-[linear-gradient(150deg,#cc208f_0%,#3d0a2a_52%,#000000_100%)]",
+                  swatch: "bg-[linear-gradient(150deg,#c3217e_0%,#3d0a2a_52%,#000000_100%)]",
                   locked: !noirAccess.allowed,
                   badge: noirAccess.via === "trial" ? "FREE MONTH" : noirAccess.via === "expired" ? "PRO" : null,
                   active: darkMode === "on" && darkTheme === NOIR_THEME,
@@ -1878,7 +1881,7 @@ function AppLayout() {
                 <button
                   key={opt.key}
                   onClick={opt.onClick}
-                  className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 tap transition-colors ${opt.active ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                  className={`flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] p-4 tap transition-colors ${opt.active ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
                 >
                   {/* A colour chip, because the names alone do not tell you what
                       you are choosing — least of all this new one. */}
@@ -1888,7 +1891,7 @@ function AppLayout() {
                     <div className="flex items-center gap-2">
                       <span className="text-[15px] font-semibold text-foreground">{opt.label}</span>
                       {opt.badge && (
-                        <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${opt.locked ? "bg-foreground/[0.06] text-muted-foreground" : "bg-[#cc208f]/10 text-[#a3186f]"}`}>
+                        <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${opt.locked ? "bg-foreground/[0.06] text-muted-foreground" : "bg-[#c3217e]/10 text-[#9a1963]"}`}>
                           {opt.badge}
                         </span>
                       )}
@@ -1899,7 +1902,7 @@ function AppLayout() {
                   {opt.locked ? (
                     <Lock className="h-5 w-5 shrink-0 text-muted-foreground" />
                   ) : (
-                    <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${opt.active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+                    <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${opt.active ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/20"}`}>
                       {opt.active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                     </div>
                   )}

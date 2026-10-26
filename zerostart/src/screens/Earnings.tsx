@@ -177,9 +177,9 @@ function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; curren
   };
 
   return (
-    <section className="relative mt-5 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#1a0f2e_0%,#3b1257_45%,#cc208f_100%)] p-6 text-white shadow-[0_24px_60px_-30px_rgba(204,32,143,0.6)] ring-1 ring-white/10 sm:p-7">
+    <section className="relative mt-5 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#1a0f2e_0%,#3b1257_45%,#c3217e_100%)] p-6 text-white shadow-[0_24px_60px_-30px_rgba(195,33,126,0.6)] ring-1 ring-white/10 sm:p-7">
       <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-[#ff7ac8]/20 blur-2xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-[#fd74c3]/20 blur-2xl" />
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20"><Wallet className="h-5 w-5" /></span>

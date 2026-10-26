@@ -255,7 +255,7 @@ export function ImageLightbox({
                       {emoji}
                     </button>
                   ))}
-                <button type="submit" disabled={!reply.trim() || sending} aria-label="Send reply" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#cc208f] text-white transition disabled:opacity-40">
+                <button type="submit" disabled={!reply.trim() || sending} aria-label="Send reply" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#c3217e] text-white transition disabled:opacity-40">
                   {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </button>
               </div>

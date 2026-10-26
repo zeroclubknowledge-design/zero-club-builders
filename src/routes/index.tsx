@@ -243,7 +243,7 @@ function BrandMark({ light = false }: { light?: boolean }) {
       <span
         className={`font-display text-[19px] font-semibold tracking-tight ${light ? "text-white" : "text-[#171717] dark:text-white"}`}
       >
-        Zero <span className="text-[#cc208f]">Club</span>
+        Zero <span className="text-[#c3217e]">Club</span>
       </span>
     </Link>
   );
@@ -349,7 +349,7 @@ function Header({ referralCode }: ReferralProps) {
                                 {item.detail}
                               </span>
                             </span>
-                            <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#cc208f] opacity-0 transition-opacity group-hover/item:opacity-100" />
+                            <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c3217e] opacity-0 transition-opacity group-hover/item:opacity-100" />
                           </Link>
                         ))}
                       </div>
@@ -433,7 +433,7 @@ function Header({ referralCode }: ReferralProps) {
                             {item.detail}
                           </span>
                         </span>
-                        <ArrowUpRight className="h-5 w-5 shrink-0 text-[#cc208f] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        <ArrowUpRight className="h-5 w-5 shrink-0 text-[#c3217e] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                       </Link>
                     ))}
                   </div>
@@ -493,7 +493,7 @@ function AndroidAppDownload() {
       // Tells the browser to download rather than try to render it, and gives
       // the saved file a sensible name in the user's Downloads folder.
       download="zero-club.apk"
-      className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] px-7 text-[15px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-[#b31c7d] active:scale-[0.98]"
+      className="mt-4 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#c3217e] px-7 text-[15px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-[#aa1d6e] active:scale-[0.98]"
     >
       <Download className="h-4 w-4" />
       Download the Android app
@@ -510,7 +510,7 @@ function ProductSection() {
    */
   return (
     <section className="relative overflow-hidden bg-[#f4f2ef] dark:bg-[#0f0d12]">
-      <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#cc208f]/[0.07] blur-[100px]" />
+      <div className="pointer-events-none absolute -top-40 right-0 h-96 w-96 rounded-full bg-[#c3217e]/[0.07] blur-[100px]" />
       {/* Partner strip leads into the section: it is the bridge from the
           hero's promise to "everything you build", and it no longer competes
           with the hero's call to action. */}
@@ -545,7 +545,7 @@ function TopicExplorer() {
           </h2>
         </div>
         <div>
-          <label className="mb-5 flex min-h-13 items-center gap-3 rounded-full bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-3.5 ring-1 ring-transparent transition-all focus-within:bg-white focus-within:ring-[#cc208f]/40">
+          <label className="mb-5 flex min-h-13 items-center gap-3 rounded-full bg-[#f4f2ef] dark:bg-[#0f0d12] px-5 py-3.5 ring-1 ring-transparent transition-all focus-within:bg-white focus-within:ring-[#c3217e]/40">
             <Search className="h-4.5 w-4.5 shrink-0 text-[#666a70] dark:text-white/55" />
             <input
               type="text"
@@ -664,8 +664,8 @@ function ClubsSection() {
               "Turn community participation into visible trust signals.",
             ].map((item) => (
               <div key={item} className="flex gap-3">
-                <span className="mt-0.5 grid h-5.5 w-5.5 shrink-0 place-items-center rounded-full bg-[#cc208f]/10">
-                  <Check className="h-3 w-3 text-[#cc208f]" strokeWidth={2.5} />
+                <span className="mt-0.5 grid h-5.5 w-5.5 shrink-0 place-items-center rounded-full bg-[#c3217e]/10">
+                  <Check className="h-3 w-3 text-[#c3217e]" strokeWidth={2.5} />
                 </span>
                 <p className="text-[15.5px] leading-relaxed text-[#4d4f55] dark:text-white/60">
                   {item}
@@ -759,14 +759,14 @@ function WalletSection() {
 
         {/* The actual wallet card from the product, built in code */}
         <div className="relative mx-auto w-full max-w-[440px]">
-          <div className="pointer-events-none absolute -top-10 -right-8 h-52 w-52 rounded-full bg-[#cc208f]/15 blur-[70px]" />
+          <div className="pointer-events-none absolute -top-10 -right-8 h-52 w-52 rounded-full bg-[#c3217e]/15 blur-[70px]" />
           {/* Kept in step with the real card in app/wallet: the same gradient
               shell, the same 26px radius, the same two colour washes and
               embossed rings, and the same two figures — balance above,
               withdrawable earnings on the bottom line. If the product card
               changes, this is the one to change with it. */}
           <div className="relative flex min-h-[252px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-7 text-white ring-1 ring-black/10">
-            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
+            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#c3217e]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
             <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />
@@ -858,7 +858,7 @@ function FeaturesSection() {
                 {/* The icon is the small light source each card is built
                     around, the way every card in the reference has one glowing
                     object in it. */}
-                <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#cc208f]/20 to-[#cc208f]/[0.04] text-[#cc208f] ring-1 ring-[#cc208f]/25 shadow-[0_0_24px_-6px_rgba(204,32,143,0.55)]">
+                <div className="grid h-11 w-11 place-items-center rounded-[13px] bg-gradient-to-br from-[#c3217e]/20 to-[#c3217e]/[0.04] text-[#c3217e] ring-1 ring-[#c3217e]/25 shadow-[0_0_24px_-6px_rgba(195,33,126,0.55)]">
                   {feature.icon}
                 </div>
               </div>
@@ -958,7 +958,7 @@ function ContactSection() {
   };
 
   const inputClass =
-    "mt-2 w-full rounded-lg border border-[#171717]/[0.08] dark:border-white/10 bg-white dark:bg-[#141118] px-4 py-3 text-[14px] text-[#171717] dark:text-white outline-none transition placeholder:text-[#8a8c91] focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/[0.07]";
+    "mt-2 w-full rounded-lg border border-[#171717]/[0.08] dark:border-white/10 bg-white dark:bg-[#141118] px-4 py-3 text-[14px] text-[#171717] dark:text-white outline-none transition placeholder:text-[#8a8c91] focus:border-[#c3217e]/50 focus:ring-4 focus:ring-[#c3217e]/[0.07]";
 
   return (
     <section id="contact" className="bg-white dark:bg-[#141118]">
@@ -1114,7 +1114,7 @@ function FaqSection() {
                       {faq.q}
                     </h3>
                     <ChevronDown
-                      className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#cc208f]" : "text-[#666a70] dark:text-white/55"}`}
+                      className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#c3217e]" : "text-[#666a70] dark:text-white/55"}`}
                     />
                   </button>
                   <div
@@ -1146,8 +1146,8 @@ function FinalCta({ referralCode }: ReferralProps) {
             they fill the corners the cone does not reach. */}
         <div className="zc-glow-card relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
           <Spotlight />
-          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
-          <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#cc208f]/10 blur-[90px]" />
+          <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#c3217e]/25 blur-[100px]" />
+          <div className="pointer-events-none absolute -bottom-40 -right-20 h-72 w-72 rounded-full bg-[#c3217e]/10 blur-[90px]" />
           <div className="relative">
             {/* Lit from above, so the mark reads as sitting under the cone
                 rather than pasted onto it. */}
@@ -1155,7 +1155,7 @@ function FinalCta({ referralCode }: ReferralProps) {
               decoding="async"
               src="/logo.png"
               alt="Zero Club"
-              className="mx-auto h-12 w-12 object-contain drop-shadow-[0_0_28px_rgba(204,32,143,0.65)]"
+              className="mx-auto h-12 w-12 object-contain drop-shadow-[0_0_28px_rgba(195,33,126,0.65)]"
             />
             <h2 className="mx-auto mt-4 max-w-[680px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[52px]">
               Built for the next generation of builders.
@@ -1234,7 +1234,7 @@ function Landing() {
   useParallax();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#141118] font-sans text-[#171717] dark:text-white selection:bg-[#cc208f]/20">
+    <div className="min-h-screen bg-white dark:bg-[#141118] font-sans text-[#171717] dark:text-white selection:bg-[#c3217e]/20">
       <Header referralCode={ref} />
       <main>
         {/* The first screen is its own composition now — one viewport, brand

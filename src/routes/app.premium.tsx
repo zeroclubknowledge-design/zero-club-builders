@@ -457,7 +457,7 @@ function MembershipPage() {
                 className={`relative cursor-pointer rounded-2xl bg-card p-4 text-left transition ${active ? "border-2 border-foreground" : "border border-foreground/12 hover:border-foreground/30"}`}
               >
                 {(current || plan.featured) && (
-                  <span className={`absolute -top-[11px] right-4 flex h-[22px] items-center rounded-full px-2.5 text-[11px] font-bold ${current ? "bg-[#1a7f4b] text-white" : "bg-[#cc208f] text-white"}`}>
+                  <span className={`absolute -top-[11px] right-4 flex h-[22px] items-center rounded-full px-2.5 text-[11px] font-bold ${current ? "bg-[#1a7f4b] text-white" : "bg-[#c3217e] text-white"}`}>
                     {current ? "CURRENT" : "POPULAR"}
                   </span>
                 )}

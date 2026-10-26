@@ -42,7 +42,7 @@ import {
 } from "./rates";
 
 import { CardSelect } from "@/components/CardSelect";
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function RateCardEditor({
@@ -110,13 +110,13 @@ export function RateCardEditor({
   /* ── Empty ─────────────────────────────────────────── */
   if (!tiers.length) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#cc208f]/[0.07] via-transparent to-transparent p-5">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#c3217e]/[0.07] via-transparent to-transparent p-5">
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#cc208f]/20 blur-3xl"
+          className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#c3217e]/20 blur-3xl"
         />
         <div className="relative flex items-start gap-3.5">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#cc208f] text-white shadow-[0_10px_24px_-10px_#cc208f]">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#c3217e] text-white shadow-[0_10px_24px_-10px_#c3217e]">
             <Banknote className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -231,10 +231,10 @@ export function RateCardEditor({
       )}
 
       {paused > 0 && (
-        <p className="rounded-xl bg-[#cc208f]/[0.08] px-3 py-2 text-[12.5px] leading-snug">
+        <p className="rounded-xl bg-[#c3217e]/[0.08] px-3 py-2 text-[12.5px] leading-snug">
           {paused} more {paused === 1 ? "tier is" : "tiers are"} paused while your membership is inactive. Visitors see
           your first rate only.{" "}
-          <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+          <Link to="/app/premium" className="font-semibold text-[#c3217e]">
             Renew to bring {paused === 1 ? "it" : "them"} back
           </Link>
         </p>
@@ -297,7 +297,7 @@ function TierEditor({
     <div
       className={`overflow-hidden rounded-2xl border bg-background transition-[box-shadow,border-color] duration-300 ${
         open ? "border-foreground/20 shadow-[0_12px_32px_-18px_rgb(0_0_0/0.35)]" : "border-border"
-      } ${tier.highlight ? "ring-1 ring-[#cc208f]/50" : ""}`}
+      } ${tier.highlight ? "ring-1 ring-[#c3217e]/50" : ""}`}
     >
       {/* Summary row */}
       <div className="flex items-center gap-1.5 py-2 pl-1.5 pr-2">
@@ -305,7 +305,7 @@ function TierEditor({
         <button type="button" onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-3 py-1 text-left">
           <span
             className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[15px] font-bold ${
-              tier.highlight ? "bg-[#cc208f] text-white" : "bg-foreground/[0.06] text-foreground"
+              tier.highlight ? "bg-[#c3217e] text-white" : "bg-foreground/[0.06] text-foreground"
             }`}
           >
             {currencySymbol(currency).slice(0, 3)}
@@ -314,7 +314,7 @@ function TierEditor({
             <span className="flex items-center gap-1.5">
               <span className="truncate text-[14.5px] font-semibold">{tier.name || "Untitled rate"}</span>
               {tier.highlight && (
-                <span className="shrink-0 rounded-full bg-[#cc208f]/12 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-[#cc208f]">
+                <span className="shrink-0 rounded-full bg-[#c3217e]/12 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-[#c3217e]">
                   Popular
                 </span>
               )}
@@ -428,7 +428,7 @@ function TierEditor({
               {premium ? (
                 <div className="space-y-1 rounded-xl bg-foreground/[0.03] p-3">
                   <label className="flex items-center gap-3 py-1">
-                    <Sparkles className="h-4 w-4 shrink-0 text-[#cc208f]" />
+                    <Sparkles className="h-4 w-4 shrink-0 text-[#c3217e]" />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[14px] font-medium">Most popular</span>
                       <span className="block text-[12px] text-muted-foreground">Lift and light this tier</span>
@@ -505,7 +505,7 @@ function Inclusions({
               transition={{ duration: 0.22, ease }}
               className="flex items-center gap-2 rounded-xl border border-border bg-card pl-2.5 pr-1"
             >
-              <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-[#cc208f]/12 text-[#cc208f]">
+              <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-[#c3217e]/12 text-[#c3217e]">
                 <Check className="h-[11px] w-[11px]" />
               </span>
               <input
@@ -562,7 +562,7 @@ function Inclusions({
         !premium && (
           <p className="mt-2 text-[12px] text-muted-foreground">
             PRO lists up to {RATE_LIMITS.pro.features} inclusions per tier.{" "}
-            <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+            <Link to="/app/premium" className="font-semibold text-[#c3217e]">
               Go PRO
             </Link>
           </p>
@@ -579,14 +579,14 @@ function ProUpsell({ className = "" }: { className?: string }) {
   return (
     <Link
       to="/app/premium"
-      className={`group relative block overflow-hidden rounded-2xl border border-border bg-card p-4 transition hover:border-[#cc208f]/40 ${className}`}
+      className={`group relative block overflow-hidden rounded-2xl border border-border bg-card p-4 transition hover:border-[#c3217e]/40 ${className}`}
     >
       <div aria-hidden className="pointer-events-none flex gap-1.5 opacity-70 [mask-image:linear-gradient(90deg,#000_55%,transparent)]">
         {["Basic", "Pro", "Premium"].map((n, i) => (
           <div
             key={n}
             className={`h-[68px] flex-1 rounded-xl border p-2 transition duration-500 group-hover:-translate-y-0.5 ${
-              i === 1 ? "border-[#cc208f]/60 bg-[#cc208f]/[0.08]" : "border-border bg-background"
+              i === 1 ? "border-[#c3217e]/60 bg-[#c3217e]/[0.08]" : "border-border bg-background"
             }`}
             style={{ transitionDelay: `${i * 60}ms` }}
           >
@@ -609,7 +609,7 @@ function ProUpsell({ className = "" }: { className?: string }) {
             Basic, Pro and Premium side by side, a “Most popular” pick and delivery times.
           </span>
         </span>
-        <span className="shrink-0 rounded-full bg-[#cc208f]/12 px-2.5 py-1 text-[11px] font-bold text-[#cc208f]">PRO</span>
+        <span className="shrink-0 rounded-full bg-[#c3217e]/12 px-2.5 py-1 text-[11px] font-bold text-[#c3217e]">PRO</span>
       </div>
     </Link>
   );

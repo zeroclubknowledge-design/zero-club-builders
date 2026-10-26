@@ -28,7 +28,7 @@ export const SIGNAL_COPY: Record<number, { name: string; detail: string; color: 
   0: { name: "Quiet", detail: "Just getting started — a few people have seen it.", color: "" },
   1: { name: "Warming up", detail: "Some people are seeing it.", color: "#f59e0b" },
   2: { name: "Gaining traction", detail: "More people are seeing it and joining in.", color: "#10b981" },
-  3: { name: "Trending", detail: "Most of Zero Club has seen it, joined in and is sharing it.", color: "#cc208f" },
+  3: { name: "Trending", detail: "Most of Zero Club has seen it, joined in and is sharing it.", color: "#c3217e" },
 };
 
 /* ── Batched loading: every card on screen asks, one request answers. ── */

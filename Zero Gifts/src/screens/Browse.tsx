@@ -71,7 +71,7 @@ export function BrowseGifts() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by message or who sent it"
-          className="h-12 w-full rounded-full border border-border bg-card pl-11 pr-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/10"
+          className="h-12 w-full rounded-full border border-border bg-card pl-11 pr-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#c3217e]/50 focus:ring-4 focus:ring-[#c3217e]/10"
         />
         {search && (
           <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.06]">
@@ -103,7 +103,7 @@ export function BrowseGifts() {
           </div>
         ) : list.length === 0 ? (
           <div className="rounded-[22px] border border-dashed border-border bg-card px-6 py-14 text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Compass className="h-6 w-6" /></span>
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Compass className="h-6 w-6" /></span>
             <h3 className="mt-3 text-[16px] font-bold">{filtered ? "No gifts match" : "No open gifts right now"}</h3>
             <p className="mx-auto mt-1 max-w-[360px] text-[13.5px] text-muted-foreground">
               {filtered ? "Try another search or type." : "When someone shares a gift with everyone, it shows up here. You can be the first."}
@@ -152,7 +152,7 @@ function GiftTile({ gift }: { gift: BrowseGift }) {
           ) : gift.mine ? (
             <Link to="/me" search={{ tab: "sent" }} className="inline-flex h-10 items-center rounded-full border border-border px-4 text-[13px] font-semibold">Manage in My gifts</Link>
           ) : (
-            <Link to="/gift/$code" params={{ code: gift.code }} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#cc208f] px-5 text-[13.5px] font-semibold text-white shadow-[0_12px_26px_-14px_rgba(204,32,143,0.9)]">
+            <Link to="/gift/$code" params={{ code: gift.code }} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#c3217e] px-5 text-[13.5px] font-semibold text-white shadow-[0_12px_26px_-14px_rgba(195,33,126,0.9)]">
               Claim gift <ArrowRight className="h-4 w-4" />
             </Link>
           )}

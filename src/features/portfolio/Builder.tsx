@@ -438,7 +438,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             <button
               type="button"
               onClick={() => setPublishOpen(true)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#cc208f] px-4 text-[13.5px] font-semibold text-white"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#c3217e] px-4 text-[13.5px] font-semibold text-white"
             >
               Publish
             </button>
@@ -632,7 +632,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             action={
               <span
                 className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${
-                  canPremium ? "bg-[#cc208f]/12 text-[#cc208f]" : "bg-foreground/[0.06] text-muted-foreground"
+                  canPremium ? "bg-[#c3217e]/12 text-[#c3217e]" : "bg-foreground/[0.06] text-muted-foreground"
                 }`}
               >
                 {canPremium ? "Pro · up to 4 tiers" : "Basic · 1 rate"}
@@ -712,11 +712,11 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
             {draft.portfolio.stored_template &&
               draft.portfolio.stored_template !== draft.portfolio.template &&
               isPremiumTemplate(draft.portfolio.stored_template) && (
-                <p className="mt-2 rounded-xl bg-[#cc208f]/[0.08] px-3 py-2 text-[12.5px] leading-snug text-foreground">
+                <p className="mt-2 rounded-xl bg-[#c3217e]/[0.08] px-3 py-2 text-[12.5px] leading-snug text-foreground">
                   Your{" "}
                   {TEMPLATE_CATALOG.find((t) => t.id === draft.portfolio.stored_template)?.name}{" "}
                   template is paused while your membership is inactive.{" "}
-                  <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+                  <Link to="/app/premium" className="font-semibold text-[#c3217e]">
                     Renew to bring it back
                   </Link>
                 </p>
@@ -743,7 +743,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                       </p>
                       {t.premium && (
                         <span
-                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${locked ? "bg-foreground/[0.08] text-muted-foreground" : "bg-[#cc208f]/12 text-[#cc208f]"}`}
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${locked ? "bg-foreground/[0.08] text-muted-foreground" : "bg-[#c3217e]/12 text-[#c3217e]"}`}
                         >
                           {locked ? "Pro" : "Pro ✓"}
                         </span>
@@ -832,7 +832,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 text-[14px] font-medium">
                     Show "Built with Zero Club"
-                    {!canPremium && <span className="rounded-full bg-[#cc208f]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#cc208f]">PRO</span>}
+                    {!canPremium && <span className="rounded-full bg-[#c3217e]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#c3217e]">PRO</span>}
                   </span>
                   <span className="block text-[12.5px] text-muted-foreground">
                     {canPremium
@@ -847,7 +847,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 />
               </label>
               {!canPremium && (
-                <Link to="/app/premium" className="text-[12.5px] font-semibold text-[#cc208f]">Go PRO</Link>
+                <Link to="/app/premium" className="text-[12.5px] font-semibold text-[#c3217e]">Go PRO</Link>
               )}
             </div>
           </Card>
@@ -874,7 +874,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                 </button>
                 <Link
                   to="/app/premium"
-                  className="inline-flex h-9 items-center rounded-full bg-[#cc208f] px-4 text-[13px] font-semibold text-white"
+                  className="inline-flex h-9 items-center rounded-full bg-[#c3217e] px-4 text-[13px] font-semibold text-white"
                 >
                   Go Premium
                 </Link>
@@ -918,7 +918,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               type="button"
               disabled={!strength.canPublish || publishing}
               onClick={() => void setStatus("published")}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white disabled:opacity-50"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[15px] font-semibold text-white disabled:opacity-50"
             >
               {publishing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -947,7 +947,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           <svg
             viewBox="0 0 100 100"
             aria-hidden="true"
-            className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#cc208f]"
+            className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#c3217e]"
           >
             <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
           </svg>
@@ -958,7 +958,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               <span
                 className="grid h-[84px] w-[84px] place-items-center rounded-full p-[3px]"
                 style={{
-                  background: `linear-gradient(145deg, ${ACCENT_HEX[draft.portfolio.accent] || "#cc208f"} 0%, #cc208f 100%)`,
+                  background: `linear-gradient(145deg, ${ACCENT_HEX[draft.portfolio.accent] || "#c3217e"} 0%, #c3217e 100%)`,
                 }}
               >
                 {draft.profile.avatar_url ? (
@@ -973,7 +973,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
                   </span>
                 )}
               </span>
-              <span className="absolute -bottom-0.5 -right-0.5 grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-[#cc208f]">
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-7 w-7 place-items-center rounded-full border-2 border-card bg-[#c3217e]">
                 <svg viewBox="0 0 100 100" className="h-4 w-4 text-white" aria-hidden="true">
                   <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
                 </svg>
@@ -1011,7 +1011,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
               <button
                 type="button"
                 onClick={share}
-                className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[14.5px] font-semibold text-white"
+                className="flex h-12 items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[14.5px] font-semibold text-white"
               >
                 <Share2 className="h-4 w-4" /> Share
               </button>
@@ -1026,7 +1026,7 @@ export function Builder({ initial }: { initial: PublicPortfolio }) {
           </div>
 
           <div className="relative mx-5 mt-1 flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted-foreground/80">
-            <svg viewBox="0 0 100 100" className="h-3 w-3 text-[#cc208f]" aria-hidden="true">
+            <svg viewBox="0 0 100 100" className="h-3 w-3 text-[#c3217e]" aria-hidden="true">
               <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
             </svg>
             Built with Zero Club
@@ -1601,7 +1601,7 @@ function SkillsEditor({
 type Strength = ReturnType<typeof portfolioStrength>;
 
 function StrengthMeter({ score }: { score: number }) {
-  const tone = score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-[#cc208f]";
+  const tone = score >= 80 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-[#c3217e]";
   return (
     <div className="h-2 overflow-hidden rounded-full bg-foreground/[0.08]">
       <div

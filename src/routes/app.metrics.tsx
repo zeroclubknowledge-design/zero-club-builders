@@ -167,7 +167,7 @@ function MetricCard({
     <article className="min-w-0 rounded-xl border border-foreground/10 p-3">
       <p className="truncate text-[13px] text-muted-foreground">{label}</p>
       <p className="mt-0.5 font-display text-[24px] font-semibold leading-tight text-foreground tabular-nums">{value}</p>
-      <p className={`mt-0.5 line-clamp-2 text-[12px] font-medium leading-4 ${trend === "up" ? "text-[#1a7f4b]" : trend === "down" ? "text-[#cc208f]" : "text-muted-foreground"}`}>
+      <p className={`mt-0.5 line-clamp-2 text-[12px] font-medium leading-4 ${trend === "up" ? "text-[#1a7f4b]" : trend === "down" ? "text-[#c3217e]" : "text-muted-foreground"}`}>
         {trend === "up" ? "▲ " : trend === "down" ? "▼ " : ""}{detail}
       </p>
     </article>
@@ -389,7 +389,7 @@ function MetricsPage() {
 
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <section className={SECTION}>
-          <p className="text-[12px] font-semibold text-[#a3186f]">{roleView.eyebrow}</p>
+          <p className="text-[12px] font-semibold text-[#9a1963]">{roleView.eyebrow}</p>
           <h2 className="mt-1 font-display text-[20px] font-semibold leading-tight text-foreground">{roleView.title}</h2>
           <div className="mt-4 grid grid-cols-2 gap-2.5">
             {insights.isInstitution ? (
@@ -429,7 +429,7 @@ function MetricsPage() {
               return (
                 <div
                   key={`${day.label}-${index}`}
-                  className={`flex-1 rounded-t-md transition-all duration-500 ${isToday ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+                  className={`flex-1 rounded-t-md transition-all duration-500 ${isToday ? "bg-[#c3217e]" : "bg-foreground/15"}`}
                   style={{ height: `${height}%` }}
                   title={`${day.value} ${day.value === 1 ? "action" : "actions"}`}
                 />
@@ -522,7 +522,7 @@ function MetricsPage() {
         <section className={`${SECTION} flex-1 pb-28 md:flex-none md:pb-4`}>
           <h2 className="font-display text-[18px] font-semibold">Next move</h2>
           <Link to={insights.nextAction.to} className="mt-3 flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[#cc208f]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#c3217e]/10 text-[#c3217e]">
               <insights.nextAction.Icon className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">

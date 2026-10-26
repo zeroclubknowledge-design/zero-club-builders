@@ -206,7 +206,7 @@ export function ConfirmCardHost() {
         <svg
           viewBox="0 0 100 100"
           aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-10 h-48 w-48 text-[#cc208f] opacity-[0.06]"
+          className="pointer-events-none absolute -right-12 -top-10 h-48 w-48 text-[#c3217e] opacity-[0.06]"
         >
           <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
         </svg>
@@ -214,7 +214,7 @@ export function ConfirmCardHost() {
         <div className="relative flex items-start gap-3.5">
           <span
             className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
-              danger ? "bg-rose-500/12 text-rose-600" : "bg-[#cc208f]/12 text-[#cc208f]"
+              danger ? "bg-rose-500/12 text-rose-600" : "bg-[#c3217e]/12 text-[#c3217e]"
             }`}
           >
             <Icon className="h-[22px] w-[22px]" />
@@ -278,7 +278,7 @@ export function ConfirmCardHost() {
             className={`h-12 rounded-full px-6 text-[14.5px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-40 sm:h-11 ${
               danger
                 ? "bg-rose-600 shadow-[0_10px_24px_-12px_rgb(225_29_72)] hover:bg-rose-500"
-                : "bg-[#cc208f] shadow-[0_10px_24px_-12px_#cc208f] hover:brightness-110"
+                : "bg-[#c3217e] shadow-[0_10px_24px_-12px_#c3217e] hover:brightness-110"
             }`}
           >
             {confirmLabel}

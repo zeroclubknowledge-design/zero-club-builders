@@ -43,7 +43,7 @@ export function ProductCard({
           />
         ) : (
           <div className={`flex h-full w-full flex-col justify-between p-3.5 ${dark ? "bg-[#221d22] text-white" : "bg-accent/[0.08] text-foreground"}`}>
-            <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${dark ? "text-[#f28fd0]" : "text-accent"}`}>{label}</span>
+            <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${dark ? "text-[#f089c4]" : "text-accent"}`}>{label}</span>
             <span className="line-clamp-4 font-display text-[19px] font-semibold leading-[1.1] tracking-[-0.01em]">{item?.name}</span>
           </div>
         )}

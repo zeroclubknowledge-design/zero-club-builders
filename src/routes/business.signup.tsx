@@ -154,7 +154,7 @@ function BusinessSignUp() {
               </span>
             </div>
             <label className={`flex items-start gap-2.5 text-[12.5px] leading-5 ${businessMuted}`}>
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#cc208f]" />
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#c3217e]" />
               <span>I'm authorized to create this account for my organization and agree to the <Link to="/terms" className={`font-medium underline-offset-4 hover:underline ${businessStrong}`}>Terms</Link> and <Link to="/privacy" className={`font-medium underline-offset-4 hover:underline ${businessStrong}`}>Privacy Policy</Link>.</span>
             </label>
             <button type="submit" disabled={loading} className={businessPrimary}>

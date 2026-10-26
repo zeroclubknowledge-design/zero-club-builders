@@ -365,7 +365,7 @@ export function GiftEditSheet({
             type="button"
             disabled={!changed || !!problem || save.isPending}
             onClick={() => save.mutate()}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white transition hover:bg-[#b41c7e] disabled:opacity-40"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[15px] font-semibold text-white transition hover:bg-[#ab1d6f] disabled:opacity-40"
           >
             {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={2.5} />}
             {!changed ? "No changes yet" : cost > 0 && !sponsored ? `${wasExpired ? "Reactivate" : "Save"} · ${format(cost)}` : wasExpired ? "Save and reactivate" : "Save changes"}

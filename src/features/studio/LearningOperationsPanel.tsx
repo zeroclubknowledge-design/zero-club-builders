@@ -446,7 +446,7 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
       <section className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
         <div className="grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-[1.4fr_1fr] lg:p-8">
           <div>
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#cc208f]"><Activity className="h-5 w-5" /></div>
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#c3217e]"><Activity className="h-5 w-5" /></div>
             <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">{mode === "institution" ? "Digital Hub operations" : "Tutor operations"}</p>
             <h2 className="mt-2 font-display text-[25px] font-semibold tracking-tight sm:text-[30px]">Run every learning experience from one place.</h2>
             <p className="mt-3 max-w-2xl text-[13px] leading-6 text-white/60">Organise intakes, assign learners, schedule live sessions, publish updates, and follow assessment activity without leaving the studio.</p>

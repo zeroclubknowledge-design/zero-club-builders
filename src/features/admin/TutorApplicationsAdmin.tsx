@@ -93,7 +93,7 @@ function ApplicationCard({ app }: { app: AdminTutorApplication }) {
         {app.avatar_url ? (
           <img src={app.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
         ) : (
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/10 font-bold text-[#cc208f]">{app.display_name.charAt(0)}</span>
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-[#c3217e]/10 font-bold text-[#c3217e]">{app.display_name.charAt(0)}</span>
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14.5px] font-semibold">{app.display_name} {app.username && <span className="font-normal text-muted-foreground">@{app.username}</span>}</p>
@@ -105,7 +105,7 @@ function ApplicationCard({ app }: { app: AdminTutorApplication }) {
       {open && (
         <div className="border-t border-border px-4 pb-4 pt-3">
           <div className="flex flex-wrap gap-1.5">
-            {app.subjects.map((s) => <span key={s} className="rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#cc208f]">{s}</span>)}
+            {app.subjects.map((s) => <span key={s} className="rounded-full bg-[#c3217e]/10 px-2.5 py-1 text-[12px] font-semibold text-[#c3217e]">{s}</span>)}
             {[app.experience_years, app.location, ...app.levels, ...app.formats].filter(Boolean).map((s) => (
               <span key={s!} className="rounded-full bg-foreground/[0.06] px-2.5 py-1 text-[12px] font-medium text-foreground/80">{s}</span>
             ))}
@@ -139,7 +139,7 @@ function ApplicationCard({ app }: { app: AdminTutorApplication }) {
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 placeholder="Note to the applicant (required to decline, optional to approve)"
-                className="w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-[13.5px] outline-none focus:border-[#cc208f]"
+                className="w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-[13.5px] outline-none focus:border-[#c3217e]"
               />
               <div className="mt-2 flex gap-2">
                 <button disabled={!!busy} onClick={() => void decide(true)} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 text-[13.5px] font-semibold text-white disabled:opacity-50">
@@ -169,7 +169,7 @@ function Block({ title, children }: { title: string; children: string }) {
 }
 
 function StatusPill({ status }: { status: TutorApplicationStatus }) {
-  const cls = status === "approved" ? "bg-emerald-500/10 text-emerald-600" : status === "rejected" ? "bg-rose-500/10 text-rose-600" : "bg-[#cc208f]/10 text-[#cc208f]";
+  const cls = status === "approved" ? "bg-emerald-500/10 text-emerald-600" : status === "rejected" ? "bg-rose-500/10 text-rose-600" : "bg-[#c3217e]/10 text-[#c3217e]";
   const label = status === "approved" ? "Approved" : status === "rejected" ? "Declined" : "Pending";
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${cls}`}>{label}</span>;
 }

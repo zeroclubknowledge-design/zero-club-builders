@@ -50,7 +50,7 @@ export function GigDisputesAdmin() {
   return (
     <section className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-2">
-        <ShieldCheck className="h-5 w-5 text-[#cc208f]" />
+        <ShieldCheck className="h-5 w-5 text-[#c3217e]" />
         <h2 className="text-[16px] font-semibold">Job disputes</h2>
         <span className="ml-auto text-[12.5px] text-muted-foreground">
           {disputes.length} waiting

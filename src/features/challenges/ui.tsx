@@ -106,7 +106,7 @@ export function statusMeta(status: ChallengeStatus, payout?: PayoutStatus) {
 const TONES = {
   green: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
   violet: "bg-violet-500/12 text-violet-600 dark:text-violet-300",
-  pink: "bg-[#cc208f]/12 text-[#cc208f]",
+  pink: "bg-[#c3217e]/12 text-[#c3217e]",
   amber: "bg-amber-500/14 text-amber-700 dark:text-amber-300",
   muted: "bg-foreground/[0.07] text-muted-foreground",
 };
@@ -138,12 +138,12 @@ export function PrizeHero({
   return (
     <div
       className="relative overflow-hidden rounded-2xl p-[1.5px]"
-      style={{ background: "linear-gradient(135deg,#ff4fc3,#cc208f 45%,#7a1e66)" }}
+      style={{ background: "linear-gradient(135deg,#fd49b0,#c3217e 45%,#721e4e)" }}
     >
       <div className="relative rounded-[15px] bg-card px-4 py-3.5">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#cc208f]/20 blur-2xl"
+          className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#c3217e]/20 blur-2xl"
         />
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           Prize{places > 1 ? ` · ${places} winners` : ""}
@@ -204,10 +204,10 @@ export function HoldToConfirm({
       onKeyDown={(e) => {
         if (e.key === "Enter" && !e.repeat) onConfirm();
       }}
-      className="relative h-12 w-full select-none overflow-hidden rounded-full bg-[#cc208f]/25 text-[15px] font-semibold text-white disabled:opacity-40 [-webkit-touch-callout:none]"
+      className="relative h-12 w-full select-none overflow-hidden rounded-full bg-[#c3217e]/25 text-[15px] font-semibold text-white disabled:opacity-40 [-webkit-touch-callout:none]"
     >
       <span
-        className="absolute inset-y-0 left-0 bg-[#cc208f]"
+        className="absolute inset-y-0 left-0 bg-[#c3217e]"
         style={{ width: `${(busy ? 1 : progress) * 100}%` }}
       />
       <span className="relative flex items-center justify-center gap-2">

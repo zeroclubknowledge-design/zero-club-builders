@@ -119,7 +119,7 @@ export function DraughtBoard({
                       <span aria-hidden className="absolute inset-0" style={{ background: wasTo ? "rgba(255,202,117,0.30)" : "rgba(255,202,117,0.16)" }} />
                     )}
                     {/* Selected square glow */}
-                    {isSelected && <span aria-hidden className="absolute inset-0 bg-[#ff4fc3]/25 shadow-[inset_0_0_0_2px_rgba(255,79,195,0.85)]" />}
+                    {isSelected && <span aria-hidden className="absolute inset-0 bg-[#fd49b0]/25 shadow-[inset_0_0_0_2px_rgba(253,73,176,0.85)]" />}
 
                     {piece !== 0 && (
                       <span
@@ -132,14 +132,14 @@ export function DraughtBoard({
                         <span
                           aria-hidden
                           className="absolute inset-0 translate-y-[6%] rounded-full"
-                          style={{ background: red ? "linear-gradient(180deg,#8c1550,#5b0c34)" : "linear-gradient(180deg,#2b2236,#120c18)" }}
+                          style={{ background: red ? "linear-gradient(180deg,#841555,#5b0c34)" : "linear-gradient(180deg,#2b2236,#120c18)" }}
                         />
                         {/* Face */}
                         <span
                           className={`relative grid h-full w-full place-items-center rounded-full ${canMove && !isSelected ? (mustCapture ? "zd-must" : "zd-breathe") : ""}`}
                           style={{
                             background: red
-                              ? "radial-gradient(circle at 32% 26%,#ff8fcf 0%,#e1328f 38%,#a71862 100%)"
+                              ? "radial-gradient(circle at 32% 26%,#fd89cc 0%,#de2d93 38%,#9e1965 100%)"
                               : "radial-gradient(circle at 32% 26%,#6c5a85 0%,#3a2d4c 42%,#1c1426 100%)",
                             boxShadow: red
                               ? "inset 0 0 0 2px rgba(255,214,236,0.55), inset 0 -3px 6px rgba(0,0,0,0.35)"

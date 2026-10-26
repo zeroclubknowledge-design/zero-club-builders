@@ -19,7 +19,7 @@ export function StakePicker({ value, onChange }: { value: number; onChange: (sta
   const ready = info.data?.account_ready ?? true;
 
   return (
-    <div className="mt-4 rounded-2xl border border-[#ffca75]/20 bg-[linear-gradient(135deg,rgba(255,202,117,0.10),rgba(255,79,195,0.06))] p-3.5">
+    <div className="mt-4 rounded-2xl border border-[#ffca75]/20 bg-[linear-gradient(135deg,rgba(255,202,117,0.10),rgba(253,73,176,0.06))] p-3.5">
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-[#ffca75]">
           <Coins className="h-3.5 w-3.5" /> Stake ZP

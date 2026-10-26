@@ -213,7 +213,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
   if (!note && lockInfo?.exists && lockInfo.locked) {
     return (
       <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-card p-6 text-center">
-        <span className="mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]"><GraduationCap className="h-6 w-6" /></span>
+        <span className="mb-4 grid h-14 w-14 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]"><GraduationCap className="h-6 w-6" /></span>
         <h2 className="mb-2 font-display text-[22px] font-semibold">{lockInfo.title || "This note"} is for bootcamp learners</h2>
         <p className="mb-5 max-w-[320px] text-[14px] leading-relaxed text-muted-foreground">
           {profile?.id ? "Enrol in the bootcamp it was written for to read it." : "Sign in with the account you use for the bootcamp to read it."}
@@ -221,7 +221,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
         {profile?.id && (lockInfo.bootcamps || []).length > 0 && (
           <div className="mb-5 flex flex-wrap justify-center gap-2">
             {(lockInfo.bootcamps || []).map((b) => (
-              <button key={b.id} onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })} className="h-10 rounded-full bg-[#cc208f] px-4 text-[13.5px] font-semibold text-white">
+              <button key={b.id} onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })} className="h-10 rounded-full bg-[#c3217e] px-4 text-[13.5px] font-semibold text-white">
                 View {b.title}
               </button>
             ))}
@@ -302,7 +302,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
         return (
           <div className="my-6 flex flex-col gap-4 rounded-xl bg-foreground/[0.04] p-4">
             <div className="flex items-center gap-4">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">
                 <Mic className="h-5 w-5" />
               </div>
               <div className="flex flex-col">
@@ -375,7 +375,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
           </button>
         </div>
         <div className="h-[3px] bg-foreground/[0.06]">
-          <div className="h-full bg-[#cc208f] transition-[width] duration-150" style={{ width: `${Math.round(readProgress * 100)}%` }} />
+          <div className="h-full bg-[#c3217e] transition-[width] duration-150" style={{ width: `${Math.round(readProgress * 100)}%` }} />
         </div>
       </header>
 
@@ -385,7 +385,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
         className="flex h-full w-full flex-1 flex-col overflow-y-auto pt-[calc(3.6rem+env(safe-area-inset-top))]"
       >
         <article className="zc-page-width relative z-10 mx-auto flex w-full max-w-[680px] flex-1 flex-col px-5 pb-10 pt-6">
-          <span className="text-[12px] font-semibold text-[#a3186f]">ZeroNotes · {readMinutes} min read</span>
+          <span className="text-[12px] font-semibold text-[#9a1963]">ZeroNotes · {readMinutes} min read</span>
           <h1 className="mt-1.5 font-display text-[28px] font-semibold leading-[1.15] text-foreground md:text-[36px]">
             {note.title}
           </h1>
@@ -485,7 +485,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
           <button
             onClick={handleLike}
             aria-pressed={isLiked}
-            className={`flex h-10 items-center gap-1.5 rounded-full px-3 transition hover:bg-foreground/[0.04] ${isLiked ? "text-[#cc208f]" : ""}`}
+            className={`flex h-10 items-center gap-1.5 rounded-full px-3 transition hover:bg-foreground/[0.04] ${isLiked ? "text-[#c3217e]" : ""}`}
           >
             <ThumbsUp className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} /> {isLiked ? "Liked" : "Like"}
           </button>

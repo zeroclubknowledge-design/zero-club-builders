@@ -108,7 +108,7 @@ function BusinessSignIn() {
               New here? <Link to={"/business/signup" as never} className={`font-semibold underline-offset-4 hover:underline ${businessStrong}`}>Create a business account</Link>
             </p>
             <p className={`text-center text-[12.5px] ${businessMuted}`}>
-              Looking for your personal account? <Link to="/signin" className="font-medium text-[#cc208f] underline-offset-4 hover:underline">Personal sign in</Link>
+              Looking for your personal account? <Link to="/signin" className="font-medium text-[#c3217e] underline-offset-4 hover:underline">Personal sign in</Link>
             </p>
           </form>
         ) : (

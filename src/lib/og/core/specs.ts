@@ -138,12 +138,12 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
       const stats = data.stats || {};
       const name = profile.full_name || profile.username || "A builder";
       const accents: Record<string, [string, string]> = {
-        pink: ["#e0329f", "#7a1e66"],
+        pink: ["#dd2d92", "#721e4e"],
         violet: ["#8b5cf6", "#3b1f7a"],
         emerald: ["#10b981", "#065f46"],
         amber: ["#f59e0b", "#7c2d12"],
         sky: ["#38bdf8", "#1e3a8a"],
-        mono: ["#cc208f", "#7a1e66"],
+        mono: ["#c3217e", "#721e4e"],
       };
       const [accent, accent2] = accents[portfolio.accent] || accents.pink;
       const ships = Number(stats.ships) || 0;

@@ -104,7 +104,7 @@ export function ClubNotePicker({
               <div className="rounded-2xl border border-dashed border-border px-5 py-8 text-center">
                 <p className="text-[15px] font-semibold">No published notes yet</p>
                 <p className="mt-1 text-[13px] text-muted-foreground">Write a note and publish it for your bootcamp learners, then attach it here.</p>
-                <button onClick={() => { onOpenChange(false); navigate({ to: "/app/notes/create" } as never); }} className="mt-4 h-10 rounded-full bg-[#cc208f] px-5 text-[13.5px] font-semibold text-white">Write a note</button>
+                <button onClick={() => { onOpenChange(false); navigate({ to: "/app/notes/create" } as never); }} className="mt-4 h-10 rounded-full bg-[#c3217e] px-5 text-[13.5px] font-semibold text-white">Write a note</button>
               </div>
             ) : (
               (notes.data || []).map((note) => (
@@ -117,12 +117,12 @@ export function ClubNotePicker({
                   {note.cover_url ? (
                     <img src={note.cover_url} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" loading="lazy" />
                   ) : (
-                    <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><BookOpen className="h-6 w-6" /></span>
+                    <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><BookOpen className="h-6 w-6" /></span>
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-2 text-[14.5px] font-semibold leading-snug text-foreground">{note.title}</span>
                     <span className="mt-1 flex items-center gap-1 truncate text-[12px] text-muted-foreground">
-                      {note.audience === "bootcamps" ? <GraduationCap className="h-3.5 w-3.5 shrink-0 text-[#cc208f]" /> : <Globe className="h-3.5 w-3.5 shrink-0" />}
+                      {note.audience === "bootcamps" ? <GraduationCap className="h-3.5 w-3.5 shrink-0 text-[#c3217e]" /> : <Globe className="h-3.5 w-3.5 shrink-0" />}
                       {note.audience === "bootcamps" ? (note.bootcamps.length ? note.bootcamps.join(", ") : "Bootcamp learners") : "Public"}
                     </span>
                   </span>
@@ -149,12 +149,12 @@ export function ClubNoteCard({ note, isMe }: { note: ClubNotePayload; isMe: bool
       {note.cover_url ? (
         <img src={note.cover_url} alt="" className="aspect-[16/8] w-full object-cover" loading="lazy" />
       ) : (
-        <div className={`flex aspect-[16/7] w-full items-center justify-center ${isMe ? "bg-white/10" : "bg-[#cc208f]/10"}`}>
-          <BookOpen className={`h-8 w-8 ${isMe ? "text-white/70" : "text-[#cc208f]"}`} />
+        <div className={`flex aspect-[16/7] w-full items-center justify-center ${isMe ? "bg-white/10" : "bg-[#c3217e]/10"}`}>
+          <BookOpen className={`h-8 w-8 ${isMe ? "text-white/70" : "text-[#c3217e]"}`} />
         </div>
       )}
       <div className="pt-2.5">
-        <p className={`flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide ${isMe ? "text-white/60" : "text-[#cc208f]"}`}>
+        <p className={`flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide ${isMe ? "text-white/60" : "text-[#c3217e]"}`}>
           <BookOpen className="h-3 w-3" /> ZeroNote{note.audience === "bootcamps" ? " · Bootcamp learners" : ""}
         </p>
         <p className={`mt-1 line-clamp-2 text-[15px] font-semibold leading-snug ${isMe ? "text-white" : "text-foreground"}`}>{note.title}</p>

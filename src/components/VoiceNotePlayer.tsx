@@ -192,7 +192,7 @@ export function VoiceNotePlayer({
 
   // My bubbles are brand pink with white ink, so the player goes white there.
   const ink = mine ? "text-white" : "text-foreground";
-  const filled = mine ? "bg-white" : "bg-[#cc208f]";
+  const filled = mine ? "bg-white" : "bg-[#c3217e]";
   const empty = mine ? "bg-white/35" : "bg-foreground/25";
 
   return (
@@ -201,7 +201,7 @@ export function VoiceNotePlayer({
         type="button"
         onClick={toggle}
         aria-label={playing ? "Pause voice note" : "Play voice note"}
-        className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full transition active:scale-90 bg-[#cc208f] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.9)]`}
+        className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full transition active:scale-90 bg-[#c3217e] text-white shadow-[0_6px_16px_-8px_rgba(195,33,126,0.9)]`}
       >
         {loading ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -243,7 +243,7 @@ export function VoiceNotePlayer({
           {/* The playhead, so the exact spot is clear while it moves. */}
           <span
             aria-hidden
-            className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow ${mine ? "bg-white" : "bg-[#cc208f]"}`}
+            className={`pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow ${mine ? "bg-white" : "bg-[#c3217e]"}`}
             style={{ left: `${progress * 100}%` }}
           />
         </div>
@@ -266,7 +266,7 @@ export function VoiceNotePlayer({
         <span className="relative h-9 w-9 shrink-0">
           <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
           <span
-            className={`absolute -bottom-0.5 -left-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#cc208f] text-white ring-2 ${mine ? "ring-[#c21f8c]" : "ring-card"}`}
+            className={`absolute -bottom-0.5 -left-0.5 grid h-4 w-4 place-items-center rounded-full bg-[#c3217e] text-white ring-2 ${mine ? "ring-[#c3217e]" : "ring-card"}`}
           >
             <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="currentColor" aria-hidden>
               <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z" />

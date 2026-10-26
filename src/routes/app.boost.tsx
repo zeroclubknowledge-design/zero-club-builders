@@ -147,11 +147,11 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
       <div className="space-y-4">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-2xl bg-[#140a12] p-5 text-white sm:p-6">
-          <div aria-hidden className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#cc208f]/40 blur-3xl" />
-          <div aria-hidden className="absolute -bottom-28 left-10 h-56 w-56 rounded-full bg-[#7a1e66]/50 blur-3xl" />
+          <div aria-hidden className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#c3217e]/40 blur-3xl" />
+          <div aria-hidden className="absolute -bottom-28 left-10 h-56 w-56 rounded-full bg-[#721e4e]/50 blur-3xl" />
           <div className="relative">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80 ring-1 ring-white/15">
-              <Rocket className="h-3.5 w-3.5 text-[#ff7ac8]" /> Boost
+              <Rocket className="h-3.5 w-3.5 text-[#fd74c3]" /> Boost
             </span>
             <h2 className="mt-3 max-w-[520px] font-display text-[26px] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[32px]">
               Put your work in front of the whole club.
@@ -166,7 +166,7 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
                 { Icon: Zap, title: "You earn too", body: `+${BOOST_LAUNCH_XP} XP, and unused budget comes back` },
               ].map(({ Icon, title, body }) => (
                 <div key={title} className="rounded-xl bg-white/[0.06] p-3 ring-1 ring-white/10">
-                  <Icon className="h-4 w-4 text-[#ff7ac8]" />
+                  <Icon className="h-4 w-4 text-[#fd74c3]" />
                   <p className="mt-1.5 text-[13.5px] font-semibold">{title}</p>
                   <p className="text-[12px] leading-snug text-white/60">{body}</p>
                 </div>
@@ -176,7 +176,7 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
         </section>
 
         {/* 1. Post */}
-        <Step n={1} title="Choose a post" action={post && !picking ? <button onClick={() => setPicking(true)} className="text-[13px] font-semibold text-[#cc208f]">Change</button> : null}>
+        <Step n={1} title="Choose a post" action={post && !picking ? <button onClick={() => setPicking(true)} className="text-[13px] font-semibold text-[#c3217e]">Change</button> : null}>
           {picking || !post ? (
             myPosts.isLoading ? (
               <div className="grid h-24 place-items-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
@@ -195,7 +195,7 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
                     <button
                       key={p.id}
                       onClick={() => { setPostId(p.id); setPicking(false); }}
-                      className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border hover:border-foreground/20"}`}
+                      className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#c3217e] bg-[#c3217e]/[0.05]" : "border-border hover:border-foreground/20"}`}
                     >
                       {img ? <img src={img} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" /> : <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-foreground/[0.05]"><Sparkles className="h-4 w-4 text-muted-foreground" /></span>}
                       <span className="min-w-0 flex-1">
@@ -222,9 +222,9 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
                 <button
                   key={value}
                   onClick={() => setGoal(value)}
-                  className={`rounded-xl border p-3.5 text-left transition ${on ? "border-[#cc208f] bg-[#cc208f]/[0.05] shadow-[0_10px_24px_-18px_rgba(204,32,143,0.8)]" : "border-border hover:border-foreground/20"}`}
+                  className={`rounded-xl border p-3.5 text-left transition ${on ? "border-[#c3217e] bg-[#c3217e]/[0.05] shadow-[0_10px_24px_-18px_rgba(195,33,126,0.8)]" : "border-border hover:border-foreground/20"}`}
                 >
-                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#cc208f] text-white" : "bg-foreground/[0.05] text-foreground"}`}><Icon className="h-[18px] w-[18px]" /></span>
+                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#c3217e] text-white" : "bg-foreground/[0.05] text-foreground"}`}><Icon className="h-[18px] w-[18px]" /></span>
                   <span className="mt-2 block text-[14px] font-semibold">{GOALS[value].title}</span>
                   <span className="mt-0.5 block text-[12.5px] leading-snug text-muted-foreground">{GOALS[value].detail}</span>
                 </button>
@@ -239,7 +239,7 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://your-site.com"
                 inputMode="url"
-                className={`h-11 w-full rounded-xl border bg-background px-3.5 text-[15px] outline-none transition focus:border-[#cc208f] ${url && !urlOk ? "border-red-400" : "border-border"}`}
+                className={`h-11 w-full rounded-xl border bg-background px-3.5 text-[15px] outline-none transition focus:border-[#c3217e] ${url && !urlOk ? "border-red-400" : "border-border"}`}
               />
             </label>
           )}
@@ -256,7 +256,7 @@ function NewBoost({ initialPost, onLaunched }: { initialPost?: string; onLaunche
               onChange={(e) => setCustom(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="Custom ₦"
               inputMode="numeric"
-              className={`h-10 w-[120px] rounded-full border px-4 text-[14px] font-semibold outline-none transition focus:border-[#cc208f] ${custom ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border bg-background"}`}
+              className={`h-10 w-[120px] rounded-full border px-4 text-[14px] font-semibold outline-none transition focus:border-[#c3217e] ${custom ? "border-[#c3217e] bg-[#c3217e]/[0.05]" : "border-border bg-background"}`}
             />
           </div>
           {!budgetOk && <p className="mt-2 text-[12.5px] text-red-500">Budgets run from ₦500 to ₦500,000.</p>}
@@ -348,7 +348,7 @@ function Step({ n, title, action, children }: { n: number; title: string; action
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`h-10 rounded-full border px-4 text-[14px] font-semibold transition active:scale-95 ${on ? "border-[#cc208f] bg-[#cc208f] text-white" : "border-border bg-background hover:border-foreground/25"}`}>
+    <button onClick={onClick} className={`h-10 rounded-full border px-4 text-[14px] font-semibold transition active:scale-95 ${on ? "border-[#c3217e] bg-[#c3217e] text-white" : "border-border bg-background hover:border-foreground/25"}`}>
       {children}
     </button>
   );
@@ -356,21 +356,21 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
 
 function Toggle({ on, onClick, Icon, title, body }: { on: boolean; onClick: () => void; Icon: typeof Users; title: string; body: string }) {
   return (
-    <button onClick={onClick} aria-pressed={on} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border"}`}>
-      <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#cc208f] text-white" : "bg-foreground/[0.05]"}`}><Icon className="h-[18px] w-[18px]" /></span>
+    <button onClick={onClick} aria-pressed={on} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#c3217e] bg-[#c3217e]/[0.05]" : "border-border"}`}>
+      <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#c3217e] text-white" : "bg-foreground/[0.05]"}`}><Icon className="h-[18px] w-[18px]" /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-[14px] font-semibold">{title}</span>
         <span className="block text-[12px] text-muted-foreground">{body}</span>
       </span>
-      <span className={`grid h-5 w-5 place-items-center rounded-full border ${on ? "border-[#cc208f] bg-[#cc208f] text-white" : "border-border"}`}>{on && <Check className="h-3 w-3" />}</span>
+      <span className={`grid h-5 w-5 place-items-center rounded-full border ${on ? "border-[#c3217e] bg-[#c3217e] text-white" : "border-border"}`}>{on && <Check className="h-3 w-3" />}</span>
     </button>
   );
 }
 
 function PayOption({ on, onClick, Icon, title, price, balance, short }: { on: boolean; onClick: () => void; Icon: typeof Wallet; title: string; price: string; balance: string; short: boolean }) {
   return (
-    <button onClick={onClick} aria-pressed={on} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border"}`}>
-      <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#cc208f] text-white" : "bg-foreground/[0.05]"}`}><Icon className="h-[18px] w-[18px]" /></span>
+    <button onClick={onClick} aria-pressed={on} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${on ? "border-[#c3217e] bg-[#c3217e]/[0.05]" : "border-border"}`}>
+      <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-[#c3217e] text-white" : "bg-foreground/[0.05]"}`}><Icon className="h-[18px] w-[18px]" /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-[14px] font-semibold">{title}</span>
         <span className={`block text-[12px] ${short ? "text-red-500" : "text-muted-foreground"}`}>{balance}</span>
@@ -394,7 +394,7 @@ function LaunchButton({ ready, launching, onClick, label }: { ready: boolean; la
     <button
       onClick={onClick}
       disabled={!ready || launching}
-      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] text-[15px] font-bold text-white shadow-[0_14px_30px_-14px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:shadow-none"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] text-[15px] font-bold text-white shadow-[0_14px_30px_-14px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:shadow-none"
     >
       {launching ? <Loader2 className="h-5 w-5 animate-spin" /> : <Rocket className="h-5 w-5" />}
       {label}
@@ -428,7 +428,7 @@ function MyBoosts({ query, onNew }: { query: { data?: MyBoost[]; isLoading: bool
   if (!boosts.length) {
     return (
       <div className="mx-auto max-w-[460px] rounded-2xl border border-border bg-card px-6 py-12 text-center">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Rocket className="h-7 w-7" /></span>
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Rocket className="h-7 w-7" /></span>
         <h2 className="mt-4 font-display text-[20px] font-semibold">No boosts yet</h2>
         <p className="mt-1.5 text-[14px] text-muted-foreground">Boost a post to reach the whole club and reward people who back your work.</p>
         <button onClick={onNew} className="mt-5 h-11 rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Boost a post</button>
@@ -464,7 +464,7 @@ function MyBoosts({ query, onNew }: { query: { data?: MyBoost[]; isLoading: bool
                 <span className="text-muted-foreground">{live || paused ? `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left` : new Date(b.ends_at).toLocaleDateString()}</span>
               </div>
               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-foreground/[0.06]">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#cc208f] to-[#ff7ac8]" style={{ width: `${progress}%` }} />
+                <div className="h-full rounded-full bg-gradient-to-r from-[#c3217e] to-[#fd74c3]" style={{ width: `${progress}%` }} />
               </div>
             </div>
 

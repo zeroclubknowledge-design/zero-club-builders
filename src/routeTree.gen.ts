@@ -22,6 +22,7 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as ApiOgDefaultRouteImport } from './routes/api.og-default'
 import { Route as ApiUnfurlRouteImport } from './routes/api.unfurl'
+import { Route as ApiWelcomeEmailRouteImport } from './routes/api.welcome-email'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppBookmarksRouteImport } from './routes/app.bookmarks'
@@ -202,6 +203,11 @@ const ApiOgDefaultRoute = ApiOgDefaultRouteImport.update({
 const ApiUnfurlRoute = ApiUnfurlRouteImport.update({
   id: '/api/unfurl',
   path: '/api/unfurl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWelcomeEmailRoute = ApiWelcomeEmailRouteImport.update({
+  id: '/api/welcome-email',
+  path: '/api/welcome-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -798,6 +804,7 @@ export interface FileRoutesByFullPath {
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
+  '/api/welcome-email': typeof ApiWelcomeEmailRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -927,6 +934,7 @@ export interface FileRoutesByTo {
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
+  '/api/welcome-email': typeof ApiWelcomeEmailRoute
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
   '/app/business': typeof AppBusinessRoute
@@ -1053,6 +1061,7 @@ export interface FileRoutesById {
   '/api/contact': typeof ApiContactRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
+  '/api/welcome-email': typeof ApiWelcomeEmailRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bookmarks': typeof AppBookmarksRoute
   '/app/boost': typeof AppBoostRoute
@@ -1185,6 +1194,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/api/og-default'
     | '/api/unfurl'
+    | '/api/welcome-email'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -1314,6 +1324,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/api/og-default'
     | '/api/unfurl'
+    | '/api/welcome-email'
     | '/app/bookmarks'
     | '/app/boost'
     | '/app/business'
@@ -1439,6 +1450,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/api/og-default'
     | '/api/unfurl'
+    | '/api/welcome-email'
     | '/app/admin'
     | '/app/bookmarks'
     | '/app/boost'
@@ -1570,6 +1582,7 @@ export interface RootRouteChildren {
   ApiContactRoute: typeof ApiContactRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
   ApiUnfurlRoute: typeof ApiUnfurlRoute
+  ApiWelcomeEmailRoute: typeof ApiWelcomeEmailRoute
   BusinessSigninRoute: typeof BusinessSigninRoute
   BusinessSignupRoute: typeof BusinessSignupRoute
   BusinessWelcomeRoute: typeof BusinessWelcomeRoute
@@ -1686,6 +1699,13 @@ declare module '@tanstack/react-router' {
       path: '/api/unfurl'
       fullPath: '/api/unfurl'
       preLoaderRoute: typeof ApiUnfurlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/welcome-email': {
+      id: '/api/welcome-email'
+      path: '/api/welcome-email'
+      fullPath: '/api/welcome-email'
+      preLoaderRoute: typeof ApiWelcomeEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -2790,6 +2810,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRoute: ApiContactRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,
   ApiUnfurlRoute: ApiUnfurlRoute,
+  ApiWelcomeEmailRoute: ApiWelcomeEmailRoute,
   BusinessSigninRoute: BusinessSigninRoute,
   BusinessSignupRoute: BusinessSignupRoute,
   BusinessWelcomeRoute: BusinessWelcomeRoute,

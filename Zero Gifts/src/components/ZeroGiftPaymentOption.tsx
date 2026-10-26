@@ -75,10 +75,10 @@ export function ZeroGiftPaymentOption({
   const usable = amount > 0 ? Math.min(amount, available) : available;
   const shell = dark
     ? applied
-      ? "border-[#f06ac3]/45 bg-[#cc208f]/15"
+      ? "border-[#ee64b3]/45 bg-[#c3217e]/15"
       : "border-white/12 bg-white/[0.045]"
     : applied
-      ? "border-[#cc208f]/35 bg-[#cc208f]/[0.07]"
+      ? "border-[#c3217e]/35 bg-[#c3217e]/[0.07]"
       : "border-border bg-card";
 
   return (
@@ -90,7 +90,7 @@ export function ZeroGiftPaymentOption({
       className={`flex w-full items-center gap-3 rounded-lg border p-3.5 text-left transition ${shell}`}
     >
       <span
-        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${applied ? "bg-[#cc208f] text-white" : dark ? "bg-white/10 text-[#f06ac3]" : "bg-[#cc208f]/10 text-[#cc208f]"}`}
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${applied ? "bg-[#c3217e] text-white" : dark ? "bg-white/10 text-[#ee64b3]" : "bg-[#c3217e]/10 text-[#c3217e]"}`}
       >
         <Gift className="h-4 w-4" />
       </span>
@@ -111,7 +111,7 @@ export function ZeroGiftPaymentOption({
         </span>
       </span>
       <span
-        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${applied ? "border-[#cc208f] bg-[#cc208f] text-white" : dark ? "border-white/25" : "border-border"}`}
+        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${applied ? "border-[#c3217e] bg-[#c3217e] text-white" : dark ? "border-white/25" : "border-border"}`}
       >
         {applied && <Check className="h-3 w-3" strokeWidth={3} />}
       </span>

@@ -61,7 +61,7 @@ const PERIODS = [
 ] as const;
 
 const KINDS = [
-  { key: "invites", label: "Invited", one: "invite", Icon: UserPlus, color: "#ff4fc3" },
+  { key: "invites", label: "Invited", one: "invite", Icon: UserPlus, color: "#fd49b0" },
   { key: "answers", label: "Answers", one: "answer", Icon: MessageCircle, color: "#34d399" },
   { key: "questions", label: "Questions", one: "question", Icon: HelpCircle, color: "#60a5fa" },
   { key: "assignments", label: "Assignments", one: "assignment", Icon: ClipboardCheck, color: "#fbbf24" },
@@ -161,7 +161,7 @@ export function ContributorsView({
           <h2 className="truncate font-display text-[17px] font-semibold leading-tight">Contributors</h2>
           <p className="truncate text-[12.5px] text-muted-foreground">The people growing {clubName}</p>
         </div>
-        <button type="button" onClick={() => void invite()} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3.5 text-[13px] font-semibold text-white transition active:scale-95">
+        <button type="button" onClick={() => void invite()} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#c3217e] px-3.5 text-[13px] font-semibold text-white transition active:scale-95">
           <UserPlus className="h-4 w-4" /> Invite
         </button>
       </header>
@@ -190,7 +190,7 @@ export function ContributorsView({
           </p>
         ) : !people.length ? (
           <div className="mt-10 rounded-[28px] border border-dashed border-border px-6 py-14 text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Sparkles className="h-6 w-6" /></span>
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Sparkles className="h-6 w-6" /></span>
             <p className="mt-4 font-display text-[18px] font-semibold">No contributions {days === 7 ? "this week" : days === 30 ? "this month" : "yet"}</p>
             <p className="mx-auto mt-1 max-w-[340px] text-[13.5px] leading-relaxed text-muted-foreground">
               Answer a question, hand in an assignment or invite a friend, and you'll be the first name here.
@@ -204,7 +204,7 @@ export function ContributorsView({
             {/* Podium */}
             <section
               className="relative mt-6 overflow-hidden rounded-[30px] px-3 pb-6 pt-8 ring-1 ring-foreground/[0.06]"
-              style={{ background: "radial-gradient(90% 70% at 50% 0%, rgba(204,32,143,0.16), transparent 70%), radial-gradient(60% 60% at 100% 100%, rgba(245,158,11,0.10), transparent 70%)" }}
+              style={{ background: "radial-gradient(90% 70% at 50% 0%, rgba(195,33,126,0.16), transparent 70%), radial-gradient(60% 60% at 100% 100%, rgba(245,158,11,0.10), transparent 70%)" }}
             >
               <div className="grid grid-cols-3 items-end gap-2">
                 {[1, 0, 2].map((i) => {
@@ -256,11 +256,11 @@ export function ContributorsView({
 
             {/* Your standing */}
             {me && (
-              <section className="mt-5 overflow-hidden rounded-[24px] p-[1px]" style={{ background: "linear-gradient(135deg, rgba(204,32,143,0.6), rgba(245,158,11,0.4), rgba(204,32,143,0.15))" }}>
+              <section className="mt-5 overflow-hidden rounded-[24px] p-[1px]" style={{ background: "linear-gradient(135deg, rgba(195,33,126,0.6), rgba(245,158,11,0.4), rgba(195,33,126,0.15))" }}>
                 <div className="flex items-center gap-3 rounded-[23px] bg-card p-4">
-                  <Avatar p={me} size={48} ring="linear-gradient(135deg,#ff4fc3,#cc208f)" />
+                  <Avatar p={me} size={48} ring="linear-gradient(135deg,#fd49b0,#c3217e)" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#cc208f]">Your standing</p>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c3217e]">Your standing</p>
                     <p className="font-display text-[18px] font-bold">
                       {me.points > 0 ? <>#{me.place} <span className="text-muted-foreground">·</span> {me.points.toLocaleString()} pts</> : "Not ranked yet"}
                     </p>
@@ -291,7 +291,7 @@ export function ContributorsView({
                   {rest.map((p) => {
                     const mine = p.profile_id === meId;
                     return (
-                      <li key={p.profile_id} className={`flex items-center gap-3 rounded-2xl p-3 ring-1 transition ${mine ? "bg-[#cc208f]/[0.07] ring-[#cc208f]/30" : "bg-card ring-foreground/[0.06]"}`}>
+                      <li key={p.profile_id} className={`flex items-center gap-3 rounded-2xl p-3 ring-1 transition ${mine ? "bg-[#c3217e]/[0.07] ring-[#c3217e]/30" : "bg-card ring-foreground/[0.06]"}`}>
                         <span className="w-7 shrink-0 text-center font-display text-[15px] font-bold tabular-nums text-muted-foreground">{p.place}</span>
                         <Avatar p={p} size={42} />
                         <div className="min-w-0 flex-1">
@@ -309,7 +309,7 @@ export function ContributorsView({
                             )}
                           </div>
                           <div className="mt-2 h-1 overflow-hidden rounded-full bg-foreground/[0.06]">
-                            <div className="h-full rounded-full bg-[linear-gradient(90deg,#cc208f,#ff7ac8)]" style={{ width: `${Math.max(4, (p.points / best) * 100)}%` }} />
+                            <div className="h-full rounded-full bg-[linear-gradient(90deg,#c3217e,#fd74c3)]" style={{ width: `${Math.max(4, (p.points / best) * 100)}%` }} />
                           </div>
                         </div>
                         <span className="shrink-0 text-right">
@@ -332,13 +332,13 @@ export function ContributorsView({
         {/* How points work */}
         <section className="mt-6 rounded-2xl bg-foreground/[0.03] ring-1 ring-foreground/[0.06]">
           <button type="button" onClick={() => setHowOpen((v) => !v)} aria-expanded={howOpen} className="flex w-full items-center gap-2 px-4 py-3.5 text-left">
-            <Award className="h-4 w-4 text-[#cc208f]" />
+            <Award className="h-4 w-4 text-[#c3217e]" />
             <span className="flex-1 text-[14px] font-semibold">How contributions are counted</span>
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${howOpen ? "rotate-180" : ""}`} />
           </button>
           {howOpen && (
             <ul className="space-y-2 px-4 pb-4 text-[13px]">
-              <Rule icon={<UserPlus className="h-3.5 w-3.5 text-[#ff4fc3]" />} text="Invite someone who joins (share your link)" pts="25" />
+              <Rule icon={<UserPlus className="h-3.5 w-3.5 text-[#fd49b0]" />} text="Invite someone who joins (share your link)" pts="25" />
               <Rule icon={<ClipboardCheck className="h-3.5 w-3.5 text-amber-400" />} text="Hand in an assignment (more for a good grade)" pts="8–12" />
               <Rule icon={<Target className="h-3.5 w-3.5 text-violet-400" />} text="Take a quiz (more when you pass)" pts="5–8" />
               <Rule icon={<MessageCircle className="h-3.5 w-3.5 text-emerald-400" />} text="Answer someone's question" pts="5" />
@@ -359,7 +359,7 @@ function Rule({ icon, text, pts }: { icon: ReactNode; text: string; pts: string 
     <li className="flex items-center gap-2.5">
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-background ring-1 ring-foreground/[0.06]">{icon}</span>
       <span className="flex-1 text-foreground/85">{text}</span>
-      <span className="shrink-0 rounded-full bg-[#cc208f]/10 px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-[#cc208f]">+{pts}</span>
+      <span className="shrink-0 rounded-full bg-[#c3217e]/10 px-2 py-0.5 text-[11.5px] font-bold tabular-nums text-[#c3217e]">+{pts}</span>
     </li>
   );
 }

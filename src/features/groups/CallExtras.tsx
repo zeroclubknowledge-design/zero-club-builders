@@ -12,7 +12,7 @@ export const CALL_FX_CSS = `
 }
 @keyframes zgc-pop { from { transform: translateY(10px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes zgc-wave { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } }
-@keyframes zgc-speak { 0%,100% { box-shadow: 0 0 0 2px rgba(255,79,195,.9), 0 0 28px -4px rgba(255,79,195,.7); } 50% { box-shadow: 0 0 0 3px rgba(255,79,195,1), 0 0 40px -2px rgba(255,79,195,.9); } }
+@keyframes zgc-speak { 0%,100% { box-shadow: 0 0 0 2px rgba(253,73,176,.9), 0 0 28px -4px rgba(253,73,176,.7); } 50% { box-shadow: 0 0 0 3px rgba(253,73,176,1), 0 0 40px -2px rgba(253,73,176,.9); } }
 @keyframes zgc-tile-rise {
   0%   { top: 78%; opacity: 0; transform: translateX(-50%) scale(.5); }
   14%  { opacity: 1; transform: translateX(-50%) scale(1.25); }
@@ -42,7 +42,7 @@ export function ReactionLayer({ reactions }: { reactions: FloatingReaction[] }) 
           <span className="text-[42px] leading-none drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)]">{r.emoji}</span>
           <span
             className={`mt-1 max-w-[110px] truncate rounded-full px-2 py-0.5 text-[10.5px] font-semibold backdrop-blur-md ${
-              r.mine ? "bg-[#ff4fc3]/80 text-white" : "bg-black/45 text-white/90"
+              r.mine ? "bg-[#fd49b0]/80 text-white" : "bg-black/45 text-white/90"
             }`}
           >
             {r.name.split(" ")[0]}
@@ -61,7 +61,7 @@ export function TileReactions({ reactions }: { reactions: FloatingReaction[] }) 
   if (!reactions.length) return null;
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-[inherit]">
-      <div key={reactions[reactions.length - 1].id} className="zgc-tile-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(255,79,195,0.28),transparent_70%)]" />
+      <div key={reactions[reactions.length - 1].id} className="zgc-tile-flash absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,rgba(253,73,176,0.28),transparent_70%)]" />
       {reactions.map((r) => (
         <div
           key={r.id}
@@ -69,7 +69,7 @@ export function TileReactions({ reactions }: { reactions: FloatingReaction[] }) 
           style={{ left: `${r.x}%`, ["--drift" as string]: `${r.drift}px` }}
         >
           <span className="text-[38px] leading-none drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]">{r.emoji}</span>
-          <span className={`mt-1 max-w-[110px] truncate whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md ${r.mine ? "bg-[#ff4fc3]/85 text-white" : "bg-black/55 text-white/90"}`}>
+          <span className={`mt-1 max-w-[110px] truncate whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur-md ${r.mine ? "bg-[#fd49b0]/85 text-white" : "bg-black/55 text-white/90"}`}>
             from {r.mine ? "you" : r.name.split(" ")[0]}
           </span>
         </div>

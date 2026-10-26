@@ -30,7 +30,7 @@ export function PollCard({ message, votes, myId, mine, onVote }: { message: { id
 
   return (
     <div className="min-w-[230px] max-w-[300px]">
-      <p className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ${mine ? "text-white/70" : "text-[#cc208f]"}`}>
+      <p className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ${mine ? "text-white/70" : "text-[#c3217e]"}`}>
         <BarChart3 className="h-3.5 w-3.5" /> Poll{poll.multi ? " · pick any" : ""}
       </p>
       <p className="mt-1 text-[15px] font-semibold leading-snug">{poll.question}</p>
@@ -46,14 +46,14 @@ export function PollCard({ message, votes, myId, mine, onVote }: { message: { id
               onClick={(e) => { e.stopPropagation(); void pick(i); }}
               className={`relative w-full overflow-hidden rounded-xl px-3 py-2 text-left text-[13.5px] font-medium transition active:scale-[0.99] ${
                 mine ? "bg-white/15" : "bg-card ring-1 ring-foreground/[0.06]"
-              } ${chosen ? (mine ? "ring-2 ring-white/70" : "ring-2 ring-[#cc208f]/60") : ""}`}
+              } ${chosen ? (mine ? "ring-2 ring-white/70" : "ring-2 ring-[#c3217e]/60") : ""}`}
             >
               <span
-                className={`absolute inset-y-0 left-0 transition-[width] duration-500 ${mine ? "bg-white/20" : counts[i] === top && counts[i] > 0 ? "bg-[#cc208f]/15" : "bg-foreground/[0.06]"}`}
+                className={`absolute inset-y-0 left-0 transition-[width] duration-500 ${mine ? "bg-white/20" : counts[i] === top && counts[i] > 0 ? "bg-[#c3217e]/15" : "bg-foreground/[0.06]"}`}
                 style={{ width: `${pct}%` }}
               />
               <span className="relative flex items-center gap-2">
-                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full ${chosen ? (mine ? "bg-white text-[#b0187f]" : "bg-[#cc208f] text-white") : mine ? "ring-1 ring-white/60" : "ring-1 ring-foreground/30"}`}>
+                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full ${chosen ? (mine ? "bg-white text-[#a7196b]" : "bg-[#c3217e] text-white") : mine ? "ring-1 ring-white/60" : "ring-1 ring-foreground/30"}`}>
                   {busy === i ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : chosen && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
                 </span>
                 <span className="min-w-0 flex-1 break-words">{opt}</span>
@@ -101,14 +101,14 @@ export function PollComposer({ open, onOpenChange, groupId, onSubmit }: { open: 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" overlayClassName="z-[90]" className="z-[100] max-h-[90dvh] overflow-y-auto rounded-t-[28px] border-0 bg-card px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         <SheetHeader className="text-left">
-          <SheetTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-[#cc208f]" /> Create a poll</SheetTitle>
+          <SheetTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-[#c3217e]" /> Create a poll</SheetTitle>
         </SheetHeader>
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value.slice(0, 300))}
           placeholder="Ask a question"
           autoFocus
-          className="mt-4 h-12 w-full rounded-2xl bg-foreground/[0.05] px-4 text-[15px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40"
+          className="mt-4 h-12 w-full rounded-2xl bg-foreground/[0.05] px-4 text-[15px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40"
         />
         <div className="mt-3 space-y-2">
           {options.map((opt, i) => (
@@ -117,7 +117,7 @@ export function PollComposer({ open, onOpenChange, groupId, onSubmit }: { open: 
                 value={opt}
                 onChange={(e) => setOptions(options.map((o, j) => (j === i ? e.target.value.slice(0, 100) : o)))}
                 placeholder={`Option ${i + 1}`}
-                className="h-11 min-w-0 flex-1 rounded-xl bg-foreground/[0.05] px-3.5 text-[14.5px] outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40"
+                className="h-11 min-w-0 flex-1 rounded-xl bg-foreground/[0.05] px-3.5 text-[14.5px] outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40"
               />
               {options.length > 2 && (
                 <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))} aria-label="Remove option" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:bg-foreground/[0.05]">
@@ -128,19 +128,19 @@ export function PollComposer({ open, onOpenChange, groupId, onSubmit }: { open: 
           ))}
         </div>
         {options.length < 12 && (
-          <button type="button" onClick={() => setOptions([...options, ""])} className="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-semibold text-[#cc208f] hover:bg-[#cc208f]/10">
+          <button type="button" onClick={() => setOptions([...options, ""])} className="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-semibold text-[#c3217e] hover:bg-[#c3217e]/10">
             <Plus className="h-4 w-4" /> Add option
           </button>
         )}
         <label className="mt-3 flex items-center justify-between rounded-2xl bg-foreground/[0.04] px-4 py-3">
           <span className="text-[14px] font-medium">Allow multiple answers</span>
-          <input type="checkbox" checked={multi} onChange={(e) => setMulti(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" />
+          <input type="checkbox" checked={multi} onChange={(e) => setMulti(e.target.checked)} className="h-5 w-5 accent-[#c3217e]" />
         </label>
         <button
           type="button"
           disabled={busy}
           onClick={submit}
-          className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-[15px] font-semibold text-white disabled:opacity-60"
+          className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#d22c8b,#a7196b)] text-[15px] font-semibold text-white disabled:opacity-60"
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Send poll
         </button>

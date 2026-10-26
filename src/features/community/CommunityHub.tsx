@@ -149,7 +149,7 @@ type Hub = {
   }[];
 };
 
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 const MEDIA = "$$MEDIA$$";
 const rpc = async <T,>(name: string, args?: Record<string, unknown>): Promise<T> => {
   const { data, error } = name === "join_club" ? await payWithGiftCredit("join_club", args || {}) : await supabase.rpc(name as never, (args || {}) as never);
@@ -187,7 +187,7 @@ function Avatar({
     />
   ) : (
     <span
-      className={`grid shrink-0 place-items-center bg-[#cc208f]/12 font-semibold text-[#cc208f] ${square ? "rounded-[12px]" : "rounded-full"}`}
+      className={`grid shrink-0 place-items-center bg-[#c3217e]/12 font-semibold text-[#c3217e] ${square ? "rounded-[12px]" : "rounded-full"}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}
     >
       {(name || "?").trim().charAt(0).toUpperCase()}
@@ -240,7 +240,7 @@ function Empty({
 }) {
   return (
     <div className="mx-auto max-w-[420px] px-6 py-16 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]">
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]">
         {icon}
       </span>
       <p className="mt-4 font-display text-[17px] font-semibold">{title}</p>
@@ -485,7 +485,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         key={key}
         type="button"
         onClick={() => go(key)}
-        className={`group flex h-11 w-full items-center gap-3 rounded-[10px] px-3 text-left text-[15px] transition md:h-9 md:text-[14px] ${on ? "bg-[#cc208f] font-semibold text-white" : "font-medium text-foreground/80 hover:bg-foreground/[0.05] hover:text-foreground"}`}
+        className={`group flex h-11 w-full items-center gap-3 rounded-[10px] px-3 text-left text-[15px] transition md:h-9 md:text-[14px] ${on ? "bg-[#c3217e] font-semibold text-white" : "font-medium text-foreground/80 hover:bg-foreground/[0.05] hover:text-foreground"}`}
       >
         <span
           className={`shrink-0 ${on ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`}
@@ -495,7 +495,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
         <span className="min-w-0 flex-1 truncate">{text}</span>
         {Boolean(badge) && (
           <span
-            className={`grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white text-[#cc208f]" : "bg-[#cc208f] text-white"}`}
+            className={`grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white text-[#c3217e]" : "bg-[#c3217e] text-white"}`}
           >
             {badge! > 99 ? "99+" : badge}
           </span>
@@ -544,7 +544,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
             </p>
             <p className="mt-1.5">
               <span
-                className={`inline-flex h-[22px] items-center rounded-full px-2 text-[11px] font-semibold ${h.me.is_owner ? "bg-foreground text-background" : h.me.admin ? "bg-[#cc208f] text-white" : h.me.member ? "bg-foreground/[0.06] text-muted-foreground" : "bg-[#cc208f]/12 text-[#cc208f]"}`}
+                className={`inline-flex h-[22px] items-center rounded-full px-2 text-[11px] font-semibold ${h.me.is_owner ? "bg-foreground text-background" : h.me.admin ? "bg-[#c3217e] text-white" : h.me.member ? "bg-foreground/[0.06] text-muted-foreground" : "bg-[#c3217e]/12 text-[#c3217e]"}`}
               >
                 {h.me.is_owner
                   ? "Owner"
@@ -646,7 +646,7 @@ function JoinCommunityCard({ h }: { h: Hub }) {
   });
   if (h.me.member) return null;
   return (
-    <div className="rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.05] p-4 md:p-5">
+    <div className="rounded-2xl border border-[#c3217e]/30 bg-[#c3217e]/[0.05] p-4 md:p-5">
       <p className="font-display text-[16px] font-semibold">
         {h.me.requested ? "Your request is with the club team" : `Join ${h.club.name}`}
       </p>
@@ -780,7 +780,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
               <button
                 type="button"
                 onClick={() => go("cohorts")}
-                className="text-[13px] font-semibold text-[#cc208f]"
+                className="text-[13px] font-semibold text-[#c3217e]"
               >
                 Review
               </button>
@@ -802,7 +802,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
             <button
               type="button"
               onClick={() => go("cohorts")}
-              className="text-[13px] font-semibold text-[#cc208f]"
+              className="text-[13px] font-semibold text-[#c3217e]"
             >
               All bootcamps
             </button>
@@ -824,7 +824,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
                       {[c.skill, `${c.members} members`].filter(Boolean).join(" · ")}
                     </span>
                   </span>
-                  <span className="text-[13px] font-semibold text-[#cc208f]">Open</span>
+                  <span className="text-[13px] font-semibold text-[#c3217e]">Open</span>
                 </Link>
               ))}
             </div>
@@ -847,7 +847,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
                 <button
                   type="button"
                   onClick={() => go("meetings")}
-                  className="text-[13px] font-semibold text-[#cc208f]"
+                  className="text-[13px] font-semibold text-[#c3217e]"
                 >
                   All
                 </button>
@@ -865,7 +865,7 @@ function HomeView({ h, go, onBack }: { h: Hub; go: (s?: HubSection) => void; onB
                 <button
                   type="button"
                   onClick={() => go("announcements")}
-                  className="text-[13px] font-semibold text-[#cc208f]"
+                  className="text-[13px] font-semibold text-[#c3217e]"
                 >
                   All
                 </button>
@@ -1020,7 +1020,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
               return (
                 <article
                   key={a.id}
-                  className={`rounded-2xl border bg-card p-4 ${a.pinned ? "border-[#cc208f]/40" : "border-border"}`}
+                  className={`rounded-2xl border bg-card p-4 ${a.pinned ? "border-[#c3217e]/40" : "border-border"}`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Avatar url={a.author?.avatar_url} name={nameOf(a.author)} size={36} />
@@ -1042,7 +1042,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
                           type="button"
                           aria-label={a.pinned ? "Unpin" : "Pin"}
                           onClick={() => pin.mutate(a)}
-                          className={`grid h-9 w-9 place-items-center rounded-full hover:bg-foreground/[0.05] ${a.pinned ? "text-[#cc208f]" : "text-muted-foreground"}`}
+                          className={`grid h-9 w-9 place-items-center rounded-full hover:bg-foreground/[0.05] ${a.pinned ? "text-[#c3217e]" : "text-muted-foreground"}`}
                         >
                           <Pin className="h-4 w-4" />
                         </button>
@@ -1085,7 +1085,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
                       rel="noopener noreferrer"
                       className="mt-2 flex max-w-[480px] items-center gap-2.5 rounded-xl border border-border px-3 py-2.5 hover:border-foreground/25"
                     >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#cc208f]/10 text-[#cc208f]">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c3217e]/10 text-[#c3217e]">
                         <FileText className="h-[18px] w-[18px]" />
                       </span>
                       <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
@@ -1234,7 +1234,7 @@ function MeetingRow({
         <button
           type="button"
           onClick={join}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3.5 text-[13px] font-semibold text-white"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#c3217e] px-3.5 text-[13px] font-semibold text-white"
         >
           <Video className="h-3.5 w-3.5" /> Join
         </button>
@@ -1474,7 +1474,7 @@ function NewMeetingSheet({
 
 const MODE: Record<Cohort["join_mode"], { label: string; tone: string }> = {
   open: { label: "Open to members", tone: "bg-success/10 text-success" },
-  approval: { label: "Request to join", tone: "bg-[#cc208f]/10 text-[#a3186f]" },
+  approval: { label: "Request to join", tone: "bg-[#c3217e]/10 text-[#9a1963]" },
   bootcamp: { label: "Bootcamp", tone: "bg-foreground/[0.07] text-foreground/80" },
   invite: { label: "Invite only", tone: "bg-foreground/[0.07] text-muted-foreground" },
 };
@@ -1936,7 +1936,7 @@ function CohortSheet({
                     key={m.v}
                     type="button"
                     onClick={() => setMode(m.v)}
-                    className={`rounded-xl border p-3 text-left ${mode === m.v ? "border-[#cc208f] bg-[#cc208f]/[0.06] ring-2 ring-[#cc208f]/15" : "border-border"}`}
+                    className={`rounded-xl border p-3 text-left ${mode === m.v ? "border-[#c3217e] bg-[#c3217e]/[0.06] ring-2 ring-[#c3217e]/15" : "border-border"}`}
                   >
                     <span className="block text-[13.5px] font-semibold">{m.t}</span>
                     <span className="block text-[11.5px] leading-4 text-muted-foreground">
@@ -2377,7 +2377,7 @@ function StaffView({ h, onBack }: { h: Hub; onBack: () => void }) {
                 >
                   {nameOf(s)}
                 </Link>
-                <p className="text-[12.5px] font-semibold text-[#cc208f]">
+                <p className="text-[12.5px] font-semibold text-[#c3217e]">
                   {s.is_owner ? "Owner" : "Teaching staff"}
                 </p>
                 {s.headline && (
@@ -2498,7 +2498,7 @@ function SettingsView({ h, onBack }: { h: Hub; onBack: () => void }) {
         type="checkbox"
         checked={on}
         onChange={(e) => set(e.target.checked)}
-        className="mt-0.5 h-5 w-5 accent-[#cc208f]"
+        className="mt-0.5 h-5 w-5 accent-[#c3217e]"
       />
       <span>
         <span className="block text-[14px] font-semibold">{title}</span>
@@ -2650,7 +2650,7 @@ function SettingsView({ h, onBack }: { h: Hub; onBack: () => void }) {
         <Link
           to="/club/$id"
           params={{ id: h.club.id }}
-          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#cc208f]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#c3217e]"
         >
           Public club page <ExternalLink className="h-3.5 w-3.5" />
         </Link>

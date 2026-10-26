@@ -96,7 +96,7 @@ export function SentGifts({ embedded = false }: { embedded?: boolean }) {
           ? `${format(Number(value))} returned to your wallet`
           : "Remaining gift claims closed",
       );
-      for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile"])
+      for (const key of ["unclaimed-gifts", "unclaimed-gift-count", "profile", "gift-card-profile", "wallet-balance"])
         void client.invalidateQueries({ queryKey: [key] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -158,7 +158,7 @@ export function SentGifts({ embedded = false }: { embedded?: boolean }) {
               }}
               className="mb-2 inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
             >
-              <span className={`relative h-5 w-9 rounded-full transition-colors ${card.is_public ? "bg-[#cc208f]" : "bg-foreground/15"}`}>
+              <span className={`relative h-5 w-9 rounded-full transition-colors ${card.is_public ? "bg-[#c3217e]" : "bg-foreground/15"}`}>
                 <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${card.is_public ? "left-[18px]" : "left-0.5"}`} />
               </span>
               {card.is_public ? "On Browse · anyone can claim" : "Not on Browse · link only"}
@@ -209,7 +209,7 @@ export function SentGifts({ embedded = false }: { embedded?: boolean }) {
                       : "Change the design, message, purpose or date · raise the amount or claims"}
                 </span>
               </span>
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">
                 <Pencil className="h-4 w-4" />
               </span>
             </button>

@@ -30,7 +30,7 @@
             channel.enableVibration(true);
             channel.setVibrationPattern(new long[] {0, 120, 80, 120});
             channel.enableLights(true);
-            channel.setLightColor(0xFFCC208F);
+            channel.setLightColor(0xFFC3217E);
             channel.setShowBadge(true);
             channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PRIVATE);
             manager.createNotificationChannel(channel);

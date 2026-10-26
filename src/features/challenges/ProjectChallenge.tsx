@@ -43,9 +43,9 @@ export function ProjectChallengeStrip({
       >
         <span
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#cc208f]/12 via-[#cc208f]/5 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-[#c3217e]/12 via-[#c3217e]/5 to-transparent"
         />
-        <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#cc208f] text-white shadow-[0_6px_16px_-8px_#cc208f]">
+        <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#c3217e] text-white shadow-[0_6px_16px_-8px_#c3217e]">
           <Trophy className="h-4.5 w-4.5" />
         </span>
         <span className="relative min-w-0 flex-1">
@@ -64,10 +64,10 @@ export function ProjectChallengeStrip({
             {Number(badge.entries)} {Number(badge.entries) === 1 ? "entry" : "entries"}
           </span>
         </span>
-        <span className="relative text-[13px] font-semibold text-[#cc208f]">
+        <span className="relative text-[13px] font-semibold text-[#c3217e]">
           {isOwner ? "Manage" : open ? "Enter" : "View"}
         </span>
-        <ChevronRight className="relative h-4 w-4 text-[#cc208f]" />
+        <ChevronRight className="relative h-4 w-4 text-[#c3217e]" />
       </Link>
     );
   }

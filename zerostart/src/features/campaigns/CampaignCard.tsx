@@ -13,7 +13,7 @@ export function CampaignCover({ campaign, className = "" }: { campaign: Pick<Cam
       {campaign.cover_url ? (
         <img src={campaign.cover_url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
       ) : (
-        <div className="h-full w-full bg-[radial-gradient(120%_90%_at_10%_0%,#cc208f_0%,transparent_55%),radial-gradient(90%_80%_at_100%_100%,#6d28d9_0%,transparent_60%),linear-gradient(135deg,#1d1420,#2a1830)]" />
+        <div className="h-full w-full bg-[radial-gradient(120%_90%_at_10%_0%,#c3217e_0%,transparent_55%),radial-gradient(90%_80%_at_100%_100%,#6d28d9_0%,transparent_60%),linear-gradient(135deg,#1d1420,#2a1830)]" />
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
       <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">

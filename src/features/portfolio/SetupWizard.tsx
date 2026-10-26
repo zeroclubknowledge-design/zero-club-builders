@@ -155,7 +155,7 @@ export function SetupWizard({
   if (!scanned || candidates.isLoading) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 text-center">
-        <span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]">
+        <span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]">
           <Sparkles className="h-7 w-7 animate-pulse" />
         </span>
         <p className="font-display text-[20px] font-semibold">Scanning your work…</p>
@@ -207,7 +207,7 @@ export function SetupWizard({
 
   return (
     <div className="mx-auto w-full max-w-[680px] px-4 pb-32 pt-5">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#cc208f]">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#c3217e]">
         Smart setup
       </p>
       <h2 className="mt-1 font-display text-[26px] font-semibold leading-tight tracking-tight">
@@ -349,7 +349,7 @@ function PickRow({
           )}
           <span className="mt-1.5 flex flex-wrap gap-1">
             {rec.recommended && (
-              <span className="rounded-full bg-[#cc208f]/10 px-2 py-0.5 text-[11.5px] font-semibold text-[#cc208f]">
+              <span className="rounded-full bg-[#c3217e]/10 px-2 py-0.5 text-[11.5px] font-semibold text-[#c3217e]">
                 Recommended
               </span>
             )}

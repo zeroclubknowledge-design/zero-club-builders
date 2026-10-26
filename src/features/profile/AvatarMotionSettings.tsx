@@ -100,7 +100,7 @@ export function AvatarMotionSettings({
           role="status"
           className={`mt-2.5 flex items-center gap-2 text-[13px] ${s?.status === "failed" ? "text-muted-foreground" : s?.status === "ready" ? "text-emerald-600" : "text-foreground/80"}`}
         >
-          {busy && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#cc208f]" />}
+          {busy && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#c3217e]" />}
           {s?.status === "ready" && (
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
           )}
@@ -113,7 +113,7 @@ export function AvatarMotionSettings({
           type="button"
           onClick={() => void regenerate()}
           disabled={!s.canRegenerate || regenerating}
-          className="mt-2.5 flex items-center gap-1.5 text-[13px] font-semibold text-[#cc208f] disabled:text-muted-foreground"
+          className="mt-2.5 flex items-center gap-1.5 text-[13px] font-semibold text-[#c3217e] disabled:text-muted-foreground"
         >
           {regenerating ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

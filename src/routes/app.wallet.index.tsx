@@ -174,7 +174,7 @@ function WalletPage() {
               read as embossing on the material. Currency and ZP now live on it
               too, since the header above no longer carries them. */}
           <div className="relative flex min-h-[228px] flex-col overflow-hidden rounded-[26px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:min-h-[252px] sm:p-6">
-            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/20 blur-[72px]" />
+            <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#c3217e]/20 blur-[72px]" />
             <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/15 blur-[76px]" />
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
             <div className="pointer-events-none absolute -bottom-14 right-20 h-28 w-28 rotate-12 border-[16px] border-white opacity-[0.035]" />

@@ -292,7 +292,7 @@ function EditProfile() {
             </button>
             <input type="file" ref={avatarInputRef} className="hidden" accept="image/*" onChange={(e) => onFileChange(e, 'avatar')} />
             <div className="min-w-0 pb-1">
-              <button onClick={() => avatarInputRef.current?.click()} disabled={loading} className="text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+              <button onClick={() => avatarInputRef.current?.click()} disabled={loading} className="text-[14px] font-semibold text-[#c3217e] hover:text-[#9a1963]">
                 Edit photo
               </button>
               {profile?.username && <p className="truncate text-[13px] text-muted-foreground">@{profile.username}</p>}

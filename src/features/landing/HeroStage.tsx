@@ -70,7 +70,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
           <span className="block whitespace-nowrap animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.24s_both]">
             Build Proof.
           </span>
-          <span className="block whitespace-nowrap text-[#cc208f] animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.36s_both]">
+          <span className="block whitespace-nowrap text-[#c3217e] animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.36s_both]">
             Build Opportunities.
           </span>
         </h1>
@@ -85,7 +85,7 @@ export function HeroStage({ referralCode }: { referralCode?: string }) {
             to="/signup"
             search={{ ref: referralCode, club: undefined }}
             preload={false}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_10px_30px_-12px_rgba(204,32,143,0.6)] transition hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.99] dark:bg-white dark:text-black dark:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(204,32,143,0.35),0_0_54px_rgba(204,32,143,0.16)]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_10px_30px_-12px_rgba(195,33,126,0.6)] transition hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.99] dark:bg-white dark:text-black dark:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(195,33,126,0.35),0_0_54px_rgba(195,33,126,0.16)]"
           >
             Start building free <ArrowRight className="h-4 w-4" />
           </Link>
@@ -131,12 +131,12 @@ export function BrandField() {
        be invisible at these opacities, so they are stronger and the veil at
        the bottom fades to the light background instead of near-black. */
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#f4f2ef] dark:bg-[#0b0a0d]">
-      <div className="absolute -left-[20%] -top-[30%] h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,rgba(204,32,143,0.22)_0%,rgba(204,32,143,0.08)_38%,transparent_66%)] dark:bg-[radial-gradient(circle,rgba(204,32,143,0.30)_0%,rgba(204,32,143,0.10)_38%,transparent_66%)] blur-[40px] animate-[zc-drift-a_26s_ease-in-out_infinite]" />
+      <div className="absolute -left-[20%] -top-[30%] h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,rgba(195,33,126,0.22)_0%,rgba(195,33,126,0.08)_38%,transparent_66%)] dark:bg-[radial-gradient(circle,rgba(195,33,126,0.30)_0%,rgba(195,33,126,0.10)_38%,transparent_66%)] blur-[40px] animate-[zc-drift-a_26s_ease-in-out_infinite]" />
       {/* Was rgba(120,60,200) — a blue-violet roughly 55° off the brand hue,
           so the second bloom was quietly a different colour from the first.
           A deeper magenta gives the same tonal separation from lightness
           instead, and keeps the whole field in one family. */}
-      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(163,26,118,0.18)_0%,rgba(163,26,118,0.06)_42%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(163,26,118,0.28)_0%,rgba(163,26,118,0.09)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
+      <div className="absolute -bottom-[35%] -right-[15%] h-[62vmax] w-[62vmax] rounded-full bg-[radial-gradient(circle,rgba(154,27,100,0.18)_0%,rgba(154,27,100,0.06)_42%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(154,27,100,0.28)_0%,rgba(154,27,100,0.09)_42%,transparent_70%)] blur-[50px] animate-[zc-drift-b_32s_ease-in-out_infinite]" />
       <div className="absolute left-[45%] top-[35%] h-[40vmax] w-[40vmax] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.55)_0%,transparent_65%)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.05)_0%,transparent_65%)] blur-[30px] animate-[zc-drift-a_38s_ease-in-out_infinite_reverse]" />
       {/* Grain. Without it the blurs band into visible steps on 6-bit panels,
           which is most budget Android phones. */}

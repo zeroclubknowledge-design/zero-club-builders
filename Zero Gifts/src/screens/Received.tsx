@@ -83,7 +83,7 @@ export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
             <div className="grid place-items-center rounded-[22px] border border-border bg-card py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : list.length === 0 ? (
             <div className="rounded-[22px] border border-dashed border-border bg-card px-6 py-14 text-center">
-              <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Gift className="h-6 w-6" /></span>
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Gift className="h-6 w-6" /></span>
               <h3 className="mt-3 text-[16px] font-bold">No gift credit right now</h3>
               <p className="mx-auto mt-1 max-w-[340px] text-[13.5px] text-muted-foreground">When someone sends you a Zero Card, open their link or enter the code here. It shows up ready to spend.</p>
             </div>
@@ -124,7 +124,7 @@ export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
             </div>
           </section>
           <section className="rounded-[22px] bg-[linear-gradient(130deg,#1a0b17,#3b0f3a_60%,#24104a)] p-5 text-white">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#ff8fd2]">How credit works</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#fd89cc]">How credit works</p>
             <p className="mt-2 text-[13.5px] leading-relaxed text-white/75">Gift credit pays first at checkout on Zero Club; your wallet only covers what's left. Unused credit expires on the card's date.</p>
             <a href={zc("/app/wallet")} className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[13px] font-semibold text-[#1a0b17]">Open my wallet <ArrowUpRight className="h-4 w-4" /></a>
           </section>

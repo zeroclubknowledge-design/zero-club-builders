@@ -120,7 +120,7 @@ function BusinessWelcome() {
         <div className="mb-8 flex items-center gap-2">
           {STEPS.map((label, i) => (
             <div key={label} className="flex flex-1 flex-col gap-1.5">
-              <span className={`h-1 rounded-full transition ${i <= step ? "bg-[#cc208f]" : "bg-black/10 dark:bg-white/10"}`} />
+              <span className={`h-1 rounded-full transition ${i <= step ? "bg-[#c3217e]" : "bg-black/10 dark:bg-white/10"}`} />
               <span className={`text-[11.5px] font-semibold ${i === step ? "text-[#241f23] dark:text-white" : "text-[#6d6269] dark:text-white/40"}`}>{label}</span>
             </div>
           ))}
@@ -161,7 +161,7 @@ function BusinessWelcome() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="relative grid h-20 w-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed border-black/20 dark:border-white/20 bg-black/[0.04] dark:bg-white/[0.04] transition hover:border-[#cc208f]/60">
+              <label className="relative grid h-20 w-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed border-black/20 dark:border-white/20 bg-black/[0.04] dark:bg-white/[0.04] transition hover:border-[#c3217e]/60">
                 {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : <Camera className="h-6 w-6 text-[#6d6269] dark:text-white/50" />}
                 {uploading && <span className="absolute inset-0 grid place-items-center bg-black/50"><Loader2 className="h-5 w-5 animate-spin" /></span>}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => { void pickLogo(e.target.files?.[0]); e.target.value = ""; }} />
@@ -215,10 +215,10 @@ function BusinessWelcome() {
                     key={g.key}
                     type="button"
                     onClick={() => setGoals((list) => (on ? list.filter((x) => x !== g.key) : [...list, g.key]))}
-                    className={`flex h-14 items-center justify-between gap-2 rounded-xl border px-4 text-left text-[14px] font-semibold transition ${on ? "border-[#cc208f] bg-[#cc208f]/12 text-[#241f23] dark:text-white" : "border-black/10 dark:border-white/12 bg-black/[0.03] dark:bg-white/[0.03] text-[#6d6269] dark:text-white/75 hover:border-black/20 dark:hover:border-white/25"}`}
+                    className={`flex h-14 items-center justify-between gap-2 rounded-xl border px-4 text-left text-[14px] font-semibold transition ${on ? "border-[#c3217e] bg-[#c3217e]/12 text-[#241f23] dark:text-white" : "border-black/10 dark:border-white/12 bg-black/[0.03] dark:bg-white/[0.03] text-[#6d6269] dark:text-white/75 hover:border-black/20 dark:hover:border-white/25"}`}
                   >
                     {g.label}
-                    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${on ? "bg-[#cc208f]" : "ring-1 ring-black/20 dark:ring-white/25"}`}>{on && <Check className="h-3 w-3 text-white" strokeWidth={3} />}</span>
+                    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${on ? "bg-[#c3217e]" : "ring-1 ring-black/20 dark:ring-white/25"}`}>{on && <Check className="h-3 w-3 text-white" strokeWidth={3} />}</span>
                   </button>
                 );
               })}
@@ -247,16 +247,16 @@ function KindCard({ active, onClick, Icon, title, subtitle, points, note }: { ac
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-2xl border p-5 text-left transition ${active ? "border-[#cc208f] bg-[#cc208f]/10 ring-1 ring-[#cc208f]/40" : "border-black/10 dark:border-white/12 bg-black/[0.03] dark:bg-white/[0.03] hover:border-black/20 dark:hover:border-white/25"}`}
+      className={`rounded-2xl border p-5 text-left transition ${active ? "border-[#c3217e] bg-[#c3217e]/10 ring-1 ring-[#c3217e]/40" : "border-black/10 dark:border-white/12 bg-black/[0.03] dark:bg-white/[0.03] hover:border-black/20 dark:hover:border-white/25"}`}
     >
       <div className="flex items-center justify-between">
-        <span className={`grid h-11 w-11 place-items-center rounded-xl ${active ? "bg-[#cc208f] text-white" : "bg-black/[0.07] dark:bg-white/[0.07] text-[#6d6269] dark:text-white/80"}`}><Icon className="h-5 w-5" /></span>
-        <span className={`grid h-5 w-5 place-items-center rounded-full ${active ? "bg-[#cc208f]" : "ring-1 ring-black/20 dark:ring-white/25"}`}>{active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}</span>
+        <span className={`grid h-11 w-11 place-items-center rounded-xl ${active ? "bg-[#c3217e] text-white" : "bg-black/[0.07] dark:bg-white/[0.07] text-[#6d6269] dark:text-white/80"}`}><Icon className="h-5 w-5" /></span>
+        <span className={`grid h-5 w-5 place-items-center rounded-full ${active ? "bg-[#c3217e]" : "ring-1 ring-black/20 dark:ring-white/25"}`}>{active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}</span>
       </div>
       <p className="mt-4 text-[17px] font-semibold">{title}</p>
       <p className="text-[13px] text-[#6d6269] dark:text-white/55">{subtitle}</p>
       <ul className="mt-3 grid gap-1">
-        {points.map((p) => <li key={p} className="flex items-center gap-1.5 text-[12.5px] text-[#6d6269] dark:text-white/65"><Check className="h-3 w-3 text-[#cc208f]" /> {p}</li>)}
+        {points.map((p) => <li key={p} className="flex items-center gap-1.5 text-[12.5px] text-[#6d6269] dark:text-white/65"><Check className="h-3 w-3 text-[#c3217e]" /> {p}</li>)}
       </ul>
       {note && <p className="mt-3 text-[11.5px] font-medium text-[#6d6269] dark:text-white/40">{note}</p>}
     </button>
@@ -271,7 +271,7 @@ function ChipGroup({ options, value, onChange }: { options: string[]; value: str
           key={o}
           type="button"
           onClick={() => onChange(value === o ? "" : o)}
-          className={`h-9 rounded-full border px-3.5 text-[13px] font-medium transition ${value === o ? "border-[#cc208f] bg-[#cc208f]/15 text-[#241f23] dark:text-white" : "border-black/10 dark:border-white/12 text-[#6d6269] dark:text-white/65 hover:border-black/20 dark:hover:border-white/25 hover:text-[#171417] dark:hover:text-white"}`}
+          className={`h-9 rounded-full border px-3.5 text-[13px] font-medium transition ${value === o ? "border-[#c3217e] bg-[#c3217e]/15 text-[#241f23] dark:text-white" : "border-black/10 dark:border-white/12 text-[#6d6269] dark:text-white/65 hover:border-black/20 dark:hover:border-white/25 hover:text-[#171417] dark:hover:text-white"}`}
         >
           {o}
         </button>

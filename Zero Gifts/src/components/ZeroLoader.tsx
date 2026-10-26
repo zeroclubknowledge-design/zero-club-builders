@@ -51,7 +51,7 @@ export function ZeroLoader({
         height={size}
         viewBox="0 0 100 100"
         className="zc-loader"
-        style={{ color: tone === "brand" ? "#cc208f" : "currentColor" }}
+        style={{ color: tone === "brand" ? "#c3217e" : "currentColor" }}
         aria-hidden="true"
       >
         <defs>

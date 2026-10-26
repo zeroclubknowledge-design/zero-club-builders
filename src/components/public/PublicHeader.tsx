@@ -26,7 +26,7 @@ export function PublicHeader({ section }: { section?: string }) {
             <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="Zero Club home">
               <img src="/logo.png" alt="" className="h-8 w-8 object-contain" loading="lazy" decoding="async" />
               <span className="hidden font-display text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white sm:block">
-                Zero <span className="text-[#cc208f]">Club</span>
+                Zero <span className="text-[#c3217e]">Club</span>
               </span>
             </Link>
             {section && (

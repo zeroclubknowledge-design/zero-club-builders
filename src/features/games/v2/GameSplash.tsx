@@ -68,7 +68,7 @@ export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, pri
         <button onClick={onBack} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full bg-white/10 backdrop-blur">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        {onMarketplace && <button onClick={onMarketplace} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-[#ff4fc3]/15 px-3 text-[13px] font-semibold text-[#ff9add]"><ShoppingBag className="h-4 w-4" />Marketplace</button>}
+        {onMarketplace && <button onClick={onMarketplace} className="ml-auto flex h-10 items-center gap-1.5 rounded-full bg-[#fd49b0]/15 px-3 text-[13px] font-semibold text-[#fe93d0]"><ShoppingBag className="h-4 w-4" />Marketplace</button>}
         <button onClick={() => setHowTo(true)} className={`${onMarketplace ? "" : "ml-auto"} flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-3 text-[13px] font-semibold backdrop-blur`}>
           <HelpCircle className="h-4 w-4" /> How to play
         </button>

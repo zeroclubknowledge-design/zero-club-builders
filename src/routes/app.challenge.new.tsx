@@ -200,7 +200,7 @@ function NewChallenge() {
           {STEPS.map((s, i) => (
             <span
               key={s}
-              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-[#cc208f]" : "bg-foreground/[0.08]"}`}
+              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-[#c3217e]" : "bg-foreground/[0.08]"}`}
             />
           ))}
         </div>
@@ -238,7 +238,7 @@ function NewChallenge() {
                     key={t.key}
                     type="button"
                     onClick={() => setTask(t.key)}
-                    className={`rounded-xl border p-3 text-left transition ${task === t.key ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border hover:bg-foreground/[0.03]"}`}
+                    className={`rounded-xl border p-3 text-left transition ${task === t.key ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-border hover:bg-foreground/[0.03]"}`}
                   >
                     <span className="block text-[14px] font-semibold">{t.label}</span>
                     <span className="mt-0.5 block text-[12px] leading-snug text-muted-foreground">
@@ -387,7 +387,7 @@ function NewChallenge() {
                     key={d}
                     type="button"
                     onClick={() => setDays(d)}
-                    className={`h-12 rounded-xl border text-[15px] font-semibold transition ${days === d ? "border-[#cc208f] bg-[#cc208f]/[0.06] text-foreground" : "border-border text-muted-foreground"}`}
+                    className={`h-12 rounded-xl border text-[15px] font-semibold transition ${days === d ? "border-[#c3217e] bg-[#c3217e]/[0.06] text-foreground" : "border-border text-muted-foreground"}`}
                   >
                     {d} days
                   </button>
@@ -489,7 +489,7 @@ function NewChallenge() {
               {prizeType === "funds" && total > balance && (
                 <Link
                   to="/app/wallet/add-money"
-                  className="mt-2 inline-flex text-[13px] font-semibold text-[#cc208f]"
+                  className="mt-2 inline-flex text-[13px] font-semibold text-[#c3217e]"
                 >
                   Add money to your wallet →
                 </Link>
@@ -503,10 +503,10 @@ function NewChallenge() {
                     key={r.key}
                     type="button"
                     onClick={() => setRights(r.key)}
-                    className={`flex w-full gap-3 rounded-xl border p-3 text-left transition ${rights === r.key ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border"}`}
+                    className={`flex w-full gap-3 rounded-xl border p-3 text-left transition ${rights === r.key ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-border"}`}
                   >
                     <span
-                      className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${rights === r.key ? "border-[#cc208f] bg-[#cc208f] text-white" : "border-foreground/30"}`}
+                      className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${rights === r.key ? "border-[#c3217e] bg-[#c3217e] text-white" : "border-foreground/30"}`}
                     >
                       {rights === r.key && <Check className="h-3 w-3" />}
                     </span>
@@ -582,7 +582,7 @@ function NewChallenge() {
                 type="checkbox"
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5 h-5 w-5 accent-[#cc208f]"
+                className="mt-0.5 h-5 w-5 accent-[#c3217e]"
               />
               <span className="text-[13.5px] leading-snug">
                 I'll judge fairly against the criteria above, and I agree to the prize rules and the{" "}
@@ -651,7 +651,7 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 function Bullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex gap-2.5">
-      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#cc208f]" />
+      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#c3217e]" />
       <span>{children}</span>
     </li>
   );
@@ -737,7 +737,7 @@ function Toggle({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.checked)}
-        className="h-5 w-5 accent-[#cc208f]"
+        className="h-5 w-5 accent-[#c3217e]"
       />
     </label>
   );

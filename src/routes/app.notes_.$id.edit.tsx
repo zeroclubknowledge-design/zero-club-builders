@@ -1022,7 +1022,7 @@ function NotesEditPage() {
               <DrawerFooter className="px-0 pb-0 pt-5">
                 {isPaid ? (
                   <div className="mb-3 flex items-start gap-3 rounded-2xl bg-foreground/[0.05] p-4 animate-in fade-in slide-in-from-bottom-2">
-                    <Crown className="mt-0.5 h-5 w-5 shrink-0 text-[#a3186f]" />
+                    <Crown className="mt-0.5 h-5 w-5 shrink-0 text-[#9a1963]" />
                     <div className="min-w-0">
                       <p className="text-[15px] font-semibold text-foreground">Coming soon</p>
                       <p className="mt-0.5 text-[14px] leading-relaxed text-muted-foreground">Paid articles are an upcoming feature for Zero Club builders. For now, please publish as Free!</p>
@@ -1035,7 +1035,7 @@ function NotesEditPage() {
                     executePublish();
                   }}
                   disabled={isPaid || isPublishing || (noteMode === "bootcamps" && noteBootcampIds.length === 0)}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-40"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white transition active:scale-[0.98] disabled:opacity-40"
                 >
                   {isPublishing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Publish note'}
                 </button>

@@ -573,7 +573,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
               <span className="tabular-nums">{timeAgo}</span>
               {post.audience === "club" && (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full bg-[#cc208f]/10 px-1.5 py-px text-[11px] font-semibold text-[#cc208f]"
+                  className="inline-flex items-center gap-1 rounded-full bg-[#c3217e]/10 px-1.5 py-px text-[11px] font-semibold text-[#c3217e]"
                   title="Only club members can see this post"
                 >
                   <UsersIcon className="h-3 w-3" /> Club
@@ -683,7 +683,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             )}
             {isOwnPost && (
               <DropdownMenuItem
-                className="flex items-center gap-3 py-2.5 cursor-pointer text-[#cc208f] focus:text-[#cc208f]"
+                className="flex items-center gap-3 py-2.5 cursor-pointer text-[#c3217e] focus:text-[#c3217e]"
                 onClick={(e) => {
                   e.stopPropagation();
                   router.navigate({ to: "/app/boost", search: { post: post.id, tab: undefined } });
@@ -829,7 +829,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             onClick={handleLike}
             aria-pressed={liked}
             aria-label={liked ? `Unlike, ${likesCount} likes` : `Like, ${likesCount} likes`}
-            className={`${actionClass} ${liked ? "text-[#cc208f]" : "hover:text-foreground"}`}
+            className={`${actionClass} ${liked ? "text-[#c3217e]" : "hover:text-foreground"}`}
           >
             <ThumbsUp
               key={liked ? "on" : "off"}
@@ -909,7 +909,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
             className="ml-auto flex shrink-0 items-center pl-2 pr-2.5 tap"
           >
             {likesCount > 0 && (
-              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card">
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#c3217e] text-white ring-2 ring-card">
                 <ThumbsUp className="h-3 w-3 fill-current" />
               </span>
             )}
@@ -965,7 +965,7 @@ function RepostAvatar({ url, name }: { url?: string | null; name?: string | null
       className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
     />
   ) : (
-    <span className="grid h-6 w-6 place-items-center rounded-full bg-[linear-gradient(135deg,#cc208f,#6d28d9)] text-[10.5px] font-bold text-white">
+    <span className="grid h-6 w-6 place-items-center rounded-full bg-[linear-gradient(135deg,#c3217e,#6d28d9)] text-[10.5px] font-bold text-white">
       {initial}
     </span>
   );

@@ -229,7 +229,7 @@ export function ShareSheetHost() {
         <svg
           viewBox="0 0 100 100"
           aria-hidden="true"
-          className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#cc208f]"
+          className="zc-share-mark pointer-events-none absolute -right-10 -top-6 h-56 w-56 text-[#c3217e]"
         >
           <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
         </svg>
@@ -267,7 +267,7 @@ export function ShareSheetHost() {
         </div>
 
         <div className="relative mx-5 mt-4 flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted-foreground/80">
-          <svg viewBox="0 0 100 100" className="h-3 w-3 text-[#cc208f]" aria-hidden="true">
+          <svg viewBox="0 0 100 100" className="h-3 w-3 text-[#c3217e]" aria-hidden="true">
             <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
           </svg>
           Shared from Zero Club

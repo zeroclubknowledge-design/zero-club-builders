@@ -1782,7 +1782,7 @@ function InsertQuestion({
           type="button"
           onClick={() => setStep("rule")}
           disabled={earlier.length === 0}
-          className="mb-1.5 flex w-full items-start gap-2.5 rounded-lg border border-primary/35 bg-[linear-gradient(135deg,rgba(204,32,143,0.08),rgba(204,32,143,0.02))] p-2.5 text-left transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-55"
+          className="mb-1.5 flex w-full items-start gap-2.5 rounded-lg border border-primary/35 bg-[linear-gradient(135deg,rgba(195,33,126,0.08),rgba(195,33,126,0.02))] p-2.5 text-left transition hover:border-primary/60 disabled:cursor-not-allowed disabled:opacity-55"
         >
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
             <GitBranch className="h-3.5 w-3.5" />

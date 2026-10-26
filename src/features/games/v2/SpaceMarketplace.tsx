@@ -192,7 +192,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
     <section className="fixed inset-0 z-[65] overflow-y-auto bg-[#08040f] text-white" aria-label="Zero Space marketplace">
       {/* Backdrop: nebula + stars */}
       <div aria-hidden className="pointer-events-none fixed inset-0">
-        <div className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#ff4fc3]/20 blur-[120px]" />
+        <div className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#fd49b0]/20 blur-[120px]" />
         <div className="absolute -right-40 top-40 h-[480px] w-[480px] rounded-full bg-[#6a4cff]/20 blur-[120px]" />
         {STARS.map((s, i) => (
           <span key={i} className="absolute rounded-full bg-white" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.s, height: s.s, opacity: s.o }} />
@@ -211,12 +211,12 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="min-w-0">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#ff9bdd]">Zero Space</p>
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#fe94d1]">Zero Space</p>
             <p className="truncate font-display text-[15px] font-bold">Supply Hangar</p>
           </div>
           <div
             className="ml-auto flex items-center gap-2 rounded-full p-[1px]"
-            style={{ background: "linear-gradient(135deg,#ffca75,#ff4fc3)" }}
+            style={{ background: "linear-gradient(135deg,#ffca75,#fd49b0)" }}
             aria-label="Zero Points balance"
           >
             <span className="flex items-center gap-1.5 rounded-full bg-[#140a1c] px-3.5 py-2 text-[13.5px] font-bold tabular-nums">
@@ -231,12 +231,12 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
       <div className="relative mx-auto w-full max-w-[960px] px-4 pb-[calc(env(safe-area-inset-bottom)+32px)] sm:px-8">
         {/* Hero */}
         <div className="pb-7 pt-9 sm:pt-12">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff9bdd] ring-1 ring-white/10">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#fe94d1] ring-1 ring-white/10">
             <Sparkles className="h-3.5 w-3.5" /> Your next run, equipped
           </p>
           <h1 className="mt-4 font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[46px]">
             Gear up.{" "}
-            <span className="bg-gradient-to-r from-[#ff8bd7] via-[#ffca75] to-[#8cbcff] bg-clip-text text-transparent">Fly further.</span>
+            <span className="bg-gradient-to-r from-[#fd85ca] via-[#ffca75] to-[#8cbcff] bg-clip-text text-transparent">Fly further.</span>
           </h1>
           <p className="mt-3 max-w-[520px] text-[14.5px] leading-relaxed text-white/55">
             Spend Zero Points on supplies, then fire them from your dock mid-run. Each use takes one from your hangar.
@@ -278,7 +278,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
           <div role="alert" className="mb-6 rounded-2xl bg-white/[0.05] p-4 text-sm text-white/75 ring-1 ring-white/10">
             <p>{market.signedIn ? spaceMarketError(market.error) : "Sign in to shop and save your supplies."}</p>
             {market.signedIn && (
-              <button onClick={() => void market.refetch()} className="mt-3 font-semibold text-[#ff8bd7]">Try again</button>
+              <button onClick={() => void market.refetch()} className="mt-3 font-semibold text-[#fd85ca]">Try again</button>
             )}
           </div>
         )}
@@ -320,7 +320,7 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
         <button
           onClick={onBack}
           disabled={Boolean(market.busy)}
-          className="mx-auto mt-5 flex min-h-12 w-full max-w-[420px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#ff4fc3,#b4268a)] px-6 text-sm font-bold text-white shadow-[0_16px_40px_-16px_rgba(255,79,195,0.9)] transition active:scale-[0.98] disabled:opacity-50"
+          className="mx-auto mt-5 flex min-h-12 w-full max-w-[420px] items-center justify-center rounded-full bg-[linear-gradient(135deg,#fd49b0,#ac2673)] px-6 text-sm font-bold text-white shadow-[0_16px_40px_-16px_rgba(253,73,176,0.9)] transition active:scale-[0.98] disabled:opacity-50"
         >
           Back to Zero Space
         </button>
@@ -506,7 +506,7 @@ export function SpaceSupplyTray({ controls, onShop }: { controls: RefObject<Zero
           onClick={onShop}
           disabled={Boolean(market.busy)}
           aria-label="Open Space marketplace"
-          className="flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-[linear-gradient(160deg,rgba(255,79,195,0.35),rgba(255,79,195,0.12))] text-white ring-1 ring-[#ff4fc3]/40 transition active:scale-95"
+          className="flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-[linear-gradient(160deg,rgba(253,73,176,0.35),rgba(253,73,176,0.12))] text-white ring-1 ring-[#fd49b0]/40 transition active:scale-95"
         >
           <ShoppingBag className="h-[18px] w-[18px]" />
           <span className="text-[9px] font-bold">Shop</span>

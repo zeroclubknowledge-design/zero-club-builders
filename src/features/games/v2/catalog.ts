@@ -25,7 +25,7 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
     blurb: "Pilot the Zero craft through deep space, grab opportunity orbs before your fuel runs dry, and dodge the Doubt drones hunting you down.",
     from: "#120a24",
     to: "#3b0f4f",
-    accent: "#ff4fc3",
+    accent: "#fd49b0",
     howTo: [
       { title: "Move", body: "Drag anywhere on the screen to steer. On a keyboard use WASD or the arrow keys." },
       { title: "Grab orbs", body: "Every pink opportunity orb refuels you. Let the fuel ring hit zero and the craft is lost." },

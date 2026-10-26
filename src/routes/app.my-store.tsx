@@ -363,13 +363,13 @@ function MyStorePage() {
               <button
                 key={item.id}
                 onClick={() => openEdit(item)}
-                className="mx-4 mb-2 flex w-[calc(100%-2rem)] items-center gap-3 rounded-xl border-[1.5px] border-dashed border-[#cc208f]/40 px-3 py-2.5 text-left hover:bg-[#cc208f]/[0.03]"
+                className="mx-4 mb-2 flex w-[calc(100%-2rem)] items-center gap-3 rounded-xl border-[1.5px] border-dashed border-[#c3217e]/40 px-3 py-2.5 text-left hover:bg-[#c3217e]/[0.03]"
               >
-                <span className="font-mono text-[15px] font-bold text-[#a3186f]">{item.coupon_code}</span>
+                <span className="font-mono text-[15px] font-bold text-[#9a1963]">{item.coupon_code}</span>
                 <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
                   {formatPercent(item.coupon_discount_percent)}% off · {item.name}
                 </span>
-                <TicketPercent className="h-4 w-4 shrink-0 text-[#cc208f]" />
+                <TicketPercent className="h-4 w-4 shrink-0 text-[#c3217e]" />
               </button>
             ))
           )}
@@ -524,13 +524,13 @@ function MyStorePage() {
                       key={t}
                       onClick={() => setForm({ ...form, priceType: t })}
                       className={`flex items-center justify-between rounded-2xl border-[1.5px] px-4 py-3 text-left transition-colors ${
-                        active ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"
+                        active ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"
                       }`}
                     >
                       <span className="text-[15px] font-semibold text-foreground">
                         {t === "Coins" ? `${currencyDetails.symbol} Cash` : "ZP"}
                       </span>
-                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/25"}`}>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/25"}`}>
                         {active && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                       </span>
                     </button>
@@ -584,7 +584,7 @@ function MyStorePage() {
                   role="switch"
                   aria-checked={form.couponEnabled}
                   aria-label="Coupon code"
-                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition-colors ${form.couponEnabled ? "bg-[#cc208f]" : "bg-foreground/[0.12]"}`}
+                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition-colors ${form.couponEnabled ? "bg-[#c3217e]" : "bg-foreground/[0.12]"}`}
                 >
                   <span className={`block h-5 w-5 rounded-full bg-white transition-transform ${form.couponEnabled ? "translate-x-5" : "translate-x-0"}`} />
                 </button>
@@ -631,7 +631,7 @@ function MyStorePage() {
                 {form.couponEnabled && form.couponCode.trim().length >= 3 && (
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-[14px] text-muted-foreground">With <span className="font-mono font-semibold text-foreground">{form.couponCode.trim()}</span></span>
-                    <span className="text-[15px] font-semibold text-[#a3186f] tabular-nums">{formatPrice(couponPrice, form.priceType)}</span>
+                    <span className="text-[15px] font-semibold text-[#9a1963] tabular-nums">{formatPrice(couponPrice, form.priceType)}</span>
                   </div>
                 )}
               </div>
@@ -649,7 +649,7 @@ function MyStorePage() {
             <button
               onClick={handleSave}
               disabled={!canSave || saving}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               {editing === "new" ? "List product" : "Save changes"}

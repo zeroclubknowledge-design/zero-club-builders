@@ -423,7 +423,7 @@ export function Feed() {
                     lines drawn on top. A third red wash carries the one thing
                     this card is about — being live. */}
                 <section className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#241a2b] via-[#17131b] to-[#0e0c10] p-5 text-white shadow-[0_28px_65px_-30px_rgba(20,12,19,0.85)] ring-1 ring-black/10 sm:p-7">
-                  <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#cc208f]/22 blur-[72px]" />
+                  <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[#c3217e]/22 blur-[72px]" />
                   <div className="pointer-events-none absolute -bottom-28 -right-16 h-52 w-52 rounded-full bg-[#713bff]/18 blur-[76px]" />
                   <div className="pointer-events-none absolute -right-20 top-2 h-40 w-40 rounded-full bg-[#ff3b5c]/15 blur-[70px]" />
                   <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full border-[20px] border-white opacity-[0.045]" />
@@ -437,11 +437,11 @@ export function Feed() {
                           Live on Zero Club
                         </div>
                         <h2 className="max-w-md text-[23px] font-semibold leading-tight tracking-tight sm:text-[27px]">
-                          Teach, build and solve problems together in <span className="text-[#f06ac3]">real time</span>.
+                          Teach, build and solve problems together in <span className="text-[#ee64b3]">real time</span>.
                         </h2>
                         <p className="mt-2.5 max-w-lg text-[12.5px] leading-relaxed text-white/55">Start inside a community you manage, or join a room when its host goes live.</p>
                       </div>
-                      <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#cc208f] to-[#8c1866] text-white shadow-[0_14px_32px_-12px_rgba(204,32,143,0.9)] ring-1 ring-white/15 sm:grid">
+                      <div className="hidden h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#c3217e] to-[#841856] text-white shadow-[0_14px_32px_-12px_rgba(195,33,126,0.9)] ring-1 ring-white/15 sm:grid">
                         <Radio className="h-6 w-6" />
                       </div>
                     </div>

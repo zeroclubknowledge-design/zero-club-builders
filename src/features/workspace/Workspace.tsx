@@ -75,7 +75,7 @@ export type WorkspaceSection =
   | "staff"
   | "people";
 
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 /* Same encoding as direct, group and club chats: text, then the marker and the files. */
 const MEDIA = "$$MEDIA$$";
 const MAX_FILES = 6;
@@ -101,7 +101,7 @@ function MessageMedia({ content, onOpen }: { content: string; onOpen: (urls: str
       )}
       {files.map((f, i) => (
         <a key={i} href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 transition hover:border-foreground/25">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#cc208f]/10 text-[#cc208f]"><FileText className="h-[18px] w-[18px]" /></span>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c3217e]/10 text-[#c3217e]"><FileText className="h-[18px] w-[18px]" /></span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[13.5px] font-semibold">{f.name || "Attachment"}</span>
             <span className="block text-[11.5px] uppercase text-muted-foreground">{(f.name?.split(".").pop() || f.type).slice(0, 6)} · Open</span>
@@ -119,7 +119,7 @@ function Avatar({ url, name, size = 36, square }: { url?: string | null; name?: 
     <img src={url} alt="" className={`shrink-0 object-cover ${square ? "rounded-[10px]" : "rounded-full"}`} style={{ width: size, height: size }} />
   ) : (
     <span
-      className={`grid shrink-0 place-items-center bg-[#cc208f]/12 font-semibold text-[#cc208f] ${square ? "rounded-[10px]" : "rounded-full"}`}
+      className={`grid shrink-0 place-items-center bg-[#c3217e]/12 font-semibold text-[#c3217e] ${square ? "rounded-[10px]" : "rounded-full"}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}
     >
       {(name || "?").trim().charAt(0).toUpperCase()}
@@ -157,9 +157,9 @@ function RoleChip({ role, kind }: { role: WorkspacePerson["role"]; kind: string 
     role === "owner"
       ? "bg-foreground text-background"
       : role === "admin"
-        ? "bg-[#cc208f] text-white"
+        ? "bg-[#c3217e] text-white"
         : role === "staff"
-          ? "bg-[#cc208f]/12 text-[#cc208f]"
+          ? "bg-[#c3217e]/12 text-[#c3217e]"
           : "bg-foreground/[0.06] text-muted-foreground";
   return <span className={`inline-flex h-[22px] shrink-0 items-center rounded-full px-2 text-[11px] font-semibold ${tone}`}>{ROLE_LABEL(role, kind)}</span>;
 }
@@ -185,7 +185,7 @@ function SectionHeader({ title, sub, onBack, action, icon }: { title: string; su
 function Empty({ icon, title, body, action }: { icon: ReactNode; title: string; body: string; action?: ReactNode }) {
   return (
     <div className="mx-auto max-w-[420px] px-6 py-16 text-center">
-      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]">{icon}</span>
+      <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]">{icon}</span>
       <p className="mt-4 font-display text-[17px] font-semibold">{title}</p>
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted-foreground">{body}</p>
       {action && <div className="mt-5 flex justify-center">{action}</div>}
@@ -316,13 +316,13 @@ function WorkspaceNav({ w, active, channelId, go }: { w: Workspace; active: Work
         type="button"
         onClick={() => go(key, opts.channel)}
         className={`group flex h-11 w-full items-center gap-3 rounded-[10px] px-3 text-left text-[15px] transition md:h-9 md:text-[14px] ${
-          on ? "bg-[#cc208f] font-semibold text-white" : "font-medium text-foreground/80 hover:bg-foreground/[0.05] hover:text-foreground"
+          on ? "bg-[#c3217e] font-semibold text-white" : "font-medium text-foreground/80 hover:bg-foreground/[0.05] hover:text-foreground"
         }`}
       >
         <span className={`shrink-0 ${on ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`}>{icon}</span>
         <span className={`min-w-0 flex-1 truncate ${opts.badge ? "font-semibold text-foreground" : ""} ${on ? "!text-white" : ""}`}>{label}</span>
         {Boolean(opts.badge) && (
-          <span className={`grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white text-[#cc208f]" : "bg-[#cc208f] text-white"}`}>
+          <span className={`grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ${on ? "bg-white text-[#c3217e]" : "bg-[#c3217e] text-white"}`}>
             {opts.badge! > 99 ? "99+" : opts.badge}
           </span>
         )}
@@ -471,7 +471,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
             )}
             {w.org.industry && <span>· {w.org.industry}</span>}
             {w.org.username && (
-              <Link to="/app/profile/$id" params={{ id: w.org.username }} className="inline-flex items-center gap-1 font-semibold text-[#cc208f]">
+              <Link to="/app/profile/$id" params={{ id: w.org.username }} className="inline-flex items-center gap-1 font-semibold text-[#c3217e]">
                 Organization page <ExternalLink className="h-3.5 w-3.5" />
               </Link>
             )}
@@ -490,7 +490,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
         </div>
 
         {w.training.length > 0 && (
-          <Panel title="Assigned to you" action={<button type="button" onClick={() => go("programmes")} className="text-[13px] font-semibold text-[#cc208f]">All programmes</button>}>
+          <Panel title="Assigned to you" action={<button type="button" onClick={() => go("programmes")} className="text-[13px] font-semibold text-[#c3217e]">All programmes</button>}>
             <div className="divide-y divide-border">
               {w.training.map((t) => (
                 <Link key={t.bootcamp_id} to="/app/bootcamps/$id" params={{ id: t.bootcamp_id }} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -499,7 +499,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
                     <span className="block truncate text-[14.5px] font-semibold">{t.title}</span>
                     <span className="block truncate text-[12.5px] text-muted-foreground">{t.note || (t.starts_at ? `Starts ${new Date(t.starts_at).toLocaleDateString()}` : "Self-paced")}</span>
                   </span>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${t.enrolled ? "bg-emerald-500/10 text-emerald-600" : "bg-[#cc208f]/10 text-[#cc208f]"}`}>{t.enrolled ? "Enrolled" : "Start"}</span>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${t.enrolled ? "bg-emerald-500/10 text-emerald-600" : "bg-[#c3217e]/10 text-[#c3217e]"}`}>{t.enrolled ? "Enrolled" : "Start"}</span>
                 </Link>
               ))}
             </div>
@@ -507,7 +507,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
         )}
 
         <div className="grid gap-6 @3xl:grid-cols-2">
-          <Panel title="Announcements" action={<button type="button" onClick={() => go("announcements", w.channels.find((c) => c.kind === "announcements")?.id)} className="text-[13px] font-semibold text-[#cc208f]">Open</button>}>
+          <Panel title="Announcements" action={<button type="button" onClick={() => go("announcements", w.channels.find((c) => c.kind === "announcements")?.id)} className="text-[13px] font-semibold text-[#c3217e]">Open</button>}>
             {w.announcements.length === 0 ? (
               <p className="text-[13.5px] text-muted-foreground">Nothing yet. Updates from {w.org.name} land here.</p>
             ) : (
@@ -538,7 +538,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
             )}
           </Panel>
 
-          <Panel title="Coming up" action={<button type="button" onClick={() => go("meetings")} className="text-[13px] font-semibold text-[#cc208f]">All meetings</button>}>
+          <Panel title="Coming up" action={<button type="button" onClick={() => go("meetings")} className="text-[13px] font-semibold text-[#c3217e]">All meetings</button>}>
             {w.meetings.length === 0 ? (
               <p className="text-[13.5px] text-muted-foreground">No meetings scheduled.</p>
             ) : (
@@ -554,7 +554,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
             {w.channels.filter((c) => c.kind === "channel").map((c) => (
               <button key={c.id} type="button" onClick={() => go("channel", c.id)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-[13.5px] font-semibold hover:border-foreground/30">
                 <Hash className="h-3.5 w-3.5 text-muted-foreground" /> {c.name}
-                {c.unread > 0 && <span className="ml-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#cc208f] px-1 text-[10.5px] font-bold text-white">{c.unread}</span>}
+                {c.unread > 0 && <span className="ml-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#c3217e] px-1 text-[10.5px] font-bold text-white">{c.unread}</span>}
               </button>
             ))}
           </div>
@@ -564,7 +564,7 @@ function HomeView({ w, go, onBack }: { w: Workspace; go: (s?: WorkspaceSection, 
           <Panel title={`About ${w.org.name}`}>
             <p className="whitespace-pre-line text-[14px] leading-relaxed text-foreground/80">{w.org.about}</p>
             {w.org.website && (
-              <a href={w.org.website.startsWith("http") ? w.org.website : `https://${w.org.website}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#cc208f]">
+              <a href={w.org.website.startsWith("http") ? w.org.website : `https://${w.org.website}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#c3217e]">
                 {w.org.website.replace(/^https?:\/\//, "")} <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}
@@ -796,7 +796,7 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
                     <img src={URL.createObjectURL(f)} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex h-full flex-col items-center justify-center gap-0.5 px-1 text-center">
-                      <FileText className="h-5 w-5 text-[#cc208f]" />
+                      <FileText className="h-5 w-5 text-[#c3217e]" />
                       <span className="w-full truncate text-[9.5px] font-semibold text-muted-foreground">{f.name}</span>
                     </span>
                   )}
@@ -843,7 +843,7 @@ function ChannelView({ w, channel, people, onBack }: { w: Workspace; channel: Wo
               }}
               className="block max-h-[140px] min-h-[42px] w-full resize-none bg-transparent px-2 py-[10px] text-[15.5px] leading-[22px] outline-none placeholder:text-muted-foreground"
             />
-            <button type="button" onClick={() => void send()} disabled={(!draft.trim() && files.length === 0) || sending} aria-label="Send" className="mb-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#cc208f] text-white transition active:scale-95 disabled:opacity-40">
+            <button type="button" onClick={() => void send()} disabled={(!draft.trim() && files.length === 0) || sending} aria-label="Send" className="mb-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#c3217e] text-white transition active:scale-95 disabled:opacity-40">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-[18px] w-[18px]" />}
             </button>
           </div>
@@ -885,7 +885,7 @@ function MeetingRow({ m, orgId, compact, onEdit }: { m: WorkspaceMeeting; orgId:
   const past = m.upcoming === false;
   return (
     <div className={`flex gap-3 rounded-2xl border border-border p-3 ${m.cancelled ? "opacity-60" : ""} ${compact ? "bg-background" : "bg-card md:p-4"}`}>
-      <div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center self-start rounded-xl bg-[#cc208f]/10 text-center text-[#cc208f]">
+      <div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center self-start rounded-xl bg-[#c3217e]/10 text-center text-[#c3217e]">
         <span className="text-[10.5px] font-bold uppercase leading-none">{start.toLocaleDateString([], { month: "short" })}</span>
         <span className="font-display text-[20px] font-semibold leading-tight">{start.getDate()}</span>
       </div>
@@ -922,7 +922,7 @@ function MeetingRow({ m, orgId, compact, onEdit }: { m: WorkspaceMeeting; orgId:
                 disabled={rsvp.isPending}
                 onClick={() => rsvp.mutate(r)}
                 className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[12.5px] font-semibold transition ${
-                  m.my_response === r ? "bg-[#cc208f] text-white" : "border border-border text-foreground/80 hover:border-foreground/30"
+                  m.my_response === r ? "bg-[#c3217e] text-white" : "border border-border text-foreground/80 hover:border-foreground/30"
                 }`}
               >
                 {m.my_response === r && <Check className="h-3.5 w-3.5" />}
@@ -1083,14 +1083,14 @@ function ProgrammesView({ w, onBack }: { w: Workspace; onBack: () => void }) {
             {programmes.data.map((b: any) => (
               <Link key={b.id} to="/app/bootcamps/$id" params={{ id: b.id }} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition hover:border-foreground/25">
                 <div className="relative aspect-[16/9] overflow-hidden bg-foreground/[0.05]">
-                  {b.banner_url ? <img src={b.banner_url} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /> : <span className="grid h-full place-items-center text-[#cc208f]"><GraduationCap className="h-8 w-8" /></span>}
+                  {b.banner_url ? <img src={b.banner_url} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /> : <span className="grid h-full place-items-center text-[#c3217e]"><GraduationCap className="h-8 w-8" /></span>}
                   <div className="absolute left-2 top-2 flex gap-1.5">
-                    {b.assigned && <span className="rounded-full bg-[#cc208f] px-2.5 py-1 text-[11px] font-bold text-white">Assigned to you</span>}
+                    {b.assigned && <span className="rounded-full bg-[#c3217e] px-2.5 py-1 text-[11px] font-bold text-white">Assigned to you</span>}
                     {b.enrolled && <span className="rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-bold text-white">Enrolled</span>}
                   </div>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                  {b.category && <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#cc208f]">{b.category}</p>}
+                  {b.category && <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#c3217e]">{b.category}</p>}
                   <p className="mt-1 line-clamp-2 text-[15.5px] font-semibold leading-snug">{b.title}</p>
                   {b.tutor && (
                     <p className="mt-2 flex items-center gap-2 text-[12.5px] text-muted-foreground"><Avatar url={b.tutor.avatar_url} name={b.tutor.name} size={20} /> {b.tutor.name}</p>
@@ -1136,7 +1136,7 @@ function CommunitiesView({ w, onBack }: { w: Workspace; onBack: () => void }) {
                   {c.description && <p className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground">{c.description}</p>}
                   <div className="mt-3 flex items-center justify-between text-[12.5px] text-muted-foreground">
                     <span>{c.members} members{c.is_private ? " · Private" : ""}</span>
-                    <span className={`rounded-full px-2.5 py-1 font-semibold ${c.joined ? "bg-emerald-500/10 text-emerald-600" : "bg-[#cc208f]/10 text-[#cc208f]"}`}>{c.joined ? "Joined" : "Open"}</span>
+                    <span className={`rounded-full px-2.5 py-1 font-semibold ${c.joined ? "bg-emerald-500/10 text-emerald-600" : "bg-[#c3217e]/10 text-[#c3217e]"}`}>{c.joined ? "Joined" : "Open"}</span>
                   </div>
                 </div>
               </Link>
@@ -1180,7 +1180,7 @@ function PeopleView({ w, people, loading, onBack, staffOnly }: { w: Workspace; p
           </span>
         </span>
         {clickable ? (
-          <span className="hidden shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#cc208f] sm:inline-flex">View profile <ChevronRight className="h-4 w-4" /></span>
+          <span className="hidden shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#c3217e] sm:inline-flex">View profile <ChevronRight className="h-4 w-4" /></span>
         ) : p.username ? (
           <MessageCircle className="h-5 w-5 shrink-0 text-muted-foreground" />
         ) : null}
@@ -1208,8 +1208,8 @@ function PeopleView({ w, people, loading, onBack, staffOnly }: { w: Workspace; p
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${title.toLowerCase()}`} className="min-w-0 flex-1 bg-transparent text-[14.5px] outline-none" />
         </label>
         {canSeeDossiers && (
-          <p className="mt-3 flex items-start gap-2 rounded-xl bg-[#cc208f]/[0.07] px-3 py-2.5 text-[12.5px] leading-snug text-foreground/80">
-            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#cc208f]" />
+          <p className="mt-3 flex items-start gap-2 rounded-xl bg-[#c3217e]/[0.07] px-3 py-2.5 text-[12.5px] leading-snug text-foreground/80">
+            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#c3217e]" />
             Open anyone on the team for their full Zero Club record: experience, credentials, learning, shipped projects and activity.
           </p>
         )}

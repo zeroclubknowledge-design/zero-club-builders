@@ -320,7 +320,7 @@ export function GlobalLiveRoom() {
   if (isFetchingToken || (!token && !tokenError)) {
     return (
       <div data-zc-live-room="" className="fixed inset-0 z-[9999] bg-[#0A0A0C] flex flex-col items-center justify-center">
-        <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-[#cc208f]/20 blur-[100px]" />
+        <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-[#c3217e]/20 blur-[100px]" />
         <div className="relative grid h-14 w-14 place-items-center rounded-full bg-white/[0.06] ring-1 ring-white/10">
           <Zap className="w-6 h-6 text-white/90" strokeWidth={1.75} />
         </div>
@@ -347,7 +347,7 @@ export function GlobalLiveRoom() {
                 setTokenError(null);
                 setTokenRequestVersion((version) => version + 1);
               }}
-              className="w-full py-3.5 bg-[#cc208f] text-white text-[14px] font-semibold tracking-tight rounded-full tap hover:opacity-90"
+              className="w-full py-3.5 bg-[#c3217e] text-white text-[14px] font-semibold tracking-tight rounded-full tap hover:opacity-90"
             >
               Try again
             </button>
@@ -405,7 +405,7 @@ const TilePill = ({ name, muted, tutor }: { name: string; muted: boolean; tutor?
     {muted && <MicOff className="h-3 w-3 shrink-0 text-red-400" />}
     <span className="truncate text-[10.5px] font-semibold text-white">{name}</span>
     {tutor && (
-      <span className="shrink-0 rounded-full bg-[#cc208f] px-1.5 text-[8px] font-semibold uppercase tracking-[0.08em] text-white">
+      <span className="shrink-0 rounded-full bg-[#c3217e] px-1.5 text-[8px] font-semibold uppercase tracking-[0.08em] text-white">
         Tutor
       </span>
     )}
@@ -2097,14 +2097,14 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         <div className="relative h-full w-full">
           <div className={`grid h-full w-full auto-rows-fr gap-1 overflow-auto pb-1 pt-9 md:gap-2 md:pb-16 md:pt-20 ${tiles > 4 ? "grid-cols-3" : "grid-cols-2"}`}>
             {isScreenSharing && screenTrack && (
-              <button type="button" onClick={(event) => { event.stopPropagation(); setScreenChoice("self"); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#cc208f] transition hover:ring-2" title="Watch your screen full size">
+              <button type="button" onClick={(event) => { event.stopPropagation(); setScreenChoice("self"); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#c3217e] transition hover:ring-2" title="Watch your screen full size">
                 <LocalVideoTrack track={screenTrack} play className="pointer-events-none h-full w-full" videoPlayerConfig={SCREEN_PLAYER_CONFIG} />
                 <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">Your screen</span>
                 <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">Watch</span>
               </button>
             )}
             {remotePresenterUsers.map(user => (
-              <button type="button" key={user.uid} onClick={(event) => { event.stopPropagation(); setScreenChoice(String(user.uid)); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#cc208f] transition hover:ring-2" title={`Watch ${userNames[user.uid] || "this presenter"}'s screen full size`}>
+              <button type="button" key={user.uid} onClick={(event) => { event.stopPropagation(); setScreenChoice(String(user.uid)); }} className="group relative min-h-0 overflow-hidden bg-black text-left ring-[#c3217e] transition hover:ring-2" title={`Watch ${userNames[user.uid] || "this presenter"}'s screen full size`}>
                 {findVideo(user.uid) && <RemoteVideoTrack track={findVideo(user.uid)!} play className="pointer-events-none h-full w-full" videoPlayerConfig={REMOTE_SCREEN_PLAYER_CONFIG} />}
                 <span className="absolute bottom-1 left-2 rounded bg-black/75 px-2 text-xs text-white">{userNames[user.uid] || "Presenter"}’s screen</span>
                 <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">Watch</span>
@@ -2243,10 +2243,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         style={miniDrag.style}
         {...miniDrag.handlers}
         title="Drag to move"
-        className={`fixed inset-x-0 bottom-0 z-[9999] select-none border-t border-white/10 bg-[#0f0d10] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_32px_-18px_rgba(0,0,0,0.7)] md:inset-x-auto md:bottom-4 md:right-4 md:w-[400px] md:rounded-2xl md:border md:pb-0 ${miniDrag.moved ? "rounded-2xl border shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75)]" : "animate-in slide-in-from-bottom-4 duration-300"} ${miniDrag.dragging ? "ring-2 ring-[#cc208f]/60" : ""}`}
+        className={`fixed inset-x-0 bottom-0 z-[9999] select-none border-t border-white/10 bg-[#0f0d10] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_32px_-18px_rgba(0,0,0,0.7)] md:inset-x-auto md:bottom-4 md:right-4 md:w-[400px] md:rounded-2xl md:border md:pb-0 ${miniDrag.moved ? "rounded-2xl border shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75)]" : "animate-in slide-in-from-bottom-4 duration-300"} ${miniDrag.dragging ? "ring-2 ring-[#c3217e]/60" : ""}`}
       >
         {/* A thin line of Zero Club light: red while recording. */}
-        <div aria-hidden className={`absolute inset-x-0 top-0 h-[2px] md:inset-x-4 ${recordingNow ? "bg-red-500" : "bg-gradient-to-r from-[#cc208f] via-[#ff7ac8] to-[#cc208f]"}`} />
+        <div aria-hidden className={`absolute inset-x-0 top-0 h-[2px] md:inset-x-4 ${recordingNow ? "bg-red-500" : "bg-gradient-to-r from-[#c3217e] via-[#fd74c3] to-[#c3217e]"}`} />
         <div className="flex h-[60px] items-center gap-3 px-3">
           <button
             type="button"
@@ -2261,8 +2261,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           <button type="button" onClick={handleRestore} className="min-w-0 flex-1 text-left" aria-label="Return to the live class">
             <span className="block truncate text-[15px] font-bold leading-tight">{clubName || "Zero Club Live"}</span>
             <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-white/60">
-              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${recordingNow ? "animate-pulse bg-red-500" : "bg-[#ff4fc3]"}`} />
-              <span className={`shrink-0 font-semibold ${recordingNow ? "text-red-400" : "text-[#ff7ac8]"}`}>{recordingNow ? "REC" : "LIVE"}</span>
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${recordingNow ? "animate-pulse bg-red-500" : "bg-[#fd49b0]"}`} />
+              <span className={`shrink-0 font-semibold ${recordingNow ? "text-red-400" : "text-[#fd74c3]"}`}>{recordingNow ? "REC" : "LIVE"}</span>
               <SessionElapsed className="shrink-0 tabular-nums text-white/60" />
               <span aria-hidden>·</span>
               <span className="truncate">{subtitle}</span>
@@ -2321,7 +2321,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </div>
         {/* LIVE is brand pink with a still dot. Red and a pulsing dot are kept
             for one thing only — recording — so the two can never be confused. */}
-        <span className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-[#cc208f] px-2 text-[12px] font-bold text-white">
+        <span className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-[#c3217e] px-2 text-[12px] font-bold text-white">
           <span className="h-1.5 w-1.5 rounded-full bg-white" />
           LIVE <SessionElapsed className="tabular-nums" />
         </span>
@@ -2400,7 +2400,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           key={incomingQuestion.id}
           role="status"
           aria-live="assertive"
-          className="pointer-events-none absolute left-1/2 top-[calc(4.25rem+env(safe-area-inset-top))] z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#cc208f] px-4 py-2.5 text-white shadow-[0_12px_40px_rgba(204,32,143,0.38)] ring-1 ring-white/25 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="pointer-events-none absolute left-1/2 top-[calc(4.25rem+env(safe-area-inset-top))] z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#c3217e] px-4 py-2.5 text-white shadow-[0_12px_40px_rgba(195,33,126,0.38)] ring-1 ring-white/25 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <Hand className="h-5 w-5 shrink-0" />
           <span className="truncate text-[13px] font-semibold">{incomingQuestion.name} has a question</span>
@@ -2538,7 +2538,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     Only changes your preview. Learners always see you the right way round.
                   </span>
                 </span>
-                <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${mirrorSelf ? "bg-[#cc208f]" : "bg-white/15"}`}>
+                <span className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${mirrorSelf ? "bg-[#c3217e]" : "bg-white/15"}`}>
                   <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${mirrorSelf ? "translate-x-5" : ""}`} />
                 </span>
               </button>
@@ -2580,7 +2580,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   <span className="mt-0.5 whitespace-nowrap rounded-full bg-black/60 px-1.5 py-0.5 text-[8.5px] font-semibold text-white/90 backdrop-blur-sm">
                     {r.name}
                     {r.target && (
-                      <span className="text-[#ff9bdd]">
+                      <span className="text-[#fe94d1]">
                         {" → "}
                         {r.target === String(client?.uid) ? "you" : (r.targetName || userNames[r.target] || "speaker").split(" ")[0]}
                       </span>
@@ -2619,7 +2619,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
           {/* Stage overlays */}
           {stageIsLive && (
             <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
-              <span className="flex items-center gap-1 bg-[#cc208f]/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
+              <span className="flex items-center gap-1 bg-[#c3217e]/90 backdrop-blur-md px-2 py-0.5 rounded-full text-white">
                 <Radio className="w-2.5 h-2.5" />
                 <span className="text-[8px] font-medium tracking-[0.08em]">LIVE</span>
               </span>
@@ -2641,7 +2641,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   one control that lives there. All three are small status
                   pills and read as a set on one line. */}
               {isAdmin && (
-                <span className="flex items-center gap-1 rounded-full bg-[#cc208f]/90 px-2 py-0.5 text-white backdrop-blur-md">
+                <span className="flex items-center gap-1 rounded-full bg-[#c3217e]/90 px-2 py-0.5 text-white backdrop-blur-md">
                   <GraduationCap className="h-2.5 w-2.5" />
                   <span className="text-[8px] font-medium tracking-[0.08em]">
                     {Math.max(0, totalCount - 1)} {totalCount - 1 === 1 ? "LEARNER" : "LEARNERS"}
@@ -2665,7 +2665,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                   className="w-6 h-6"
                 />
                 <span className="text-[13px] font-semibold tracking-tight text-white">{remoteStageName}</span>
-                <span className="text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
+                <span className="text-[8.5px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#c3217e]/90 text-white">
                   {remoteStageIsTutor ? "Tutor" : "Presenting"}
                 </span>
               </div>
@@ -2724,7 +2724,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 title={questionRaised ? "Lower your hand" : "Ask a question"}
                 aria-label={questionRaised ? "Lower your hand" : "Ask a question"}
                 aria-pressed={questionRaised}
-                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_22px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
+                className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 ${questionRaised ? "bg-[#c3217e] text-white shadow-[0_0_22px_rgba(195,33,126,0.45)]" : "bg-white/[0.1] text-white hover:bg-white/[0.16]"}`}
               >
                 <Hand className="h-5 w-5" />
               </button>
@@ -2827,7 +2827,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 <Send className="w-3.5 h-3.5" />
                 Chat
                 {unreadCount > 0 && activeTab !== "chat" && (
-                  <span className="h-4 min-w-[16px] rounded-full bg-[#cc208f] text-white text-[8px] font-bold flex items-center justify-center px-1">
+                  <span className="h-4 min-w-[16px] rounded-full bg-[#c3217e] text-white text-[8px] font-bold flex items-center justify-center px-1">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -2895,7 +2895,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                         >
                           {swipedId === msg.id && swipeOffset > 8 && (
                             <span
-                              className="pointer-events-none absolute -left-9 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-[#cc208f] text-white"
+                              className="pointer-events-none absolute -left-9 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-[#c3217e] text-white"
                               style={{ opacity: Math.min(1, swipeOffset / 44) }}
                             >
                               <Reply className="h-3.5 w-3.5" />
@@ -2910,7 +2910,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className={`text-[12px] font-semibold tracking-tight truncate ${isMe ? "text-[#f28fd0]" : "text-white/90"}`}>
+                              <span className={`text-[12px] font-semibold tracking-tight truncate ${isMe ? "text-[#f089c4]" : "text-white/90"}`}>
                                 {isMe ? "You" : msg.sender_name}
                               </span>
                               <span className="text-[10px] text-white/35 shrink-0 tabular-nums">{formatTime(msg.timestamp)}</span>
@@ -2929,15 +2929,15 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                                  itself is the answer. */
                               <button
                                 onClick={() => document.getElementById(`zc-live-msg-${msg.reply_to!.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                                className="mt-1.5 flex w-full items-start gap-2 rounded-lg border-l-2 border-[#cc208f] bg-white/[0.04] px-2.5 py-1.5 text-left"
+                                className="mt-1.5 flex w-full items-start gap-2 rounded-lg border-l-2 border-[#c3217e] bg-white/[0.04] px-2.5 py-1.5 text-left"
                               >
                                 <span className="min-w-0">
-                                  <span className="block text-[10.5px] font-semibold text-[#f28fd0]">{msg.reply_to.sender_name}</span>
+                                  <span className="block text-[10.5px] font-semibold text-[#f089c4]">{msg.reply_to.sender_name}</span>
                                   <span className="line-clamp-2 block text-[11px] leading-snug text-white/50">{msg.reply_to.content}</span>
                                 </span>
                               </button>
                             )}
-                            <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#cc208f]/15 ring-1 ring-[#cc208f]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
+                            <div className={`mt-1 rounded-lg rounded-tl-sm px-3 py-2 inline-block max-w-full ${isMe ? "bg-[#c3217e]/15 ring-1 ring-[#c3217e]/20" : "bg-white/[0.06] ring-1 ring-white/[0.06]"}`}>
                               <div className="select-text break-words text-[13px] leading-relaxed text-white/85">
                                 {msg.content.includes("$$MEDIA$$") ? (
                                   /* CommentContent already knows how to draw
@@ -2962,9 +2962,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 </div>
                 <div className="shrink-0 border-t border-white/[0.06] p-3">
                   {replyingTo && (
-                    <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-[#cc208f] bg-white/[0.05] px-3 py-2">
+                    <div className="mb-2 flex items-center gap-2 rounded-xl border-l-2 border-[#c3217e] bg-white/[0.05] px-3 py-2">
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[10.5px] font-semibold text-[#f28fd0]">
+                        <span className="block text-[10.5px] font-semibold text-[#f089c4]">
                           Replying to {replyingTo.sender_name}
                         </span>
                         <span className="line-clamp-1 block text-[11px] text-white/50">{replyingTo.content}</span>
@@ -2979,7 +2979,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#cc208f]/50 transition-all">
+                  <div className="flex items-center gap-2 bg-white/[0.06] ring-1 ring-white/10 rounded-full px-4 py-2.5 focus-within:ring-[#c3217e]/50 transition-all">
                     <MentionField
                       as="input"
                       tone="dark"
@@ -3038,7 +3038,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                 {((!isAdmin && selfHasCamera) || cameraOnUsers.length > 0) && (
                   <div className="grid grid-cols-2 gap-2">
                     {!isAdmin && selfHasCamera && (
-                      <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}>
+                      <div className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${isSelfSpeaking ? "ring-2 ring-[#c3217e]" : "ring-1 ring-white/[0.08]"}`}>
                         <LocalVideoTrack track={localCameraTrack!} play={true} className="w-full h-full object-cover" />
                         <TilePill name="You" muted={!micOn} />
                       </div>
@@ -3046,7 +3046,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     {cameraOnUsers.map((user) => (
                       <div
                         key={user.uid}
-                        className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.08]"}`}
+                        className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-[#141117] transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#c3217e]" : "ring-1 ring-white/[0.08]"}`}
                       >
                         <ReactionPop reactions={reactions} uid={String(user.uid)} />
                         {findVideo(user.uid) && (
@@ -3098,7 +3098,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                     {audioOnlyUsers.map((user) => (
                       <div
                         key={user.uid}
-                        className={`relative flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#cc208f]" : "ring-1 ring-white/[0.06]"}`}
+                        className={`relative flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2.5 transition-shadow ${activeSpeaker === String(user.uid) ? "ring-2 ring-[#c3217e]" : "ring-1 ring-white/[0.06]"}`}
                       >
                         <ReactionPop reactions={reactions} uid={String(user.uid)} />
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -3107,7 +3107,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
                             {userNames[user.uid] || "Joining\u2026"}
                           </span>
                           {adminUids.has(String(user.uid)) && (
-                            <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#cc208f]/90 text-white">
+                            <span className="shrink-0 text-[8px] font-medium uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full bg-[#c3217e]/90 text-white">
                               Tutor
                             </span>
                           )}
@@ -3163,7 +3163,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             title={questionRaised ? "Lower your hand" : "Ask a question"}
             aria-label={questionRaised ? "Lower your hand" : "Ask a question"}
             aria-pressed={questionRaised}
-            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${questionRaised ? "bg-[#cc208f] text-white shadow-[0_0_20px_rgba(204,32,143,0.45)]" : "bg-white/[0.1] text-white"}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all tap active:scale-95 disabled:opacity-50 min-[360px]:h-11 min-[360px]:w-11 ${questionRaised ? "bg-[#c3217e] text-white shadow-[0_0_20px_rgba(195,33,126,0.45)]" : "bg-white/[0.1] text-white"}`}
           >
             <Hand className="h-[18px] w-[18px] min-[360px]:h-5 min-[360px]:w-5" />
           </button>

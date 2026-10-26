@@ -144,7 +144,7 @@ function ZeroHubPage() {
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Zero Proofs</h1>
-          <Link to="/app/ship" className="mr-1 inline-flex h-9 items-center gap-1 rounded-full bg-[#cc208f] px-3.5 text-[14px] font-semibold text-white hover:bg-[#b01c7b]">
+          <Link to="/app/ship" className="mr-1 inline-flex h-9 items-center gap-1 rounded-full bg-[#c3217e] px-3.5 text-[14px] font-semibold text-white hover:bg-[#a71d6c]">
             <Plus className="h-4 w-4" /> Ship
           </Link>
         </div>
@@ -189,16 +189,16 @@ function ZeroHubPage() {
                   <div
                     key={index}
                     title={`${day.count} ships on ${format(day.date, 'MMM d, yyyy')}`}
-                    className={`aspect-square rounded-[4px] ${day.level === 0 ? 'bg-foreground/[0.06]' : day.level === 1 ? 'bg-[#cc208f]/35' : day.level === 2 ? 'bg-[#cc208f]/65' : 'bg-[#cc208f]'}`}
+                    className={`aspect-square rounded-[4px] ${day.level === 0 ? 'bg-foreground/[0.06]' : day.level === 1 ? 'bg-[#c3217e]/35' : day.level === 2 ? 'bg-[#c3217e]/65' : 'bg-[#c3217e]'}`}
                   />
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[12px] text-muted-foreground">
                 Less
                 <span className="h-3 w-3 rounded-[3px] bg-foreground/[0.06]" />
-                <span className="h-3 w-3 rounded-[3px] bg-[#cc208f]/35" />
-                <span className="h-3 w-3 rounded-[3px] bg-[#cc208f]/65" />
-                <span className="h-3 w-3 rounded-[3px] bg-[#cc208f]" />
+                <span className="h-3 w-3 rounded-[3px] bg-[#c3217e]/35" />
+                <span className="h-3 w-3 rounded-[3px] bg-[#c3217e]/65" />
+                <span className="h-3 w-3 rounded-[3px] bg-[#c3217e]" />
                 More
               </div>
             </section>

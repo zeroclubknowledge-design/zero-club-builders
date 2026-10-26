@@ -149,7 +149,7 @@ export function GroupCallHost() {
           <h1 className="text-[19px] font-semibold">Call couldn't connect</h1>
           <p className="max-w-[300px] text-[13.5px] text-muted-foreground">{error}</p>
           <div className="mt-2 flex gap-2">
-            <button onClick={() => setAttempt((a) => a + 1)} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#cc208f] px-5 text-[14px] font-semibold text-white"><RefreshCw className="h-4 w-4" /> Try again</button>
+            <button onClick={() => setAttempt((a) => a + 1)} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#c3217e] px-5 text-[14px] font-semibold text-white"><RefreshCw className="h-4 w-4" /> Try again</button>
             <button onClick={close} className="h-11 rounded-full bg-foreground/[0.08] px-5 text-[14px] font-semibold">Back to chat</button>
           </div>
         </div>
@@ -177,7 +177,7 @@ function Shell({ children, hidden = false }: { children: React.ReactNode; hidden
   return (
     <div
       className={`dark fixed inset-0 z-[9999] flex flex-col overflow-hidden bg-[#09060d] pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-white ${hidden ? "invisible pointer-events-none" : ""}`}
-      style={{ backgroundImage: "radial-gradient(90% 55% at 15% -5%, rgba(204,32,143,0.28), transparent 60%), radial-gradient(80% 50% at 100% 0%, rgba(110,76,255,0.22), transparent 60%), radial-gradient(70% 45% at 50% 110%, rgba(204,32,143,0.14), transparent 65%)" }}
+      style={{ backgroundImage: "radial-gradient(90% 55% at 15% -5%, rgba(195,33,126,0.28), transparent 60%), radial-gradient(80% 50% at 100% 0%, rgba(110,76,255,0.22), transparent 60%), radial-gradient(70% 45% at 50% 110%, rgba(195,33,126,0.14), transparent 65%)" }}
       aria-hidden={hidden || undefined}
     >
       {children}
@@ -676,7 +676,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
             ) : (
               <div className="grid h-full place-items-center px-6 text-center text-white">
                 <div>
-                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/25 text-[#ff7ac8]"><MonitorUp className="h-6 w-6" /></span>
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#c3217e]/25 text-[#fd74c3]"><MonitorUp className="h-6 w-6" /></span>
                   <p className="mt-3 text-[16px] font-semibold">You're sharing your screen</p>
                   <p className="mt-1 text-[13px] text-white/60">Everyone in the call can see it.</p>
                   <button type="button" onClick={() => void stopShare()} className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[14px] font-semibold text-black"><MonitorOff className="h-4 w-4" /> Stop sharing</button>
@@ -715,7 +715,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           </p>
         )}
         {soundBlocked && (
-          <button type="button" onClick={resumeSound} className="mx-auto mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#cc208f] px-5 text-[14px] font-semibold text-white shadow-lg">
+          <button type="button" onClick={resumeSound} className="mx-auto mt-3 inline-flex h-11 items-center gap-2 rounded-full bg-[#c3217e] px-5 text-[14px] font-semibold text-white shadow-lg">
             <Volume2 className="h-4 w-4" /> Tap to hear the call
           </button>
         )}
@@ -771,7 +771,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
 
       {/* Minimised: a floating bubble, draggable-free and always reachable. */}
       {minimized && (
-        <div ref={bubbleDrag.ref} style={bubbleDrag.style} {...bubbleDrag.handlers} title="Drag to move" className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-3 z-[9998] flex select-none items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-2 ring-1 ring-foreground/10 ${bubbleDrag.dragging ? "shadow-[0_22px_50px_-12px_rgba(0,0,0,0.7)] ring-2 ring-[#cc208f]/50" : "shadow-[0_16px_40px_-14px_rgba(0,0,0,0.55)]"}`}>
+        <div ref={bubbleDrag.ref} style={bubbleDrag.style} {...bubbleDrag.handlers} title="Drag to move" className={`fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-3 z-[9998] flex select-none items-center gap-2 rounded-full bg-card py-1.5 pl-1.5 pr-2 ring-1 ring-foreground/10 ${bubbleDrag.dragging ? "shadow-[0_22px_50px_-12px_rgba(0,0,0,0.7)] ring-2 ring-[#c3217e]/50" : "shadow-[0_16px_40px_-14px_rgba(0,0,0,0.55)]"}`}>
           <button type="button" onClick={restore} className="flex items-center gap-2" aria-label="Return to call">
             <span className="relative">
               <GroupAvatar name={groupName} url={groupAvatar} size={40} />
@@ -809,14 +809,14 @@ const canShareScreen = () => typeof navigator !== "undefined" && typeof navigato
 
 function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, reactions = [], away = false, children }: { name: string; avatar: string | null; muted: boolean; videoOn: boolean; speaking?: boolean; hand?: number | null; reactions?: FloatingReaction[]; away?: boolean; children: React.ReactNode }) {
   return (
-    <div className={`relative min-h-[120px] overflow-hidden rounded-[26px] bg-[#16101c] ring-1 transition-shadow duration-300 ${speaking ? "zgc-speaking ring-[#ff4fc3]" : hand ? "ring-2 ring-amber-300/70" : "ring-white/[0.08]"}`}>
+    <div className={`relative min-h-[120px] overflow-hidden rounded-[26px] bg-[#16101c] ring-1 transition-shadow duration-300 ${speaking ? "zgc-speaking ring-[#fd49b0]" : hand ? "ring-2 ring-amber-300/70" : "ring-white/[0.08]"}`}>
       <div className={`absolute inset-0 ${videoOn ? "" : "opacity-0"}`}>{children}</div>
       {!videoOn && (
         <>
           {avatar && <img src={avatar} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-2xl" />}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0%,rgba(9,6,13,0.55)_75%)]" />
           <div className="absolute inset-0 grid place-items-center">
-            <span className={`rounded-full p-1 transition ${speaking ? "bg-[#ff4fc3]/40" : "bg-white/[0.06]"}`}>
+            <span className={`rounded-full p-1 transition ${speaking ? "bg-[#fd49b0]/40" : "bg-white/[0.06]"}`}>
               <Avatar className="h-20 w-20 text-[28px] font-semibold ring-2 ring-white/15"><AvatarImage src={avatar || undefined} alt={`${name} profile picture`} className="object-cover" /><AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback></Avatar>
             </span>
           </div>
@@ -834,7 +834,7 @@ function Tile({ name, avatar, muted, videoOn, speaking = false, hand = null, rea
         </span>
       )}
       <span className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[12px] font-semibold text-white ring-1 ring-white/10 backdrop-blur-md">
-        {muted ? <MicOff className="h-3 w-3 text-red-300" /> : <Volume2 className={`h-3 w-3 ${speaking ? "text-[#ff8bd7]" : "text-green-300"}`} />}
+        {muted ? <MicOff className="h-3 w-3 text-red-300" /> : <Volume2 className={`h-3 w-3 ${speaking ? "text-[#fd85ca]" : "text-green-300"}`} />}
         <span className="truncate">{name}</span>
       </span>
     </div>

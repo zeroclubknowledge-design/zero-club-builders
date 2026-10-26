@@ -94,7 +94,7 @@ function BrandMark() {
     <Link to={"/business" as never} className="flex min-w-0 items-center gap-2" aria-label="Zero Club for Business">
       <img decoding="async" src="/logo.png" alt="" className="h-8 w-8 shrink-0 object-contain" />
       <span className="hidden whitespace-nowrap font-display text-[19px] font-semibold tracking-tight text-[#171717] dark:text-white min-[420px]:inline">
-        Zero <span className="text-[#cc208f]">Club</span>
+        Zero <span className="text-[#c3217e]">Club</span>
       </span>
       <span className="shrink-0 rounded-full bg-[#171717] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white dark:bg-white dark:text-[#171717]">
         Business
@@ -201,7 +201,7 @@ function BusinessLanding() {
   const primaryLabel = signedIn ? "Open Business Hub" : "Create a business account";
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white font-sans text-[#171717] selection:bg-[#cc208f]/20 dark:bg-[#141118] dark:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-white font-sans text-[#171717] selection:bg-[#c3217e]/20 dark:bg-[#141118] dark:text-white">
       <Header signedIn={signedIn} />
       <main>
         {/* Hero — the same brand field as the main landing page. */}
@@ -209,7 +209,7 @@ function BusinessLanding() {
           <BrandField />
           <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col items-center px-4 pb-14 pt-[calc(4rem+2.5rem+env(safe-area-inset-top))] text-center md:px-8 md:pb-20">
             <h1 className="max-w-[900px] text-balance font-display text-[clamp(36px,8vw,84px)] font-semibold leading-[1.03] tracking-[-0.045em] animate-[zc-line_0.85s_cubic-bezier(0.22,1,0.36,1)_0.12s_both]">
-              Where organizations meet the <span className="text-[#cc208f]">builders who ship.</span>
+              Where organizations meet the <span className="text-[#c3217e]">builders who ship.</span>
             </h1>
             <p className="mt-5 max-w-[min(600px,94%)] text-balance text-[clamp(15px,1.7vw,18px)] leading-[1.55] text-[#4d4f55] animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.28s_both] dark:text-white/70">
               One business account for your organization. Hire and train talent as a company, or run bootcamps as an institution — and switch between the two whenever you need.
@@ -217,7 +217,7 @@ function BusinessLanding() {
             <div className="mt-7 flex w-full flex-col items-stretch justify-center gap-3 animate-[zc-rise_0.85s_cubic-bezier(0.22,1,0.36,1)_0.4s_both] sm:w-auto sm:flex-row sm:items-center">
               <Link
                 to={primaryTo as never}
-                className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_10px_30px_-12px_rgba(204,32,143,0.6)] transition hover:-translate-y-0.5 active:scale-[0.99] dark:bg-white dark:text-black dark:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(204,32,143,0.35)]"
+                className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#171717] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_10px_30px_-12px_rgba(195,33,126,0.6)] transition hover:-translate-y-0.5 active:scale-[0.99] dark:bg-white dark:text-black dark:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_0_26px_rgba(195,33,126,0.35)]"
               >
                 {primaryLabel} <ArrowRight className="h-4 w-4" />
               </Link>
@@ -260,7 +260,7 @@ function BusinessLanding() {
           <Section id="hubs" tone="warm" eyebrow="For tech hubs" title="Run your whole programme from one Digital Hub.">
             <div className="grid gap-4 sm:grid-cols-2">{HUB_FEATURES.map((f) => <Feature key={f.title} {...f} />)}</div>
             <div className="mt-6 flex gap-3">
-              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#cc208f]/10"><ShieldCheck className="h-3.5 w-3.5 text-[#cc208f]" /></span>
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#c3217e]/10"><ShieldCheck className="h-3.5 w-3.5 text-[#c3217e]" /></span>
               <p className="max-w-[720px] text-[15px] leading-relaxed text-[#4d4f55] dark:text-white/60">
                 Institutional mode opens after Zero Club reviews your hub, so learners know every institution here is real. Meanwhile your account works in Company mode.
               </p>
@@ -273,7 +273,7 @@ function BusinessLanding() {
             <div className="grid gap-4 md:grid-cols-3">
               {STEPS.map((s) => (
                 <article key={s.n} className="zc-glow-card rounded-[22px] bg-white p-6 ring-1 ring-[#171717]/[0.08] dark:bg-[#141118] dark:ring-white/10">
-                  <p className="font-display text-[13px] font-semibold tabular-nums text-[#cc208f]">{s.n}</p>
+                  <p className="font-display text-[13px] font-semibold tabular-nums text-[#c3217e]">{s.n}</p>
                   <h3 className="mt-3 text-[18px] font-semibold tracking-tight">{s.title}</h3>
                   <p className="mt-2 text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">{s.body}</p>
                 </article>
@@ -294,9 +294,9 @@ function BusinessLanding() {
             <div className="mx-auto max-w-[1320px]">
               <div className="zc-glow-card relative overflow-hidden rounded-[24px] bg-gradient-to-br from-[#201924] via-[#151218] to-[#0e0c10] px-6 py-12 text-center md:px-16 md:py-16">
                 <Spotlight />
-                <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#cc208f]/25 blur-[100px]" />
+                <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#c3217e]/25 blur-[100px]" />
                 <div className="relative">
-                  <BadgeCheck className="mx-auto h-11 w-11 text-[#ff86cd] drop-shadow-[0_0_28px_rgba(204,32,143,0.65)]" />
+                  <BadgeCheck className="mx-auto h-11 w-11 text-[#fd80c8] drop-shadow-[0_0_28px_rgba(195,33,126,0.65)]" />
                   <h2 className="mx-auto mt-4 max-w-[680px] text-balance font-display text-[clamp(28px,5vw,52px)] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
                     Bring your organization to Zero Club.
                   </h2>
@@ -344,16 +344,16 @@ function BusinessLanding() {
 
 function ModeCard({ Icon, tag, title, points, href, note }: { Icon: any; tag: string; title: string; points: string[]; href: string; note?: string }) {
   return (
-    <a href={href} className="zc-glow-card group block rounded-[22px] bg-white p-5 ring-1 ring-[#171717]/[0.08] transition hover:ring-[#cc208f]/40 dark:bg-[#141118] dark:ring-white/10 sm:p-6">
+    <a href={href} className="zc-glow-card group block rounded-[22px] bg-white p-5 ring-1 ring-[#171717]/[0.08] transition hover:ring-[#c3217e]/40 dark:bg-[#141118] dark:ring-white/10 sm:p-6">
       <div className="flex items-center justify-between">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Icon className="h-5 w-5" /></span>
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><Icon className="h-5 w-5" /></span>
         <span className="zc-eyebrow">{tag}</span>
       </div>
       <h3 className="mt-4 text-[18px] font-semibold tracking-tight text-[#171717] dark:text-white">{title}</h3>
       <ul className="mt-3 grid gap-2">
         {points.map((p) => (
           <li key={p} className="flex items-center gap-2.5 text-[14px] text-[#4d4f55] dark:text-white/60">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#cc208f]/10"><Check className="h-3 w-3 text-[#cc208f]" strokeWidth={2.5} /></span>
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#c3217e]/10"><Check className="h-3 w-3 text-[#c3217e]" strokeWidth={2.5} /></span>
             {p}
           </li>
         ))}
@@ -380,7 +380,7 @@ function Section({ id, tone, eyebrow, title, children }: { id: string; tone: "wh
 function Feature({ Icon, title, body }: { Icon: any; title: string; body: string }) {
   return (
     <article className="zc-glow-card rounded-[22px] bg-white p-6 ring-1 ring-[#171717]/[0.08] dark:bg-[#141118] dark:ring-white/10">
-      <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Icon className="h-5 w-5" /></span>
+      <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><Icon className="h-5 w-5" /></span>
       <h3 className="mt-4 text-[17px] font-semibold tracking-tight text-[#171717] dark:text-white">{title}</h3>
       <p className="mt-1.5 text-[14px] leading-relaxed text-[#666a70] dark:text-white/55">{body}</p>
     </article>

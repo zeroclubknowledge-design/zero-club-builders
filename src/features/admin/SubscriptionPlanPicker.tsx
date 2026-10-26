@@ -42,7 +42,7 @@ function naturalAudience(recipient?: GiftRecipient | null): Audience {
 const tierBadge = (plan: GiftablePlan) => {
   const n = plan.name.toLowerCase();
   if (n.includes("max") || n.includes("large")) return { label: "Top tier", tone: "bg-amber-500/12 text-amber-600 dark:text-amber-400" };
-  if (n.includes("pro") || n.includes("premium") || n.includes("small")) return { label: "Popular", tone: "bg-[#cc208f]/10 text-[#cc208f]" };
+  if (n.includes("pro") || n.includes("premium") || n.includes("small")) return { label: "Popular", tone: "bg-[#c3217e]/10 text-[#c3217e]" };
   return null;
 };
 

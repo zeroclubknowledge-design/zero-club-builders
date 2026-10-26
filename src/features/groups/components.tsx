@@ -13,7 +13,7 @@ export function GroupAvatar({ name, url, size = 48, className = "" }: { name: st
     .join("") || "G";
   return (
     <span
-      className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-[linear-gradient(135deg,#d6309b_0%,#7c3aed_100%)] font-semibold text-white ${className}`}
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-[linear-gradient(135deg,#d22c8b_0%,#7c3aed_100%)] font-semibold text-white ${className}`}
       style={{ width: size, height: size, fontSize: Math.max(11, size * 0.36) }}
     >
       {url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : initials}
@@ -110,7 +110,7 @@ export function PeoplePicker({
                   <span className="block truncate text-[15px] font-semibold">{displayName(p)}</span>
                   {p.username && <span className="block truncate text-[13px] text-muted-foreground">@{p.username}</span>}
                 </span>
-                <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition ${on ? "bg-[#cc208f] text-white" : "ring-2 ring-foreground/20"}`}>
+                <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition ${on ? "bg-[#c3217e] text-white" : "ring-2 ring-foreground/20"}`}>
                   {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                 </span>
               </button>

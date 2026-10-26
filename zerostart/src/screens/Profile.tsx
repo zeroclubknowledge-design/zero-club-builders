@@ -94,7 +94,7 @@ export function Profile() {
           {profile?.banner_url ? (
             <img src={profile.banner_url} alt="Profile banner" className="absolute inset-0 h-full w-full object-cover" />
           ) : (
-            <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_120%,#ffd23f_0,transparent_40%),radial-gradient(circle_at_90%_-20%,#cc208f_0,transparent_45%)]" />
+            <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_20%_120%,#ffd23f_0,transparent_40%),radial-gradient(circle_at_90%_-20%,#c3217e_0,transparent_45%)]" />
           )}
           {isAmb && (
             <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11.5px] font-semibold text-white backdrop-blur">

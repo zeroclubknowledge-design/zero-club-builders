@@ -32,7 +32,7 @@ export const SECTION_LABELS: Record<PortfolioSectionKey, string> = {
 export const ACCENTS = ["pink", "violet", "emerald", "amber", "sky", "mono"] as const;
 export type PortfolioAccent = (typeof ACCENTS)[number];
 export const ACCENT_HEX: Record<PortfolioAccent, string> = {
-  pink: "#e0329f",
+  pink: "#dd2d92",
   violet: "#8b5cf6",
   emerald: "#10b981",
   amber: "#f59e0b",

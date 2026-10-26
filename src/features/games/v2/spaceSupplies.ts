@@ -5,7 +5,7 @@ export const SPACE_SUPPLIES = [
   { id: "fuel", name: "Fuel Cell", price: 20, color: "#61e6ac", symbol: "+", detail: "Refill your fuel ring instantly. Save it for when you are running low." },
   { id: "enhancer2", name: "Enhancer 2×", price: 40, color: "#8cebd1", symbol: "2×", detail: "Fuel lasts twice as long for the rest of this run. Does not stack with other enhancers." },
   { id: "enhancer3", name: "Enhancer 3×", price: 65, color: "#8cbcff", symbol: "3×", detail: "Fuel lasts three times as long for the rest of this run. Replaces a weaker enhancer." },
-  { id: "enhancer5", name: "Enhancer 5×", price: 100, color: "#ffb5ed", symbol: "5×", detail: "Fuel lasts five times as long for the rest of this run. The strongest fuel enhancer." },
+  { id: "enhancer5", name: "Enhancer 5×", price: 100, color: "#feaedc", symbol: "5×", detail: "Fuel lasts five times as long for the rest of this run. The strongest fuel enhancer." },
 ] as const;
 
 export type SpaceSupply = typeof SPACE_SUPPLIES[number]["id"];

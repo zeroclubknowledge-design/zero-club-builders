@@ -273,9 +273,9 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
 
         <div className={`flex flex-col ${isMe ?"items-end" : "items-start"} min-w-0`}>
           <>
-              <div className={hasVisual ? `relative group flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}` : `relative group px-3.5 py-2 flex flex-col rounded-[18px] ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
+              <div className={hasVisual ? `relative group flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}` : `relative group px-3.5 py-2 flex flex-col rounded-[18px] ${highlighted ? 'ring-2 ring-[#c3217e]/70' : ''} ${
                 isMe
-                  ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} ${!groupStart ? 'rounded-tr-[4px]' : ''}`
+                  ? `bg-[linear-gradient(135deg,#d22c8b_0%,#a7196b_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(195,33,126,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} ${!groupStart ? 'rounded-tr-[4px]' : ''}`
                   : `bg-foreground/[0.07] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} ${!groupStart ? 'rounded-tl-[4px]' : ''}`
               }`}>
                 {hasVisual && (
@@ -287,16 +287,16 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                   />
                 )}
                 {needsBubble && (
-                <div className={hasVisual ? `relative flex max-w-[min(72vw,300px)] flex-col rounded-[18px] px-3.5 py-2 ${highlighted ? 'ring-2 ring-[#cc208f]/70' : ''} ${
+                <div className={hasVisual ? `relative flex max-w-[min(72vw,300px)] flex-col rounded-[18px] px-3.5 py-2 ${highlighted ? 'ring-2 ring-[#c3217e]/70' : ''} ${
                   isMe
-                    ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} rounded-tr-[6px]`
+                    ? `bg-[linear-gradient(135deg,#d22c8b_0%,#a7196b_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(195,33,126,0.75)] ${groupEnd ? 'rounded-br-[4px]' : ''} rounded-tr-[6px]`
                     : `bg-foreground/[0.07] text-left ${groupEnd ? 'rounded-bl-[4px]' : ''} rounded-tl-[6px]`
                 }` : 'contents'}>
                 
                 {(m.forwarded || highlighted) && (
                   <span className={`mb-0.5 flex items-center gap-1.5 text-[11.5px] italic ${isMe ? 'justify-end text-white/65' : 'text-muted-foreground'}`}>
                     {m.forwarded && <><Forward className="h-3.5 w-3.5" /> Forwarded</>}
-                    {highlighted && <Star className="h-3.5 w-3.5 fill-[#cc208f] text-[#cc208f]" aria-label="Highlighted" />}
+                    {highlighted && <Star className="h-3.5 w-3.5 fill-[#c3217e] text-[#c3217e]" aria-label="Highlighted" />}
                   </span>
                 )}
                 {/* Replied Message Preview */}
@@ -393,7 +393,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                    <p className={`text-[14px] font-bold ${isMe ? 'text-white' : 'text-red-600 dark:text-red-400'}`}>❌ Rejected invitation to join {m.content.split(':')[1]}</p>
                 ) : (
                   <p className={`text-[15px] leading-[1.4] whitespace-pre-wrap text-left break-words ${isMe ?'text-white' : 'text-foreground'}`}>
-                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-white underline font-semibold hover:opacity-80" : "text-[#cc208f] underline font-semibold hover:opacity-80"} />
+                    <LinkifiedText text={m.content.split('$$MEDIA$$')[0].trim()} linkColor={isMe ? "text-white underline font-semibold hover:opacity-80" : "text-[#c3217e] underline font-semibold hover:opacity-80"} />
                     {/* Time and ticks float to the end of the last line, or
                         drop to their own line when the text fills it, so
                         they never sit on top of the words. */}
@@ -529,7 +529,7 @@ function DMMessageBubble({ m, isMe, time, otherUser, startEditing, handleDecideC
                       key={emoji}
                       onClick={() => onReact(m.id, emoji)}
                       className={`-mt-2.5 flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${
-                        data.me ? 'text-[#cc208f]' : 'text-muted-foreground'
+                        data.me ? 'text-[#c3217e]' : 'text-muted-foreground'
                       }`}
                     >
                       <span className="text-[18px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">{emoji}</span>
@@ -1358,9 +1358,9 @@ function ChatViewPage() {
             }}
             className="relative z-10 mx-3 mt-2 flex w-auto shrink-0 items-center gap-2.5 rounded-2xl bg-card px-3.5 py-2 text-left shadow-[0_8px_24px_-18px_rgba(0,0,0,0.6)] ring-1 ring-foreground/[0.06] transition active:scale-[0.99]"
           >
-            <Pin className="h-4 w-4 shrink-0 fill-current text-[#cc208f]" />
+            <Pin className="h-4 w-4 shrink-0 fill-current text-[#c3217e]" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[12px] font-semibold text-[#cc208f]">
+              <span className="block text-[12px] font-semibold text-[#c3217e]">
                 Pinned{pins.length > 1 ? ` · ${index + 1} of ${pins.length}` : ""}
               </span>
               <span className="block truncate text-[13.5px] text-foreground/85">
@@ -1393,7 +1393,7 @@ function ChatViewPage() {
             {/* Favourites: starred messages in this chat. Tap one to jump to it. */}
             <section className="mt-5">
               <h4 className="mb-2 flex items-center gap-1.5 px-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-[#cc208f] text-[#cc208f]" /> Favourites
+                <Star className="h-3.5 w-3.5 fill-[#c3217e] text-[#c3217e]" /> Favourites
                 {favourites.length > 0 && <span className="ml-auto tabular-nums normal-case tracking-normal">{favourites.length}</span>}
               </h4>
               {favourites.length === 0 ? (
@@ -1412,7 +1412,7 @@ function ChatViewPage() {
                         onClick={() => void jumpToMessage(fav)}
                         className="flex w-full items-start gap-3 border-b border-border/60 px-4 py-3 text-left last:border-b-0 hover:bg-accent/40"
                       >
-                        <Star className="mt-0.5 h-4 w-4 shrink-0 fill-[#cc208f] text-[#cc208f]" />
+                        <Star className="mt-0.5 h-4 w-4 shrink-0 fill-[#c3217e] text-[#c3217e]" />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
                             <span className="truncate font-semibold text-foreground">{mine ? 'You' : otherUserDisplayName}</span>
@@ -1591,7 +1591,7 @@ function ChatViewPage() {
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
         <div
-          className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition-[padding] duration-200 ${composerHasContent ? "pl-4" : "pl-1.5"} ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#cc208f]/40"}`}
+          className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition-[padding] duration-200 ${composerHasContent ? "pl-4" : "pl-1.5"} ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#c3217e]/40"}`}
           style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
               <input 
@@ -1656,7 +1656,7 @@ function ChatViewPage() {
                 onClick={handleSendMessage}
                 disabled={(!input.trim() && mediaFiles.length === 0) || sending}
                 className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
-                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]') : 'text-muted-foreground'
+                  (input.trim() || mediaFiles.length > 0) && !sending ? (editingId ?'bg-success text-success-foreground' : 'bg-[linear-gradient(135deg,#d22c8b,#a7196b)] text-white shadow-[0_6px_16px_-8px_rgba(195,33,126,0.8)]') : 'text-muted-foreground'
                 }`}
               >
                 {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : (editingId ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />)}

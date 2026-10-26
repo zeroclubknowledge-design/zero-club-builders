@@ -161,7 +161,7 @@ function sectionTimeAgo(iso: string) {
 
 function SectionDot({ count }: { count: number }) {
   return (
-    <span className="ml-1.5 grid h-[18px] min-w-[18px] shrink-0 place-items-center rounded-full bg-[#cc208f] px-1 text-[10.5px] font-bold leading-none text-white tabular-nums">
+    <span className="ml-1.5 grid h-[18px] min-w-[18px] shrink-0 place-items-center rounded-full bg-[#c3217e] px-1 text-[10.5px] font-bold leading-none text-white tabular-nums">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -1595,7 +1595,7 @@ function ClubChat() {
                 setShowScheduleForm(false);
                 setShowLiveMenu(true);
               }}
-              className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3 text-[13px] font-semibold text-white transition hover:bg-[#b01c7b] active:scale-95"
+              className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-full bg-[#c3217e] px-3 text-[13px] font-semibold text-white transition hover:bg-[#a71d6c] active:scale-95"
             >
               <Radio className="h-[15px] w-[15px]" /> Go live
             </button>
@@ -1728,7 +1728,7 @@ function ClubChat() {
                           onClick={() => setShowScheduleForm(true)}
                           className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-foreground/12 p-4 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
                         >
-                          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#a3186f]">
+                          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#9a1963]">
                             <CalendarDays className="h-[22px] w-[22px]" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -2012,7 +2012,7 @@ function ClubChat() {
                                       currentCats.length > 0 ? currentCats.join(", ") : "All",
                                   });
                                 }}
-                                className={`h-9 rounded-full border-[1.5px] px-3.5 text-[13px] font-semibold transition ${isSelected ? "border-[#cc208f] bg-[#cc208f]/[0.08] text-[#a3186f]" : "border-foreground/12 text-foreground hover:bg-foreground/[0.04]"}`}
+                                className={`h-9 rounded-full border-[1.5px] px-3.5 text-[13px] font-semibold transition ${isSelected ? "border-[#c3217e] bg-[#c3217e]/[0.08] text-[#9a1963]" : "border-foreground/12 text-foreground hover:bg-foreground/[0.04]"}`}
                               >
                                 {cat}
                               </button>
@@ -2059,10 +2059,10 @@ function ClubChat() {
                             role="radio"
                             aria-checked={on}
                             onClick={() => setEditClub({ ...editClub, is_private: value })}
-                            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${on ? "bg-card shadow-sm ring-1 ring-[#cc208f]/40" : "hover:bg-card/60"}`}
+                            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${on ? "bg-card shadow-sm ring-1 ring-[#c3217e]/40" : "hover:bg-card/60"}`}
                           >
                             <span
-                              className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${on ? "bg-[#cc208f] text-white" : "bg-foreground/[0.06] text-muted-foreground"}`}
+                              className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${on ? "bg-[#c3217e] text-white" : "bg-foreground/[0.06] text-muted-foreground"}`}
                             >
                               <Icon className="h-4 w-4" />
                             </span>
@@ -2112,7 +2112,7 @@ function ClubChat() {
                           </span>
                         </span>
                         <span
-                          className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.requires_approval ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+                          className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.requires_approval ? "bg-[#c3217e]" : "bg-foreground/15"}`}
                         >
                           <span
                             className={`block h-4 w-4 rounded-full bg-white transition-transform ${editClub.requires_approval ? "translate-x-5" : ""}`}
@@ -2147,7 +2147,7 @@ function ClubChat() {
                         </span>
                       </span>
                       <span
-                        className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-foreground/15" : "bg-[#cc208f]"}`}
+                        className={`h-6 w-11 shrink-0 rounded-full p-1 transition ${editClub.access_free ? "bg-foreground/15" : "bg-[#c3217e]"}`}
                       >
                         <span
                           className={`block h-4 w-4 rounded-full bg-white transition-transform ${editClub.access_free ? "" : "translate-x-5"}`}
@@ -2355,7 +2355,7 @@ function ClubChat() {
                         onClick={() => setShowAddPanel(true)}
                         className="mb-3 flex w-full shrink-0 items-center gap-3 rounded-2xl px-1 py-3 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
                       >
-                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#a3186f]">
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#9a1963]">
                           <UserPlus className="h-[22px] w-[22px]" />
                         </span>
                         <span className="min-w-0 flex-1">
@@ -2597,7 +2597,7 @@ function ClubChat() {
                             }}
                             className={`flex w-full items-center justify-between gap-3 rounded-2xl border-[1.5px] p-4 text-left text-foreground transition ${
                               isActive
-                                ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                                ? "border-[#c3217e] bg-[#c3217e]/[0.06]"
                                 : "border-foreground/12 hover:bg-foreground/[0.03]"
                             }`}
                           >
@@ -2608,7 +2608,7 @@ function ClubChat() {
                               </p>
                             </div>
                             <span
-                              className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${isActive ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}
+                              className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${isActive ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/20"}`}
                             >
                               {isActive && <Check className="h-3 w-3" strokeWidth={3} />}
                             </span>
@@ -2952,7 +2952,7 @@ function ClubChat() {
                         description:
                           "A free seat in one of your bootcamps — refunded to winners who already paid.",
                         icon: (
-                          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#cc208f]/12 text-[#cc208f]">
+                          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#c3217e]/12 text-[#c3217e]">
                             <GraduationCap className="h-4 w-4" />
                           </span>
                         ),
@@ -3141,7 +3141,7 @@ function ClubChat() {
                     !giveaway.endsAt ||
                     !canFundGiveaway
                   }
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] px-5 text-[16px] font-semibold text-white transition hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
                 >
                   {isCreatingGiveaway ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -3177,14 +3177,14 @@ function ClubChat() {
                       }}
                       className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3.5 text-left transition active:scale-[0.99] ${
                         activeRoom === r.id
-                          ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                          ? "border-[#c3217e] bg-[#c3217e]/[0.06]"
                           : "border-foreground/12 hover:bg-foreground/[0.03]"
                       }`}
                     >
                       <span
                         className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
                           activeRoom === r.id
-                            ? "bg-[#cc208f]/10 text-[#a3186f]"
+                            ? "bg-[#c3217e]/10 text-[#9a1963]"
                             : "bg-foreground/[0.05] text-muted-foreground"
                         }`}
                       >
@@ -3199,7 +3199,7 @@ function ClubChat() {
                       <span
                         className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
                           activeRoom === r.id
-                            ? "bg-[#cc208f] text-white"
+                            ? "bg-[#c3217e] text-white"
                             : "border-[1.5px] border-foreground/20"
                         }`}
                       >
@@ -3216,12 +3216,12 @@ function ClubChat() {
                   }}
                   className={`mt-2 flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3.5 text-left transition active:scale-[0.99] ${
                     activeRoom === QUIZ_ROOM
-                      ? "border-[#cc208f] bg-[#cc208f]/[0.06]"
+                      ? "border-[#c3217e] bg-[#c3217e]/[0.06]"
                       : "border-foreground/12 hover:bg-foreground/[0.03]"
                   }`}
                 >
                   <span
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${activeRoom === QUIZ_ROOM ? "bg-[#cc208f]/10 text-[#a3186f]" : "bg-foreground/[0.05] text-muted-foreground"}`}
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${activeRoom === QUIZ_ROOM ? "bg-[#c3217e]/10 text-[#9a1963]" : "bg-foreground/[0.05] text-muted-foreground"}`}
                   >
                     <ClipboardCheck className="h-[18px] w-[18px]" />
                   </span>
@@ -3232,7 +3232,7 @@ function ClubChat() {
                     <SectionDot count={sectionUpdateFor(QUIZ_ROOM)!.count} />
                   )}
                   <span
-                    className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${activeRoom === QUIZ_ROOM ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/20"}`}
+                    className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${activeRoom === QUIZ_ROOM ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/20"}`}
                   >
                     {activeRoom === QUIZ_ROOM && <Check className="h-3 w-3" strokeWidth={3} />}
                   </span>
@@ -3269,9 +3269,9 @@ function ClubChat() {
                 // Next tap shows the next pin, when there are several.
                 setPinCursor((c) => c + 1);
               }}
-              className="mx-3 mt-3 flex shrink-0 items-center gap-2.5 rounded-xl bg-[#cc208f]/[0.06] px-3 py-2.5 text-left transition-colors active:bg-[#cc208f]/10"
+              className="mx-3 mt-3 flex shrink-0 items-center gap-2.5 rounded-xl bg-[#c3217e]/[0.06] px-3 py-2.5 text-left transition-colors active:bg-[#c3217e]/10"
             >
-              <Pin className="h-4 w-4 shrink-0 fill-current text-[#cc208f]" />
+              <Pin className="h-4 w-4 shrink-0 fill-current text-[#c3217e]" />
               <p className="min-w-0 flex-1 text-[13px] leading-snug text-foreground">
                 <span className="font-semibold">
                   Pinned{pinned.length > 1 ? ` · ${index + 1} of ${pinned.length}` : ""}
@@ -3290,8 +3290,8 @@ function ClubChat() {
             <div className="relative flex max-h-[70vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-card shadow-2xl ring-1 ring-border">
               <div className="px-5 py-4 border-b hairline flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#cc208f]/10">
-                    <Pin className="h-4 w-4 text-[#cc208f]" />
+                  <div className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#c3217e]/10">
+                    <Pin className="h-4 w-4 text-[#c3217e]" />
                   </div>
                   <div>
                     <h3 className="text-[16px] font-semibold text-foreground">Club rules</h3>
@@ -3431,7 +3431,7 @@ function ClubChat() {
                 ? `Club sections and tools, ${unseenSectionTotal} new`
                 : "Club sections and tools"
             }
-            className={`absolute right-4 z-40 grid h-14 w-14 select-none place-items-center rounded-full bg-[#cc208f] text-white shadow-[0_14px_30px_-10px_rgba(204,32,143,0.85)] ring-4 ring-card transition-[scale,box-shadow] ${fabDrag.dragging ? "scale-110" : "active:scale-90"} ${
+            className={`absolute right-4 z-40 grid h-14 w-14 select-none place-items-center rounded-full bg-[#c3217e] text-white shadow-[0_14px_30px_-10px_rgba(195,33,126,0.85)] ring-4 ring-card transition-[scale,box-shadow] ${fabDrag.dragging ? "scale-110" : "active:scale-90"} ${
               ["assignments", "announcements", "q-and-a", QUIZ_ROOM].includes(activeRoom)
                 ? "bottom-[calc(20px+env(safe-area-inset-bottom))]"
                 : "bottom-[calc(96px+env(safe-area-inset-bottom))]"
@@ -3440,7 +3440,7 @@ function ClubChat() {
             {unseenSectionTotal > 0 && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-[#cc208f]/40 [animation-duration:2.4s]"
+                className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-[#c3217e]/40 [animation-duration:2.4s]"
               />
             )}
             <ZeroMark size={28} />
@@ -3487,10 +3487,10 @@ function ClubChat() {
                             setActiveRoom(r.id);
                             setShowQuickNav(false);
                           }}
-                          className={`flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+                          className={`flex w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition active:scale-[0.99] ${active ? "bg-[#c3217e]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
                         >
                           <span
-                            className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-[#cc208f] text-white" : "bg-foreground/[0.05] text-foreground"}`}
+                            className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-[#c3217e] text-white" : "bg-foreground/[0.05] text-foreground"}`}
                           >
                             <Icon className="h-[19px] w-[19px]" />
                           </span>
@@ -3511,7 +3511,7 @@ function ClubChat() {
                           </span>
                           {update ? (
                             <span className="flex shrink-0 flex-col items-end gap-1">
-                              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-[#cc208f] px-2 text-[12px] font-bold text-white tabular-nums">
+                              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-[#c3217e] px-2 text-[12px] font-bold text-white tabular-nums">
                                 {update.count > 99 ? "99+" : update.count}
                               </span>
                               {update.latest_at && (
@@ -3521,7 +3521,7 @@ function ClubChat() {
                               )}
                             </span>
                           ) : active ? (
-                            <Check className="h-4 w-4 shrink-0 text-[#cc208f]" strokeWidth={3} />
+                            <Check className="h-4 w-4 shrink-0 text-[#c3217e]" strokeWidth={3} />
                           ) : null}
                         </button>
                       );
@@ -3627,7 +3627,7 @@ function ClubChat() {
                   })}
                 </span>
                 <span className="truncate">{typingLabel(roomTypists)}</span>
-                <span className="zc-typing-dots inline-flex items-center gap-[3px] text-[#cc208f]"><span /><span /><span /></span>
+                <span className="zc-typing-dots inline-flex items-center gap-[3px] text-[#c3217e]"><span /><span /><span /></span>
               </span>
             </div>
           )}
@@ -3636,10 +3636,10 @@ function ClubChat() {
              see-through bar let them show through the reply preview. */
             <div
               className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-background py-2 pl-3 pr-2 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.45)]"
-              style={{ borderLeft: "3px solid #cc208f" }}
+              style={{ borderLeft: "3px solid #c3217e" }}
             >
               <div className="min-w-0 flex-1">
-                <span className="flex items-center gap-1 text-[11px] font-bold text-[#cc208f]">
+                <span className="flex items-center gap-1 text-[11px] font-bold text-[#c3217e]">
                   <Reply className="h-3 w-3" /> Replying to{" "}
                   {replyingTo.profiles?.full_name || replyingTo.profiles?.username || "a message"}
                 </span>
@@ -4565,7 +4565,7 @@ function StructuredClubRoom({
                           );
                         })()}
                       {card.maxMarks ? (
-                        <span className="rounded-full bg-[#cc208f]/10 px-2 py-0.5 font-semibold text-[#a3186f]">
+                        <span className="rounded-full bg-[#c3217e]/10 px-2 py-0.5 font-semibold text-[#9a1963]">
                           {fmtMark(card.maxMarks)} marks
                         </span>
                       ) : null}
@@ -4602,7 +4602,7 @@ function StructuredClubRoom({
                 <div className="flex h-full min-h-0 flex-col">
                   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                     <DrawerHeader className="gap-0 sm:gap-0 px-5 pb-5 pt-1 text-left sm:px-6 sm:pb-6 sm:pt-4">
-                      <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+                      <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#9a1963]">
                         {room === "assignments" ? (
                           <BookOpenCheck className="h-3.5 w-3.5" />
                         ) : (
@@ -4625,7 +4625,7 @@ function StructuredClubRoom({
                             </span>
                           )}
                           {card.maxMarks ? (
-                            <span className="rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+                            <span className="rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#9a1963]">
                               Total: {fmtMark(card.maxMarks)} marks
                             </span>
                           ) : null}
@@ -4757,7 +4757,7 @@ function StructuredClubRoom({
                                                       },
                                                     }))
                                                   }
-                                                  className="h-10 w-24 rounded-lg border border-border bg-card px-3 text-[15px] font-semibold outline-none focus:border-[#cc208f]"
+                                                  className="h-10 w-24 rounded-lg border border-border bg-card px-3 text-[15px] font-semibold outline-none focus:border-[#c3217e]"
                                                 />
                                                 <span className="text-[14px] font-semibold text-muted-foreground">
                                                   / {fmtMark(max)}
@@ -4775,13 +4775,13 @@ function StructuredClubRoom({
                                                   }))
                                                 }
                                                 placeholder="Feedback for the learner (optional)"
-                                                className="mt-2 h-10 w-full rounded-lg border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]"
+                                                className="mt-2 h-10 w-full rounded-lg border border-border bg-card px-3 text-[14px] outline-none focus:border-[#c3217e]"
                                               />
                                               <div className="mt-2 flex gap-2">
                                                 <button
                                                   onClick={() => void saveGrade(reply.id, max)}
                                                   disabled={gradingId === reply.id}
-                                                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#cc208f] text-[13.5px] font-semibold text-white disabled:opacity-50"
+                                                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#c3217e] text-[13.5px] font-semibold text-white disabled:opacity-50"
                                                 >
                                                   {gradingId === reply.id && (
                                                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -4813,7 +4813,7 @@ function StructuredClubRoom({
                                                   },
                                                 }))
                                               }
-                                              className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-[#cc208f]/40 px-3 text-[12.5px] font-semibold text-[#cc208f]"
+                                              className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-[#c3217e]/40 px-3 text-[12.5px] font-semibold text-[#c3217e]"
                                             >
                                               <Check className="h-3.5 w-3.5" />{" "}
                                               {grade ? "Change mark" : "Mark submission"}
@@ -5268,9 +5268,9 @@ function MessageBubble({
         )}
 
         {/* Content Container */}
-        <div className={`relative flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0 ${highlighted ? "rounded-xl ring-2 ring-[#cc208f]/70" : ""}`}>
+        <div className={`relative flex flex-col ${isMe ? "items-end" : "items-start"} min-w-0 ${highlighted ? "rounded-xl ring-2 ring-[#c3217e]/70" : ""}`}>
           <button type="button" aria-label="Message options" title="Message options" aria-haspopup="dialog" aria-expanded={actionsOpen} onClick={(event) => { event.stopPropagation(); setActionsOpen(true); }} className={`absolute top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-card [@media(hover:hover)_and_(pointer:fine)]:grid text-muted-foreground shadow-sm ring-1 ring-border [@media(hover:hover)_and_(pointer:fine)]:opacity-0 group-hover/msg:opacity-100 focus-visible:opacity-100 ${isMe ? "-left-9" : "-right-9"}`}><MoreHorizontal className="h-4 w-4" /></button>
-          {highlighted && <span className="flex items-center gap-1 px-2 py-1 text-xs text-[#cc208f]"><Star className="h-3 w-3 fill-current" />Highlighted</span>}
+          {highlighted && <span className="flex items-center gap-1 px-2 py-1 text-xs text-[#c3217e]"><Star className="h-3 w-3 fill-current" />Highlighted</span>}
           {/* Reply preview */}
           {repliedMessage && (
             <div
@@ -5325,7 +5325,7 @@ function MessageBubble({
             />
           )}
           <div
-            className={hasVisual && !editing && !captionText && otherMedia.length === 0 && room !== "assignments" && room !== "announcements" ? "contents" : `relative group px-3 py-2 ${hasVisual ? "mt-1 max-w-[min(72vw,300px)]" : ""} ${isMe ? "rounded-[16px_16px_4px_16px] bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)]" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
+            className={hasVisual && !editing && !captionText && otherMedia.length === 0 && room !== "assignments" && room !== "announcements" ? "contents" : `relative group px-3 py-2 ${hasVisual ? "mt-1 max-w-[min(72vw,300px)]" : ""} ${isMe ? "rounded-[16px_16px_4px_16px] bg-[linear-gradient(135deg,#d22c8b_0%,#a7196b_100%)] text-right text-white shadow-[0_8px_20px_-12px_rgba(195,33,126,0.75)]" : "rounded-[4px_16px_16px_16px] bg-foreground/[0.06] text-left"}`}
           >
             {/* Room badges */}
             {room === "assignments" && (
@@ -5572,7 +5572,7 @@ function MessageBubble({
                         type="button"
                         onClick={() => void saveEdit()}
                         disabled={savingEdit}
-                        className="rounded-full bg-[#cc208f] px-3.5 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-60"
+                        className="rounded-full bg-[#c3217e] px-3.5 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-60"
                       >
                         {savingEdit ? "Saving…" : "Save"}
                       </button>
@@ -5594,7 +5594,7 @@ function MessageBubble({
                       linkColor={
                         isMe
                           ? "text-white underline font-bold hover:opacity-80"
-                          : "text-[#cc208f] underline font-bold hover:opacity-80"
+                          : "text-[#c3217e] underline font-bold hover:opacity-80"
                       }
                     />
                     {isMe && otherMedia.length === 0 && (
@@ -5844,7 +5844,7 @@ function MessageBubble({
                             )
                           }
                           disabled={!selected && selectedWinnerIds.length >= giveaway.winners}
-                          className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-3.5 py-3 text-left transition disabled:opacity-40 ${selected ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
+                          className={`flex w-full items-center gap-3 rounded-2xl border-[1.5px] px-3.5 py-3 text-left transition disabled:opacity-40 ${selected ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-foreground/12 hover:bg-foreground/[0.03]"}`}
                         >
                           <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
                             {profile?.avatar_url ? (
@@ -5870,7 +5870,7 @@ function MessageBubble({
                             </p>
                           </div>
                           <span
-                            className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#cc208f] text-white" : "border-[1.5px] border-foreground/25"}`}
+                            className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${selected ? "bg-[#c3217e] text-white" : "border-[1.5px] border-foreground/25"}`}
                           >
                             {selected && <Check className="h-3 w-3" strokeWidth={3} />}
                           </span>
@@ -5885,7 +5885,7 @@ function MessageBubble({
                     type="button"
                     onClick={handleAwardGiveaway}
                     disabled={isAwardingGiveaway || selectedWinnerIds.length !== giveaway.winners}
-                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white transition active:scale-[0.99] disabled:opacity-40"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white transition active:scale-[0.99] disabled:opacity-40"
                   >
                     {isAwardingGiveaway ? (
                       <Loader2 className="h-5 w-5 animate-spin" />

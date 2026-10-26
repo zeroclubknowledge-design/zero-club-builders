@@ -142,14 +142,14 @@ export function UsernamePicker({ value, onChange, onPick, filter, accountKind, w
               aria-selected={i === active}
               onMouseDown={(e) => { e.preventDefault(); choose(u); }}
               onMouseEnter={() => setActive(i)}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${i === active ? "bg-[#cc208f]/[0.08]" : ""}`}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${i === active ? "bg-[#c3217e]/[0.08]" : ""}`}
             >
               <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-[12px] font-semibold text-muted-foreground">
                 {u.avatar_url ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" /> : (u.full_name || u.username || "?").charAt(0).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13.5px] font-semibold text-foreground">{u.full_name || u.username}</span>
-                <span className="block truncate text-[12px] text-[#cc208f]">@{u.username}{u.account_type ? <span className="text-muted-foreground"> · {u.account_type}</span> : null}</span>
+                <span className="block truncate text-[12px] text-[#c3217e]">@{u.username}{u.account_type ? <span className="text-muted-foreground"> · {u.account_type}</span> : null}</span>
               </span>
             </button>
           ))}

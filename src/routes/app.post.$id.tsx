@@ -943,7 +943,7 @@ function PostDetail() {
                 )}
                 {isOwnPost && (
                   <DropdownMenuItem
-                    className="flex items-center gap-3 py-2.5 cursor-pointer text-[#cc208f] focus:text-[#cc208f]"
+                    className="flex items-center gap-3 py-2.5 cursor-pointer text-[#c3217e] focus:text-[#c3217e]"
                     onClick={() =>
                       router.navigate({
                         to: "/app/boost",
@@ -1199,7 +1199,7 @@ function PostDetail() {
                     onClick={handleLike}
                     aria-pressed={liked}
                     aria-label={liked ? "Unlike" : "Like"}
-                    className={`${actionClass} ${liked ? "text-[#cc208f]" : "hover:text-foreground"}`}
+                    className={`${actionClass} ${liked ? "text-[#c3217e]" : "hover:text-foreground"}`}
                   >
                     <ThumbsUp
                       key={liked ? "on" : "off"}
@@ -1269,7 +1269,7 @@ function PostDetail() {
                 {(likeCount > 0 || comments.length > 0 || repostCount > 0) && (
                   <span className="ml-auto flex shrink-0 items-center pl-2 pr-2.5" aria-hidden>
                     {likeCount > 0 && (
-                      <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#cc208f] text-white ring-2 ring-card">
+                      <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-[#c3217e] text-white ring-2 ring-card">
                         <ThumbsUp className="h-3 w-3 fill-current" />
                       </span>
                     )}
@@ -1415,7 +1415,7 @@ function PostDetail() {
                           onClick={() => handleLikeComment(comment)}
                           aria-pressed={comment.isLiked}
                           aria-label={comment.isLiked ? "Unlike reply" : "Like reply"}
-                          className={`-ml-1 inline-flex h-7 items-center gap-1 rounded-full px-1 transition active:scale-95 ${comment.isLiked ? "text-[#cc208f]" : "hover:text-foreground"}`}
+                          className={`-ml-1 inline-flex h-7 items-center gap-1 rounded-full px-1 transition active:scale-95 ${comment.isLiked ? "text-[#c3217e]" : "hover:text-foreground"}`}
                         >
                           <ThumbsUp
                             key={comment.isLiked ? "on" : "off"}

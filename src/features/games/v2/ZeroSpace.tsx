@@ -28,7 +28,7 @@ const FUEL_MAX = 8;
 const ORB_FUEL = 3.6;
 const COMBO_WINDOW = 2.4;
 const CRAFT_R = 15;
-const PINK = "#ff4fc3";
+const PINK = "#fd49b0";
 const POWER_COLORS = { shield: "#5cc8ff", focus: "#b38cff", magnet: "#ffb547" } as const;
 const POWER_LABEL = { shield: "Shield", focus: "Focus", magnet: "Magnet" } as const;
 
@@ -356,7 +356,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       ctx.globalAlpha = alpha;
       // engine glow
       const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 34);
-      g.addColorStop(0, "rgba(255,79,195,0.55)"); g.addColorStop(1, "rgba(255,79,195,0)");
+      g.addColorStop(0, "rgba(253,73,176,0.55)"); g.addColorStop(1, "rgba(253,73,176,0)");
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
       ctx.rotate(angle + Math.PI / 2);
       ctx.scale(0.34, 0.34);
@@ -415,7 +415,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       bg.addColorStop(0, "#0b0618"); bg.addColorStop(1, "#1c0a2e");
       ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
       const neb = ctx.createRadialGradient(W * 0.8, H * 0.2, 10, W * 0.8, H * 0.2, Math.max(W, H) * 0.7);
-      neb.addColorStop(0, "rgba(204,32,143,0.18)"); neb.addColorStop(1, "rgba(204,32,143,0)");
+      neb.addColorStop(0, "rgba(195,33,126,0.18)"); neb.addColorStop(1, "rgba(195,33,126,0)");
       ctx.fillStyle = neb; ctx.fillRect(0, 0, W, H);
       for (const s of stars) {
         ctx.globalAlpha = 0.3 + 0.5 * s.z * (0.7 + 0.3 * Math.sin(s.tw));
@@ -447,7 +447,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       if (main && !dead && intro <= 0 && dist(main, craft) > 150) {
         const a = Math.atan2(main.y - craft.y, main.x - craft.x);
         ctx.save(); ctx.translate(craft.x + Math.cos(a) * 34, craft.y + Math.sin(a) * 34); ctx.rotate(a);
-        ctx.fillStyle = "rgba(255,79,195,0.7)"; ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-4, -5); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "rgba(253,73,176,0.7)"; ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-4, -5); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
         ctx.restore();
       }
 
@@ -524,7 +524,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       ctx.font = `800 22px ${FONT}`;
       const sw = Math.max(78, ctx.measureText(scoreText).width + 28);
       glass(12, top, sw, 50, 16);
-      ctx.textAlign = "left"; ctx.fillStyle = "rgba(255,155,221,0.85)"; ctx.font = `700 9.5px ${FONT}`;
+      ctx.textAlign = "left"; ctx.fillStyle = "rgba(254,148,209,0.85)"; ctx.font = `700 9.5px ${FONT}`;
       ctx.fillText("SCORE", 26, top + 18);
       ctx.fillStyle = "#fff"; ctx.font = `800 22px ${FONT}`;
       ctx.fillText(scoreText, 26, top + 41);
@@ -533,7 +533,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       ctx.font = `800 22px ${FONT}`;
       const ow = Math.max(64, ctx.measureText(orbText).width + 28);
       glass(W - 12 - ow, top, ow, 50, 16);
-      ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,155,221,0.85)"; ctx.font = `700 9.5px ${FONT}`;
+      ctx.textAlign = "right"; ctx.fillStyle = "rgba(254,148,209,0.85)"; ctx.font = `700 9.5px ${FONT}`;
       ctx.fillText("ORBS", W - 26, top + 18);
       ctx.fillStyle = "#fff"; ctx.font = `800 22px ${FONT}`;
       ctx.fillText(orbText, W - 26, top + 41);
@@ -563,7 +563,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         ctx.save();
         ctx.shadowColor = PINK; ctx.shadowBlur = 18;
         const cg = ctx.createLinearGradient(W / 2 - cw / 2, 0, W / 2 + cw / 2, 0);
-        cg.addColorStop(0, "#ff4fc3"); cg.addColorStop(1, "#b4268a");
+        cg.addColorStop(0, "#fd49b0"); cg.addColorStop(1, "#ac2673");
         ctx.fillStyle = cg; roundRect(W / 2 - cw / 2, top + 58, cw, 26, 13); ctx.fill();
         ctx.restore();
         ctx.textAlign = "center"; ctx.fillStyle = "#fff";
@@ -602,7 +602,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         ctx.save();
         roundRect(W / 2 - mw / 2, H / 2 - 30, mw, 48, 24);
         ctx.fillStyle = "rgba(18,10,31,0.8)"; ctx.fill();
-        ctx.strokeStyle = "rgba(255,79,195,0.5)"; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.strokeStyle = "rgba(253,73,176,0.5)"; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.restore();
         ctx.textAlign = "center"; ctx.fillStyle = "#fff";
         ctx.fillText(msg, W / 2, H / 2 + 1);

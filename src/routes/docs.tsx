@@ -73,7 +73,7 @@ function DocsPage() {
   const navigation = (
     <div className="flex h-full flex-col">
       <div className="p-4">
-        <label className="flex h-10 items-center gap-2 rounded-md border border-[#171717]/10 dark:border-white/10 bg-white dark:bg-[#141118] px-3 focus-within:border-[#cc208f]/40 focus-within:ring-2 focus-within:ring-[#cc208f]/10">
+        <label className="flex h-10 items-center gap-2 rounded-md border border-[#171717]/10 dark:border-white/10 bg-white dark:bg-[#141118] px-3 focus-within:border-[#c3217e]/40 focus-within:ring-2 focus-within:ring-[#c3217e]/10">
           <Search className="h-4 w-4 shrink-0 text-[#827b80] dark:text-white/55" />
           <input
             value={query}
@@ -106,7 +106,7 @@ function DocsPage() {
                     className={`flex min-h-9 items-center justify-between gap-2 rounded-md px-2.5 py-2 text-[11.5px] font-medium leading-4 transition-colors ${active ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717]" : "text-[#5f5a5d] dark:text-white/55 hover:bg-[#171717]/[0.045] hover:text-[#171717]"}`}
                   >
                     <span>{item.title}</span>
-                    {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#f28fd0]" />}
+                    {active && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#f089c4]" />}
                   </Link>
                 );
               })}
@@ -176,7 +176,7 @@ function DocsPage() {
 
         <main className="min-w-0 bg-white dark:bg-[#141118]">
           <article className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 md:py-16 lg:px-12 lg:py-20">
-            <div className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
+            <div className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#94185f]">
               <span>{page.group}</span>
               <span className="text-[#b6afb3]">/</span>
               <span className="flex items-center gap-1 text-[#827b80] dark:text-white/55">
@@ -211,14 +211,14 @@ function DocsPage() {
                           key={bullet}
                           className="flex items-start gap-3 text-[13px] leading-6 text-[#565156] dark:text-white/60 sm:text-[13.5px]"
                         >
-                          <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#cc208f]" />
+                          <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#c3217e]" />
                           <span>{bullet}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                   {section.note && (
-                    <div className="mt-6 border-l-2 border-[#cc208f] bg-[#cc208f]/[0.045] px-4 py-3.5">
+                    <div className="mt-6 border-l-2 border-[#c3217e] bg-[#c3217e]/[0.045] px-4 py-3.5">
                       <p className="text-[12.5px] font-medium leading-6 text-[#4f484d]">
                         {section.note}
                       </p>
@@ -238,7 +238,7 @@ function DocsPage() {
                   <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8a8388] dark:text-white/45">
                     <ArrowLeft className="h-3 w-3" /> Previous
                   </span>
-                  <span className="mt-2 block text-[12px] font-semibold group-hover:text-[#9d176d]">
+                  <span className="mt-2 block text-[12px] font-semibold group-hover:text-[#94185f]">
                     {previousPage.title}
                   </span>
                 </Link>
@@ -254,7 +254,7 @@ function DocsPage() {
                   <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8a8388] dark:text-white/45 sm:justify-end">
                     Next <ArrowRight className="h-3 w-3" />
                   </span>
-                  <span className="mt-2 block text-[12px] font-semibold group-hover:text-[#9d176d]">
+                  <span className="mt-2 block text-[12px] font-semibold group-hover:text-[#94185f]">
                     {nextPage.title}
                   </span>
                 </Link>
@@ -268,7 +268,7 @@ function DocsPage() {
               <Link
                 to="/signup"
                 search={{ ref: undefined, club: undefined }}
-                className="inline-flex items-center gap-2 text-[10.5px] font-semibold text-[#9d176d]"
+                className="inline-flex items-center gap-2 text-[10.5px] font-semibold text-[#94185f]"
               >
                 Open Zero Club <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -285,7 +285,7 @@ function DocsPage() {
               <a
                 key={section.title}
                 href={`#${sectionId(section.title)}`}
-                className="block text-[10.5px] leading-4 text-[#777075] hover:text-[#9d176d]"
+                className="block text-[10.5px] leading-4 text-[#777075] hover:text-[#94185f]"
               >
                 {section.title}
               </a>
@@ -299,7 +299,7 @@ function DocsPage() {
             <Link
               to="/explore/$slug"
               params={{ slug: "feed" }}
-              className="mt-3 inline-flex items-center gap-1 text-[10px] font-semibold text-[#9d176d]"
+              className="mt-3 inline-flex items-center gap-1 text-[10px] font-semibold text-[#94185f]"
             >
               Explore products <ArrowRight className="h-3 w-3" />
             </Link>

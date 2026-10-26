@@ -630,7 +630,7 @@ function InstitutionHub() {
               <div className="overflow-hidden rounded-lg bg-[#171218] text-white ring-1 ring-white/[0.06]">
                 <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                   <div className="max-w-2xl">
-                    <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#cc208f]">
+                    <div className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-[#c3217e]">
                       <Building2 className="h-5 w-5" />
                     </div>
                     <p className="text-[10px] font-semibold uppercase text-white/45">
@@ -1714,7 +1714,7 @@ function InstitutionHub() {
                       }}
                       disabled={assigning || isCurrentlyAssigned}
                       className={`flex w-full items-center gap-3 rounded-2xl px-2 py-3 text-left transition-colors tap ${
-                        isCurrentlyAssigned ? "bg-[#cc208f]/[0.06]" : "hover:bg-foreground/[0.04]"
+                        isCurrentlyAssigned ? "bg-[#c3217e]/[0.06]" : "hover:bg-foreground/[0.04]"
                       }`}
                     >
                       {t.tutor?.avatar_url ? (
@@ -1739,7 +1739,7 @@ function InstitutionHub() {
                         </p>
                       </div>
                       {isCurrentlyAssigned ? (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#9a1963]">
                           <Check className="h-3.5 w-3.5" /> Assigned
                         </span>
                       ) : assigning ? (

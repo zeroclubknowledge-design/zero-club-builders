@@ -137,7 +137,7 @@ export function AuthPanel({
     }
   };
 
-  const input = "h-12 w-full rounded-xl border border-border bg-background px-4 pl-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#cc208f]/50 focus:ring-4 focus:ring-[#cc208f]/10";
+  const input = "h-12 w-full rounded-xl border border-border bg-background px-4 pl-11 text-[15px] outline-none transition placeholder:text-muted-foreground/70 focus:border-[#c3217e]/50 focus:ring-4 focus:ring-[#c3217e]/10";
 
   if (step === "code") {
     return (
@@ -153,7 +153,7 @@ export function AuthPanel({
           type="button"
           onClick={() => void verify()}
           disabled={code.length < 6 || busy}
-          className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgba(204,32,143,0.9)] transition hover:bg-[#b01c7b] disabled:opacity-40"
+          className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgba(195,33,126,0.9)] transition hover:bg-[#a71d6c] disabled:opacity-40"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} {mode === "signup" ? "Create my account" : "Sign in"}
         </button>
@@ -223,7 +223,7 @@ export function AuthPanel({
               <input value={referral} onChange={(e) => setReferral(e.target.value.trim().toUpperCase())} placeholder="Referral code (optional)" className={input} />
             </label>
             <label className="flex items-start gap-2.5 px-1 pt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#cc208f]" />
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#c3217e]" />
               <span>
                 I agree to Zero Club's{" "}
                 <a href={`${config.zeroClubUrl}/terms`} target="_blank" rel="noreferrer" className="font-semibold text-foreground underline">Terms</a> and{" "}
@@ -235,7 +235,7 @@ export function AuthPanel({
         <button
           type="submit"
           disabled={!canSend || busy}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgba(204,32,143,0.9)] transition hover:bg-[#b01c7b] disabled:opacity-40"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[15px] font-semibold text-white shadow-[0_14px_30px_-14px_rgba(195,33,126,0.9)] transition hover:bg-[#a71d6c] disabled:opacity-40"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} {mode === "signup" ? "Send my code" : "Send sign-in code"}
         </button>

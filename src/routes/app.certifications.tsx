@@ -39,7 +39,7 @@ function CertificationsPage() {
     <div className="min-h-screen bg-canvas px-4 pb-28 pt-6 md:px-7">
       <main className="mx-auto w-full max-w-5xl space-y-6">
         <header>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#a3186f]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#9a1963]">
             Your learning. Your recognition.
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold">Certifications</h1>

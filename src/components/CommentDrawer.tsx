@@ -636,7 +636,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                         </span>
                       </div>
                       {isReply && comment.parentUsername && (
-                        <p className="text-[10px] text-[#cc208f] font-bold mb-1">Replying to @{comment.parentUsername}</p>
+                        <p className="text-[10px] text-[#c3217e] font-bold mb-1">Replying to @{comment.parentUsername}</p>
                       )}
                       
                       {editingCommentId === comment.id ? (

@@ -173,7 +173,7 @@ export function ProfileCredentials({
               <ul className="mt-2 divide-y divide-border/70">
                 {certificates.map((cert) => (
                   <li key={cert.id} className="flex gap-3.5 py-3.5 first:pt-1">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]">
                       <Award className="h-5 w-5" />
                     </span>
                     <div className="min-w-0 flex-1">
@@ -235,12 +235,12 @@ function VerifiedBootcampCertificates({ profileId }: { profileId?: string | null
   return (
     <section className="mt-2 bg-card px-4 py-4 md:rounded-xl md:border md:border-border">
       <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold text-foreground">
-        <BadgeCheck className="h-5 w-5 text-[#cc208f]" /> Zero Club certificates
+        <BadgeCheck className="h-5 w-5 text-[#c3217e]" /> Zero Club certificates
       </h2>
       <ul className="mt-2 divide-y divide-border/70">
         {data.map((c) => (
           <li key={c.code} className="flex gap-3.5 py-3.5 first:pt-1">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Award className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><Award className="h-5 w-5" /></span>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold leading-snug text-foreground">{c.bootcamp_title}</p>
               <p className="text-[14px] text-foreground/85">{c.issuer_name || "Zero Club"} · {c.format === "workshop" ? "Workshop" : "Bootcamp"}</p>

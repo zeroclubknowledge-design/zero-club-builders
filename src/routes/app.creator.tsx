@@ -55,8 +55,8 @@ function CreatorWorkspace() {
       <div className="flex min-h-screen flex-col bg-canvas text-foreground">
         <Header />
         <main className="zc-page-width mx-auto mt-2 flex w-full max-w-[680px] flex-1 flex-col items-center bg-card px-6 pb-28 pt-12 text-center md:mb-6 md:flex-none md:rounded-xl md:border md:border-border md:pb-10">
-          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><UsersRound className="h-7 w-7" /></span>
-          <p className="mt-5 text-[12px] font-semibold text-[#a3186f]">Creator pathway</p>
+          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><UsersRound className="h-7 w-7" /></span>
+          <p className="mt-5 text-[12px] font-semibold text-[#9a1963]">Creator pathway</p>
           <h2 className="mt-1.5 max-w-[380px] font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em]">Build your own communities with Creator</h2>
           <p className="mt-2.5 max-w-[400px] text-[15px] leading-relaxed text-muted-foreground">
             Creator unlocks three permanent Clubs, community management, insight, Creator Rewards eligibility, and six months of premium Club experience for your first Club.
@@ -99,14 +99,14 @@ function CreatorWorkspace() {
             </p>
           </div>
           <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-foreground/[0.07]">
-            <div className="h-full rounded-full bg-[#cc208f]" style={{ width: `${used * 100}%` }} />
+            <div className="h-full rounded-full bg-[#c3217e]" style={{ width: `${used * 100}%` }} />
           </div>
           <p className="mt-2 text-[13px] text-muted-foreground">{capacity.remaining === null ? "Unlimited club creation with administrator access" : `${capacity.remaining} ${capacity.remaining === 1 ? "club" : "clubs"} remaining on the Creator plan`}</p>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
             {stats.map(({ label, value, Icon }) => (
               <div key={label} className="rounded-xl border border-foreground/10 p-3">
-                <Icon className="h-[18px] w-[18px] text-[#cc208f]" />
+                <Icon className="h-[18px] w-[18px] text-[#c3217e]" />
                 <p className="mt-2 font-display text-[22px] font-semibold leading-none tabular-nums">{value}</p>
                 <p className="mt-1 text-[12px] leading-tight text-muted-foreground">{label}</p>
               </div>
@@ -117,7 +117,7 @@ function CreatorWorkspace() {
         <section className="bg-card md:overflow-hidden md:rounded-xl md:border md:border-border">
           <div className="flex items-center justify-between px-4 pb-2 pt-4">
             <h2 className="font-display text-[18px] font-semibold">Your clubs</h2>
-            <Link to="/app/clubs" className="text-[14px] font-semibold text-[#a3186f]">New club</Link>
+            <Link to="/app/clubs" className="text-[14px] font-semibold text-[#9a1963]">New club</Link>
           </div>
           {data.permanentClubs.length ? (
             data.permanentClubs.map((club: any) => {
@@ -151,9 +151,9 @@ function CreatorWorkspace() {
 
         <section className="bg-[#171217] p-4 text-white md:rounded-xl">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[#f28fd0]"><Sparkles className="h-5 w-5" /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[#f089c4]"><Sparkles className="h-5 w-5" /></span>
             <div>
-              <p className="text-[12px] font-semibold text-[#f28fd0]">First club benefit</p>
+              <p className="text-[12px] font-semibold text-[#f089c4]">First club benefit</p>
               <h3 className="mt-0.5 text-[16px] font-semibold">Six months of premium club experience</h3>
               <p className="mt-1 text-[13px] leading-relaxed text-white/60">
                 {benefitEnd

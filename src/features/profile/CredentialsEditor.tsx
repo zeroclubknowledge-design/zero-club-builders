@@ -280,7 +280,7 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
               <label className="flex items-center gap-2.5 text-[14.5px] font-medium">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 accent-[#cc208f]"
+                  className="h-4 w-4 accent-[#c3217e]"
                   checked={form.is_current}
                   onChange={(e) => setForm({ ...form, is_current: e.target.checked })}
                 />
@@ -454,7 +454,7 @@ export function CertificatesEditor({ profileId }: { profileId: string }) {
         <ul className="mt-2 divide-y divide-border/70">
           {certificates.map((cert) => (
             <li key={cert.id} className="flex items-start gap-3 py-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]">
                 <Award className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">

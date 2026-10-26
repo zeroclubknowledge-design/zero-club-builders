@@ -51,7 +51,7 @@ export function FloatingPicker({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex h-11 w-full items-center gap-2.5 rounded-[10px] border bg-card px-3 text-left text-[15px] outline-none transition ${open ? "border-[#cc208f]" : "border-foreground/15 hover:border-foreground/30"}`}
+        className={`flex h-11 w-full items-center gap-2.5 rounded-[10px] border bg-card px-3 text-left text-[15px] outline-none transition ${open ? "border-[#c3217e]" : "border-foreground/15 hover:border-foreground/30"}`}
       >
         {selected?.icon && <span className="shrink-0">{selected.icon}</span>}
         <span className={`min-w-0 flex-1 truncate ${selected ? "font-medium text-foreground" : "text-muted-foreground"}`}>
@@ -78,7 +78,7 @@ export function FloatingPicker({
                   onChange(o.value);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${active ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${active ? "bg-[#c3217e]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
               >
                 {o.icon && <span className="shrink-0">{o.icon}</span>}
                 <span className="min-w-0 flex-1">
@@ -86,7 +86,7 @@ export function FloatingPicker({
                   {o.description && <span className="mt-0.5 block text-[12.5px] leading-snug text-muted-foreground">{o.description}</span>}
                 </span>
                 {o.meta && <span className="shrink-0 text-[12.5px] font-semibold text-muted-foreground">{o.meta}</span>}
-                {active && <Check className="h-4 w-4 shrink-0 text-[#cc208f]" strokeWidth={3} />}
+                {active && <Check className="h-4 w-4 shrink-0 text-[#c3217e]" strokeWidth={3} />}
               </button>
             );
           })}

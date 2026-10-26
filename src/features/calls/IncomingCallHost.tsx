@@ -240,12 +240,12 @@ export function IncomingCallHost() {
     <div style={{ pointerEvents: "auto" }} className="fixed inset-0 z-[10500] flex flex-col items-center justify-between bg-[radial-gradient(120%_80%_at_50%_0%,#3a0f2c_0%,#120910_55%,#060406_100%)] px-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] text-white" role="alertdialog" aria-label={`${active.title} — incoming`}>
       <div className="flex flex-col items-center text-center">
         <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/80">
-          {live ? <Radio className="h-3.5 w-3.5 text-[#ff4fb8]" /> : <Phone className="h-3.5 w-3.5" />}
+          {live ? <Radio className="h-3.5 w-3.5 text-[#fd49b0]" /> : <Phone className="h-3.5 w-3.5" />}
           {live ? "Live now" : "Incoming group call"}
         </p>
         <div className="relative mt-10">
-          <span className="absolute inset-0 animate-ping rounded-full bg-[#cc208f]/30" />
-          <span className="absolute -inset-4 rounded-full ring-2 ring-[#cc208f]/25" />
+          <span className="absolute inset-0 animate-ping rounded-full bg-[#c3217e]/30" />
+          <span className="absolute -inset-4 rounded-full ring-2 ring-[#c3217e]/25" />
           <GroupAvatar name={active.title} url={active.avatar_url} size={112} className="relative ring-4 ring-white/15" />
         </div>
         <h2 className="mt-8 max-w-[18rem] text-[26px] font-bold leading-tight">{active.title}</h2>

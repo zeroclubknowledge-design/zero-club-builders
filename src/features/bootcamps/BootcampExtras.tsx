@@ -62,7 +62,7 @@ function Sheet({ open, onOpenChange, title, description, icon, children }: {
       <DrawerContent className="mx-auto max-h-[92dvh] max-w-2xl border-none bg-background p-0">
         <div className="overflow-y-auto px-5 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-1 sm:px-7">
           <DrawerHeader className="p-0 pb-4 text-left">
-            {icon && <div className="grid h-11 w-11 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">{icon}</div>}
+            {icon && <div className="grid h-11 w-11 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">{icon}</div>}
             <DrawerTitle className="mt-3 font-display text-[20px] font-semibold leading-tight">{title}</DrawerTitle>
             {description && <DrawerDescription className="mt-1 text-[14px] leading-relaxed text-muted-foreground">{description}</DrawerDescription>}
           </DrawerHeader>
@@ -124,7 +124,7 @@ export function BootcampFacts({ bootcamp }: { bootcamp: any }) {
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
       {items.map((item) => (
-        <span key={item.text} className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold ${item.strong ? "bg-[#cc208f]/12 text-[#a3186f]" : "bg-foreground/[0.05] text-foreground/80"}`}>
+        <span key={item.text} className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-semibold ${item.strong ? "bg-[#c3217e]/12 text-[#9a1963]" : "bg-foreground/[0.05] text-foreground/80"}`}>
           {item.icon}{item.text}
         </span>
       ))}
@@ -137,10 +137,10 @@ export function EarlyBirdBanner({ bootcamp }: { bootcamp: any }) {
   if (!earlyBirdActive(bootcamp)) return null;
   const save = Number(bootcamp.price) - Number(bootcamp.early_bird_price);
   return (
-    <div className="mb-3 flex items-center gap-2.5 rounded-xl bg-[#cc208f]/[0.08] px-3 py-2.5">
-      <TicketPercent className="h-5 w-5 shrink-0 text-[#cc208f]" />
+    <div className="mb-3 flex items-center gap-2.5 rounded-xl bg-[#c3217e]/[0.08] px-3 py-2.5">
+      <TicketPercent className="h-5 w-5 shrink-0 text-[#c3217e]" />
       <p className="min-w-0 flex-1 text-[13px] leading-snug">
-        <span className="font-semibold text-[#a3186f]">Early bird — save {format(save)}.</span>{" "}
+        <span className="font-semibold text-[#9a1963]">Early bird — save {format(save)}.</span>{" "}
         <span className="text-foreground/75">Ends in {daysLeft(bootcamp.early_bird_ends_at)}.</span>
       </p>
     </div>
@@ -157,7 +157,7 @@ export function BootcampOutcomes({ bootcamp }: { bootcamp: any }) {
     <section className={card}>
       {outcomes.length > 0 && (
         <>
-          <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><Target className="h-5 w-5 text-[#cc208f]" /> What you'll be able to do</h2>
+          <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><Target className="h-5 w-5 text-[#c3217e]" /> What you'll be able to do</h2>
           <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
             {outcomes.map((o) => (
               <li key={o} className="flex items-start gap-2.5 text-[14px] leading-snug"><Check className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#1a7f4b]" />{o}</li>
@@ -203,7 +203,7 @@ export function BootcampFaq({ bootcamp }: { bootcamp: any }) {
   if (!faqs.length) return null;
   return (
     <section className={card}>
-      <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><HelpCircle className="h-5 w-5 text-[#cc208f]" /> Questions</h2>
+      <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><HelpCircle className="h-5 w-5 text-[#c3217e]" /> Questions</h2>
       <Accordion type="single" collapsible className="mt-2">
         {faqs.map((f, i) => (
           <AccordionItem key={i} value={`faq-${i}`} className="border-foreground/10">
@@ -293,7 +293,7 @@ export function BootcampDetailsEditor({ bootcamp, onSaved }: { bootcamp: any; on
             <div><span className={label}>Starts</span><input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={field} /></div>
             <div><span className={label}>Ends</span><input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={field} /></div>
             <div><span className={label}>Seat limit</span><input value={seatLimit} onChange={(e) => setSeatLimit(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="No limit" className={field} /></div>
-            <label className="flex items-end gap-2 pb-3 text-[14px] font-semibold"><input type="checkbox" checked={certificate} onChange={(e) => setCertificate(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" /> Certificate of completion</label>
+            <label className="flex items-end gap-2 pb-3 text-[14px] font-semibold"><input type="checkbox" checked={certificate} onChange={(e) => setCertificate(e.target.checked)} className="h-5 w-5 accent-[#c3217e]" /> Certificate of completion</label>
           </div>
 
           <div><span className={label}>What learners will be able to do (one per line)</span><textarea value={outcomes} onChange={(e) => setOutcomes(e.target.value)} rows={4} placeholder={"Build and deploy a full web app\nWork with APIs and databases"} className={area} /></div>
@@ -312,7 +312,7 @@ export function BootcampDetailsEditor({ bootcamp, onSaved }: { bootcamp: any; on
 
           <div>
             <div className="flex items-center justify-between"><span className={label}>FAQ</span>
-              <button type="button" onClick={() => setFaqs((f) => [...f, { q: "", a: "" }])} className="text-[13px] font-semibold text-[#cc208f]">+ Add question</button>
+              <button type="button" onClick={() => setFaqs((f) => [...f, { q: "", a: "" }])} className="text-[13px] font-semibold text-[#c3217e]">+ Add question</button>
             </div>
             <div className="space-y-2">
               {faqs.map((f, i) => (
@@ -402,14 +402,14 @@ export function BootcampSchedule({ bootcampId, canManage, isEnrolled }: { bootca
           {s.description && <p className="mt-1 line-clamp-2 text-[13px] text-foreground/75">{s.description}</p>}
           {canManage && (
             <div className="mt-2 flex flex-wrap gap-3 text-[12.5px] font-semibold">
-              <button type="button" onClick={() => setRosterFor(s)} className="text-[#cc208f]">Attendance</button>
+              <button type="button" onClick={() => setRosterFor(s)} className="text-[#c3217e]">Attendance</button>
               {!isPast && <button type="button" onClick={() => cancel.mutate(s)} className="text-muted-foreground">{s.status === "cancelled" ? "Restore" : "Cancel class"}</button>}
               <button type="button" onClick={async () => (await confirmCard("Remove this class from the schedule?")) && remove.mutate(s)} className="text-muted-foreground">Remove</button>
             </div>
           )}
         </div>
         {(isEnrolled || canManage) && live && (
-          <button type="button" disabled={join.isPending} onClick={() => join.mutate(s)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3.5 text-[13px] font-semibold text-white">
+          <button type="button" disabled={join.isPending} onClick={() => join.mutate(s)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#c3217e] px-3.5 text-[13px] font-semibold text-white">
             {join.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Video className="h-3.5 w-3.5" />} Join
           </button>
         )}
@@ -420,7 +420,7 @@ export function BootcampSchedule({ bootcampId, canManage, isEnrolled }: { bootca
   return (
     <section className={card}>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><CalendarDays className="h-5 w-5 text-[#cc208f]" /> Class schedule</h2>
+        <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><CalendarDays className="h-5 w-5 text-[#c3217e]" /> Class schedule</h2>
         {canManage && <button type="button" onClick={() => setAdding(true)} className="inline-flex h-9 items-center gap-1 rounded-full bg-foreground px-3.5 text-[13px] font-semibold text-background"><Plus className="h-4 w-4" /> Add class</button>}
       </div>
       {!isEnrolled && !canManage && all.length > 0 && <p className="mt-1 text-[13px] text-muted-foreground">Enrol to get the join links and attendance on your record.</p>}
@@ -600,7 +600,7 @@ export function BootcampReplays({ bootcampId, canManage, isEnrolled }: { bootcam
   return (
     <section className={card}>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><PlayCircle className="h-5 w-5 text-[#cc208f]" /> Replays</h2>
+        <h2 className="flex items-center gap-2 font-display text-[18px] font-semibold"><PlayCircle className="h-5 w-5 text-[#c3217e]" /> Replays</h2>
         {canManage && <button type="button" onClick={() => setAdding(true)} className="inline-flex h-9 items-center gap-1 rounded-full bg-foreground px-3.5 text-[13px] font-semibold text-background"><Plus className="h-4 w-4" /> Add replay</button>}
       </div>
       <p className="mt-1 text-[13px] text-muted-foreground">Missed a class or need a refresher? Watch it again here.</p>
@@ -673,7 +673,7 @@ function AddReplaySheet({ open, onOpenChange, bootcampId, onSaved }: { open: boo
         <div><span className={label}>Title</span><input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} placeholder="e.g. Week 2 — Databases" className={field} /></div>
         <input ref={input} type="file" accept="video/*" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] || null); if (e.target.files?.[0]) setUrl(""); }} />
         <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-foreground/25 p-4 text-left">
-          <UploadCloud className="h-6 w-6 shrink-0 text-[#cc208f]" />
+          <UploadCloud className="h-6 w-6 shrink-0 text-[#c3217e]" />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[14px] font-semibold">{file ? file.name : "Upload a recording"}</span>
             <span className="block text-[12.5px] text-muted-foreground">{file ? `${(file.size / 1_048_576).toFixed(1)} MB` : "MP4 or WebM from your device"}</span>
@@ -712,9 +712,9 @@ export function BootcampProgressCard({ bootcampId, bootcampTitle }: { bootcampId
     <div className="mt-4 rounded-2xl border border-border p-3.5">
       <div className="flex items-center justify-between">
         <p className="text-[14px] font-semibold">Your progress</p>
-        <p className="text-[14px] font-bold text-[#cc208f]">{pct}%</p>
+        <p className="text-[14px] font-bold text-[#c3217e]">{pct}%</p>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-foreground/[0.07]"><div className="h-full rounded-full bg-[#cc208f] transition-all" style={{ width: `${pct}%` }} /></div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-foreground/[0.07]"><div className="h-full rounded-full bg-[#c3217e] transition-all" style={{ width: `${pct}%` }} /></div>
       <p className="mt-2 text-[12.5px] text-muted-foreground">
         {p.sessions_past > 0 ? `${Math.min(p.attended, p.sessions_past)} of ${p.sessions_past} classes attended` : "No classes yet"}
         {p.replays > 0 ? ` · ${p.watched} of ${p.replays} replays watched` : ""}
@@ -893,7 +893,7 @@ export function GroupSeatsButton({ bootcamp, trigger }: { bootcamp: any; trigger
             <CheckCircle2 className="mx-auto h-12 w-12 text-[#1a7f4b]" />
             <p className="mt-3 font-display text-[18px] font-semibold">{done.seats} seats are yours</p>
             <p className="mt-1 text-[14px] text-muted-foreground">Share this code. Each person enters it on Bootcamps to take a seat.</p>
-            <button type="button" onClick={() => { void navigator.clipboard.writeText(done.code); toast.success("Code copied"); }} className="mx-auto mt-4 flex h-12 items-center gap-2 rounded-2xl border-2 border-dashed border-[#cc208f]/50 px-5 font-mono text-[18px] font-bold tracking-wider">{done.code} <Copy className="h-4 w-4" /></button>
+            <button type="button" onClick={() => { void navigator.clipboard.writeText(done.code); toast.success("Code copied"); }} className="mx-auto mt-4 flex h-12 items-center gap-2 rounded-2xl border-2 border-dashed border-[#c3217e]/50 px-5 font-mono text-[18px] font-bold tracking-wider">{done.code} <Copy className="h-4 w-4" /></button>
             <Link to="/app/bootcamps/requests" className={`${outlineBtn} mt-4`}>Manage your seats</Link>
           </div>
         ) : (
@@ -908,7 +908,7 @@ export function GroupSeatsButton({ bootcamp, trigger }: { bootcamp: any; trigger
               {disc > 0 && <div className="mt-1 flex justify-between text-[#1a7f4b]"><span>Group discount ({disc}%)</span><span>−{format(unit * n - total)}</span></div>}
               <div className="mt-2 flex justify-between border-t border-border pt-2 text-[16px] font-bold"><span>Total</span><span>{format(total)}</span></div>
             </div>
-            <label className="flex items-center gap-2 text-[14px]"><input type="checkbox" checked={takeOne} onChange={(e) => setTakeOne(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" /> Keep one seat for me</label>
+            <label className="flex items-center gap-2 text-[14px]"><input type="checkbox" checked={takeOne} onChange={(e) => setTakeOne(e.target.checked)} className="h-5 w-5 accent-[#c3217e]" /> Keep one seat for me</label>
             <ZeroGiftPaymentOption service="bootcamps" bootcampId={bootcamp.id} amount={total} applied={gift} onAppliedChange={setGift} formatAmount={format} />
             <button type="button" disabled={buy.isPending} onClick={() => buy.mutate()} className={`${primaryBtn} w-full`}>{buy.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Pay {format(total)}</button>
           </div>
@@ -961,7 +961,7 @@ export function MySeatPacks() {
                   <Link to="/app/bootcamps/$id" params={{ id: p.bootcamp_id }} className="block truncate text-[15px] font-semibold hover:underline">{p.bootcamp_title}</Link>
                   <p className="text-[12.5px] text-muted-foreground">{used} of {p.seats} seats used</p>
                 </div>
-                <button type="button" onClick={() => { void navigator.clipboard.writeText(p.code); toast.success("Code copied"); }} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-[#cc208f]/50 px-3 font-mono text-[12.5px] font-bold">{p.code} <Copy className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => { void navigator.clipboard.writeText(p.code); toast.success("Code copied"); }} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-[#c3217e]/50 px-3 font-mono text-[12.5px] font-bold">{p.code} <Copy className="h-3.5 w-3.5" /></button>
               </div>
               {used > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -1033,7 +1033,7 @@ export function PrivateRequestsList() {
     onError: (e: any) => toast.error(e?.message || "Could not update"),
   });
   const list = requests.data || [];
-  const statusTone: Record<string, string> = { new: "bg-[#cc208f]/12 text-[#a3186f]", contacted: "bg-foreground/[0.07] text-foreground/80", accepted: "bg-[#1a7f4b]/12 text-[#1a7f4b]", declined: "bg-foreground/[0.07] text-muted-foreground" };
+  const statusTone: Record<string, string> = { new: "bg-[#c3217e]/12 text-[#9a1963]", contacted: "bg-foreground/[0.07] text-foreground/80", accepted: "bg-[#1a7f4b]/12 text-[#1a7f4b]", declined: "bg-foreground/[0.07] text-muted-foreground" };
   return (
     <section className="mt-6">
       <p className="px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Private bootcamp requests</p>
@@ -1102,9 +1102,9 @@ export function AllAccessPass({ ownerId, ownerName, bootcampId, isEnrolled, onEn
   const holds = !!p.my_expires_at;
   if (isEnrolled && holds) return null;
   return (
-    <div className="mt-3 rounded-2xl border border-[#cc208f]/25 bg-[#cc208f]/[0.04] p-3.5">
+    <div className="mt-3 rounded-2xl border border-[#c3217e]/25 bg-[#c3217e]/[0.04] p-3.5">
       <div className="flex items-start gap-2.5">
-        <TicketPercent className="mt-0.5 h-5 w-5 shrink-0 text-[#cc208f]" />
+        <TicketPercent className="mt-0.5 h-5 w-5 shrink-0 text-[#c3217e]" />
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-semibold">{p.title}</p>
           <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">
@@ -1170,7 +1170,7 @@ export function PassEditor({ ownerId }: { ownerId: string }) {
             <div><span className={label}>Valid for</span><CardSelect value={days} onChange={(e) => setDays(e.target.value)} className={field}>{[[30, "1 month"], [90, "3 months"], [180, "6 months"], [365, "1 year"], [730, "2 years"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</CardSelect></div>
           </div>
           <div><span className={label}>Description (optional)</span><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={area} /></div>
-          <label className="flex items-center gap-2 text-[14px] font-semibold"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="h-5 w-5 accent-[#cc208f]" /> On sale</label>
+          <label className="flex items-center gap-2 text-[14px] font-semibold"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="h-5 w-5 accent-[#c3217e]" /> On sale</label>
           <button type="button" disabled={save.isPending || title.trim().length < 2 || !price} onClick={() => save.mutate()} className={`${primaryBtn} w-full`}>{save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Save pass</button>
         </div>
       </Sheet>

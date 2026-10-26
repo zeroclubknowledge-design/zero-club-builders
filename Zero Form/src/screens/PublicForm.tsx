@@ -587,14 +587,14 @@ export function ZeroFormPublicPage({ slug }: { slug: string }) {
                     {heroImage ? (
                       <img src={heroImage} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="absolute inset-0 bg-[radial-gradient(130%_150%_at_18%_0%,#e94fb0_0%,#b62ba4_38%,#6d3ad6_72%,#3b1d86_100%)]" />
+                      <div className="absolute inset-0 bg-[radial-gradient(130%_150%_at_18%_0%,#e64aa4_0%,#ae2b76_38%,#6d3ad6_72%,#3b1d86_100%)]" />
                     )}
                     <div className="pointer-events-none absolute inset-0 rounded-[22px] ring-1 ring-inset ring-black/[0.06]" />
                   </div>
                   {/* Emblem: the ring draws itself, then the tick lands. */}
                   <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
                   <div className="zf-emblem grid h-[60px] w-[60px] place-items-center rounded-full bg-card shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)]">
-                    <span className="relative grid h-[50px] w-[50px] place-items-center rounded-full bg-[#cc208f]">
+                    <span className="relative grid h-[50px] w-[50px] place-items-center rounded-full bg-[#c3217e]">
                       <svg viewBox="0 0 96 96" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
                         <circle className="zf-ring" cx="48" cy="48" r="44" fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="4" strokeLinecap="round" strokeDasharray="277" strokeDashoffset="277" />
                       </svg>
@@ -610,7 +610,7 @@ export function ZeroFormPublicPage({ slug }: { slug: string }) {
 
             {/* ── Copy ─────────────────────────────────────────────────── */}
             <div className="relative px-3 pb-4 pt-12 text-center sm:px-6">
-              <p className="zf-rise text-[11px] font-semibold uppercase tracking-[0.3em] text-[#cc208f]" style={{ animationDelay: "260ms" }}>
+              <p className="zf-rise text-[11px] font-semibold uppercase tracking-[0.3em] text-[#c3217e]" style={{ animationDelay: "260ms" }}>
                 {confirmed ? "Congratulations" : kind === "interested" ? "You're on the list" : "Received"}
               </p>
               <h1 className="zf-rise mt-2.5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-foreground sm:text-[30px]" style={{ animationDelay: "340ms" }}>
@@ -625,7 +625,7 @@ export function ZeroFormPublicPage({ slug }: { slug: string }) {
 
               {/* ── Ticket receipt ────────────────────────────────────── */}
               <div className="zf-rise relative mt-7 text-left" style={{ animationDelay: "580ms" }}>
-                <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d6279a,#cc208f_45%,#b01c7b)] text-white shadow-[0_18px_40px_-20px_rgba(204,32,143,0.8)]">
+                <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#cd2887,#c3217e_45%,#a71d6c)] text-white shadow-[0_18px_40px_-20px_rgba(195,33,126,0.8)]">
                   <div className="px-5 pb-1 pt-2.5">
                     {!dataOnly && bootcamp?.title && (
                       <TicketRow label="Bootcamp" value={bootcamp.title} />
@@ -1195,7 +1195,7 @@ function FormField({
                   name={field.field_key}
                   checked={selected}
                   onChange={() => onChange(option)}
-                  className="h-3.5 w-3.5 accent-[#cc208f]"
+                  className="h-3.5 w-3.5 accent-[#c3217e]"
                 />
                 {option}
               </label>
@@ -1233,7 +1233,7 @@ function FormField({
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggle(option)}
-                  className="h-3.5 w-3.5 accent-[#cc208f]"
+                  className="h-3.5 w-3.5 accent-[#c3217e]"
                 />
                 {option}
               </label>

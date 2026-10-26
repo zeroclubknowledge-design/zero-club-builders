@@ -3,7 +3,7 @@
 /*
  * ZeroStart wears the Zero Club brand.
  *
- * One ecosystem, one colour and one surface: #cc208f on Zero Club's warm
+ * One ecosystem, one colour and one surface: #c3217e on Zero Club's warm
  * off-white. Somebody arriving from zeroclubs.xyz should recognise where they
  * are before they read a word, and a dark app hanging off a light one broke
  * that on the very first frame.
@@ -27,11 +27,11 @@
   --color-ink-faint: oklch(62% 0.01 260);
 
   /* The Zero Club brand colour, exactly as Zero Club defines it. */
-  --color-accent: #cc208f;
-  --color-accent-hover: #b01c7b;
-  --color-accent-soft: #cc208f14;
+  --color-accent: #c3217e;
+  --color-accent-hover: #a71d6c;
+  --color-accent-soft: #c3217e14;
   --color-accent-ink: #ffffff;
-  --color-accent-glow: #cc208f4d;
+  --color-accent-glow: #c3217e4d;
 
   /* Semantic, used consistently: approved, pending, rejected. */
   --color-ok: #15803d;
@@ -65,7 +65,7 @@ html.dark {
   --color-primary: oklch(98% 0 0);
   --color-ink-muted: oklch(70% 0 0);
   --color-ink-faint: oklch(56% 0 0);
-  --color-accent-soft: #cc208f26;
+  --color-accent-soft: #c3217e26;
   --color-ok: #4ade80;
   --color-warn: #fbbf24;
   --color-bad: #f87171;
@@ -85,7 +85,7 @@ html.dark.dim {
   --color-surface-2: oklch(0.3 0.04 250);
 }
 html.dark.rose-noir {
-  --color-primary: #cc208f;
+  --color-primary: #c3217e;
   --color-bg: oklch(0.09 0.035 350);
   --color-canvas: oklch(0.09 0.035 350);
   --color-surface: oklch(0.145 0.042 348);
@@ -209,5 +209,5 @@ textarea.zs-input { height: auto; padding: 12px 16px; line-height: 1.5; }
 .zs-mention-field::placeholder { -webkit-text-fill-color: currentColor; }
 .zs-mention-field::selection { -webkit-text-fill-color: transparent; }
 .zs-tag-ink { color: var(--color-accent); background-color: color-mix(in oklab, var(--color-accent) 10%, transparent); }
-html.dark .zs-tag-ink { color: #ff7dcf; background-color: rgb(255 125 207 / 0.16); }
+html.dark .zs-tag-ink { color: #fd77c4; background-color: rgb(255 125 207 / 0.16); }
 

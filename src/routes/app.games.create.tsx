@@ -146,7 +146,7 @@ function CreateTournament() {
               <button
                 key={g.key}
                 onClick={() => setGame(g.key)}
-                className={`flex flex-col items-center gap-2 rounded-2xl p-3 text-white transition ${game === g.key ? "ring-2 ring-[#cc208f] ring-offset-2 ring-offset-card" : "opacity-70"}`}
+                className={`flex flex-col items-center gap-2 rounded-2xl p-3 text-white transition ${game === g.key ? "ring-2 ring-[#c3217e] ring-offset-2 ring-offset-card" : "opacity-70"}`}
                 style={{ background: `linear-gradient(150deg, ${g.to}, ${g.from})` }}
               >
                 <GameEmblem game={g.key} size={44} />
@@ -158,14 +158,14 @@ function CreateTournament() {
         </Card>
 
         <Card title="Details">
-          <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 80))} placeholder={`e.g. Friday ${info.name} Showdown`} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14.5px] outline-none focus:border-[#cc208f]" />
-          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom" value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} placeholder="Rules, shout-outs or anything players should know (optional)" className="mt-2 w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[14px] outline-none focus:border-[#cc208f]" />
+          <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 80))} placeholder={`e.g. Friday ${info.name} Showdown`} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14.5px] outline-none focus:border-[#c3217e]" />
+          <MentionField wrapperClassName="relative w-full" menuPlacement="bottom" value={description} onChange={(e) => setDescription(e.target.value.slice(0, 600))} rows={3} placeholder="Rules, shout-outs or anything players should know (optional)" className="mt-2 w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[14px] outline-none focus:border-[#c3217e]" />
         </Card>
 
         <Card title="When" Icon={Trophy}>
           <Segmented value={startMode} onChange={(v) => setStartMode(v as "now" | "later")} options={[["now", "Start now"], ["later", "Schedule"]]} />
           {startMode === "later" && (
-            <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]" />
+            <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#c3217e]" />
           )}
           <p className="mb-2 mt-4 text-[13px] font-semibold">How long it runs</p>
           <Segmented value={durationMode} onChange={(v) => setDurationMode(v as "quick" | "custom" | "end")} options={[["quick", "Quick pick"], ["custom", "Custom"], ["end", "End date"]]} />
@@ -186,7 +186,7 @@ function CreateTournament() {
           {durationMode === "end" && (
             <label className="mt-3 block">
               <span className="mb-1 block text-[12px] text-muted-foreground">Ends on</span>
-              <input type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]" />
+              <input type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#c3217e]" />
             </label>
           )}
           <p className={`mt-2 text-[12px] ${duration >= MIN_MINUTES && duration <= MAX_MINUTES ? "text-muted-foreground" : "text-rose-600"}`}>
@@ -232,7 +232,7 @@ function CreateTournament() {
               <button
                 key={v}
                 onClick={() => setReward(v)}
-                className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2.5 text-[12px] font-semibold transition ${reward === v ? "border-[#cc208f] bg-[#cc208f]/[0.07] text-[#cc208f]" : "border-border text-muted-foreground"}`}
+                className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2.5 text-[12px] font-semibold transition ${reward === v ? "border-[#c3217e] bg-[#c3217e]/[0.07] text-[#c3217e]" : "border-border text-muted-foreground"}`}
               >
                 <Icon className="h-5 w-5" /> {label}
               </button>
@@ -257,7 +257,7 @@ function CreateTournament() {
                     )}
                     {reward === "offer" && (
                       <div className="relative flex-1">
-                        <input list="zg-offers" value={labels[i]} onChange={(e) => setLabels((a) => a.map((x, j) => (j === i ? e.target.value.slice(0, 120) : x)))} placeholder="e.g. Free mentorship call" className="h-11 w-full rounded-xl border border-border bg-card px-3 pr-9 text-[14px] outline-none focus:border-[#cc208f]" />
+                        <input list="zg-offers" value={labels[i]} onChange={(e) => setLabels((a) => a.map((x, j) => (j === i ? e.target.value.slice(0, 120) : x)))} placeholder="e.g. Free mentorship call" className="h-11 w-full rounded-xl border border-border bg-card px-3 pr-9 text-[14px] outline-none focus:border-[#c3217e]" />
                         {labels[i] && <button onClick={() => setLabels((a) => a.map((x, j) => (j === i ? "" : x)))} className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground"><X className="h-3.5 w-3.5" /></button>}
                       </div>
                     )}
@@ -287,7 +287,7 @@ function CreateTournament() {
               {pool > 0 ? ` · ${format(pool)} pool` : ""}{sponsored && reward !== "none" ? " · Zero Club pays" : ""}
             </p>
           </div>
-          <button onClick={() => void submit()} disabled={saving} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-50" style={{ background: "#cc208f" }}>
+          <button onClick={() => void submit()} disabled={saving} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-50" style={{ background: "#c3217e" }}>
             {saving && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
             Create
           </button>
@@ -306,7 +306,7 @@ function lengthText(mins: number) {
 
 function DurationField({ label, value, onChange, max }: { label: string; value: string; onChange: (v: string) => void; max: number }) {
   return (
-    <label className="rounded-xl border border-border px-3 py-2 focus-within:border-[#cc208f]">
+    <label className="rounded-xl border border-border px-3 py-2 focus-within:border-[#c3217e]">
       <span className="block text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
       <input
         value={value}
@@ -358,13 +358,13 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function Option({ active, onClick, Icon, title, body }: { active: boolean; onClick: () => void; Icon: typeof Users; title: string; body: string }) {
   return (
-    <button onClick={onClick} className={`mb-2 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${active ? "border-[#cc208f] bg-[#cc208f]/[0.05]" : "border-border"}`}>
-      <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${active ? "text-[#cc208f]" : "text-muted-foreground"}`} />
+    <button onClick={onClick} className={`mb-2 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${active ? "border-[#c3217e] bg-[#c3217e]/[0.05]" : "border-border"}`}>
+      <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${active ? "text-[#c3217e]" : "text-muted-foreground"}`} />
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-semibold">{title}</p>
         <p className="text-[12.5px] leading-snug text-muted-foreground">{body}</p>
       </div>
-      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#cc208f]" : "border-[1.5px] border-foreground/20"}`}>
+      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${active ? "bg-[#c3217e]" : "border-[1.5px] border-foreground/20"}`}>
         {active && <span className="h-2 w-2 rounded-full bg-white" />}
       </span>
     </button>
@@ -373,7 +373,7 @@ function Option({ active, onClick, Icon, title, body }: { active: boolean; onCli
 
 function AmountInput({ value, onChange, prefix, suffix }: { value: string; onChange: (v: string) => void; prefix?: string; suffix?: string }) {
   return (
-    <label className="flex h-11 flex-1 items-center gap-1.5 rounded-xl border border-border bg-card px-3 focus-within:border-[#cc208f]">
+    <label className="flex h-11 flex-1 items-center gap-1.5 rounded-xl border border-border bg-card px-3 focus-within:border-[#c3217e]">
       {prefix && <span className="text-[14px] font-semibold text-muted-foreground">{prefix}</span>}
       <input value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 9))} inputMode="numeric" className="min-w-0 flex-1 bg-transparent text-[14.5px] font-semibold tabular-nums outline-none" />
       {suffix && <span className="text-[13px] font-semibold text-muted-foreground">{suffix}</span>}

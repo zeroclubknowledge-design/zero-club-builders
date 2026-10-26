@@ -28,7 +28,7 @@ export function BusinessProfileCard({ profile, isOwn }: { profile: any; isOwn?: 
   return (
     <div className="mt-3 rounded-2xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#cc208f]">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#c3217e]/10 px-2.5 py-1 text-[12px] font-semibold text-[#c3217e]">
           {institutional ? <Building2 className="h-3.5 w-3.5" /> : <BriefcaseBusiness className="h-3.5 w-3.5" />}
           {institutional ? "Tech hub" : "Company"}
         </span>

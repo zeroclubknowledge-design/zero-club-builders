@@ -206,7 +206,7 @@ function GiftCardsPage() {
             className="mr-1 flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-foreground/20 px-3 text-[13px] font-semibold text-foreground hover:bg-foreground/[0.04]"
           >
             Unclaimed
-            <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#cc208f] px-1 text-[11px] font-bold tabular-nums text-white">
+            <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#c3217e] px-1 text-[11px] font-bold tabular-nums text-white">
               {unclaimedCount}
             </span>
           </Link>
@@ -330,7 +330,7 @@ function GiftCardsPage() {
                   key={gift.id}
                   className="flex items-center gap-3 border-t border-border/60 px-4 py-3"
                 >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[#cc208f]">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#c3217e]/10 text-[#c3217e]">
                     <Gift className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -347,7 +347,7 @@ function GiftCardsPage() {
                   {destination.href ? (
                     <a
                       href={destination.href}
-                      className="shrink-0 text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]"
+                      className="shrink-0 text-[14px] font-semibold text-[#c3217e] hover:text-[#9a1963]"
                     >
                       Use
                     </a>

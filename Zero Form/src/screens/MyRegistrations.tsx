@@ -14,7 +14,7 @@ import { NAV } from "./nav";
 const STATUS: Record<string, { label: string; tone: string }> = {
   enrolled: { label: "Enrolled", tone: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400" },
   confirmed: { label: "Confirmed", tone: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400" },
-  interested: { label: "On the list", tone: "bg-[#cc208f]/10 text-[#cc208f]" },
+  interested: { label: "On the list", tone: "bg-[#c3217e]/10 text-[#c3217e]" },
   payment_pending: { label: "Payment pending", tone: "bg-amber-500/12 text-amber-600" },
   pending: { label: "Received", tone: "bg-foreground/[0.07] text-muted-foreground" },
 };
@@ -52,7 +52,7 @@ export function MyRegistrations() {
         <p className="rounded-[22px] border border-border bg-card p-6 text-center text-[14px] text-muted-foreground">{(regs.error as Error).message}</p>
       ) : !regs.data?.length ? (
         <div className="rounded-[22px] border border-dashed border-border bg-card px-6 py-14 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><ClipboardList className="h-6 w-6" /></span>
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><ClipboardList className="h-6 w-6" /></span>
           <h3 className="mt-3 text-[16px] font-bold">Nothing here yet</h3>
           <p className="mx-auto mt-1 max-w-[340px] text-[13.5px] text-muted-foreground">When you register through a Zero Form link, your place shows up here.</p>
         </div>
@@ -64,7 +64,7 @@ export function MyRegistrations() {
             const inBootcamp = r.bootcamp_id && ["enrolled", "confirmed"].includes(r.registration_status);
             return (
               <article key={r.id} className="overflow-hidden rounded-[22px] border border-border bg-card">
-                <div className="h-24 bg-cover bg-center" style={{ backgroundImage: r.banner_url ? `url(${r.banner_url})` : "linear-gradient(120deg,#e94fb0,#b62ba4 55%,#7c3aed)" }} />
+                <div className="h-24 bg-cover bg-center" style={{ backgroundImage: r.banner_url ? `url(${r.banner_url})` : "linear-gradient(120deg,#e64aa4,#ae2b76 55%,#7c3aed)" }} />
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="min-w-0 text-[15.5px] font-bold leading-snug">{r.title}</h3>
@@ -77,7 +77,7 @@ export function MyRegistrations() {
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {inBootcamp ? (
-                      <a href={zc(`/app/bootcamps/${r.bootcamp_id}`)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#cc208f] px-4 text-[13px] font-semibold text-white">
+                      <a href={zc(`/app/bootcamps/${r.bootcamp_id}`)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#c3217e] px-4 text-[13px] font-semibold text-white">
                         Go to bootcamp <ArrowUpRight className="h-4 w-4" />
                       </a>
                     ) : null}

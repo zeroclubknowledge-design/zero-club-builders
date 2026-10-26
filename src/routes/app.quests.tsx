@@ -673,7 +673,7 @@ function StatusChip({ status }: { status: Gig["status"] }) {
       : status === "in_progress"
         ? "bg-[#0A66C2]/10 text-[#0A66C2] dark:text-[#5aa2ec]"
         : status === "completed"
-          ? "bg-[#cc208f]/10 text-[#a3186f] dark:text-[#f06fbf]"
+          ? "bg-[#c3217e]/10 text-[#9a1963] dark:text-[#ee69b5]"
           : status === "disputed"
             ? "bg-[#e3a008]/15 text-[#a66f00] dark:text-[#f2c84b]"
             : "bg-foreground/[0.06] text-muted-foreground";
@@ -738,7 +738,7 @@ function GigDetail({
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1 md:px-6 md:pt-5">
         <div className="flex items-center gap-2">
-          <span className="w-fit rounded-full bg-[#cc208f]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#a3186f]">
+          <span className="w-fit rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#9a1963]">
             {gig.category}
           </span>
           <StatusChip status={gig.status} />
@@ -780,7 +780,7 @@ function GigDetail({
             <p className="flex items-center gap-1.5 truncate text-[15px] font-semibold">
               {clientName}
               {isInstitution && (
-                <BadgeCheck className="h-4 w-4 shrink-0 fill-[#cc208f] text-white" />
+                <BadgeCheck className="h-4 w-4 shrink-0 fill-[#c3217e] text-white" />
               )}
             </p>
             <p className="mt-0.5 text-[13px] text-muted-foreground">
@@ -874,7 +874,7 @@ function GigDetail({
       <div className="shrink-0 border-t border-border/60 bg-background px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 md:px-6 md:pb-5">
         {isOwner ? (
           <div className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground/[0.05] text-[14px] font-semibold text-muted-foreground">
-            <Sparkles className="h-4 w-4 text-[#cc208f]" /> Earn {JOB_DONE_ZP} ZP when this job is
+            <Sparkles className="h-4 w-4 text-[#c3217e]" /> Earn {JOB_DONE_ZP} ZP when this job is
             finished and paid
           </div>
         ) : isHired ? (
@@ -1033,7 +1033,7 @@ function ProposalsPanel({
             return (
               <div
                 key={proposal.id}
-                className={`rounded-2xl border p-3.5 transition-colors ${open ? "border-[#cc208f]/50 bg-[#cc208f]/[0.04]" : "border-border/70"}`}
+                className={`rounded-2xl border p-3.5 transition-colors ${open ? "border-[#c3217e]/50 bg-[#c3217e]/[0.04]" : "border-border/70"}`}
               >
                 <div className="flex items-center gap-3">
                   <Link
@@ -1066,7 +1066,7 @@ function ProposalsPanel({
                     href={proposal.portfolio_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-block max-w-full truncate text-[13px] font-semibold text-[#cc208f] hover:underline"
+                    className="mt-2 inline-block max-w-full truncate text-[13px] font-semibold text-[#c3217e] hover:underline"
                   >
                     {proposal.portfolio_url}
                   </a>
@@ -1115,7 +1115,7 @@ function ProposalsPanel({
                           type="button"
                           onClick={confirmHire}
                           disabled={busy}
-                          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#cc208f] text-[14px] font-semibold text-white disabled:opacity-50"
+                          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#c3217e] text-[14px] font-semibold text-white disabled:opacity-50"
                         >
                           {busy ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1384,7 +1384,7 @@ function HowHiringWorks({ onPost }: { onPost?: () => void }) {
   return (
     <section className="mt-2 bg-card px-4 py-3.5 md:rounded-xl md:border md:border-border">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]">
           <ShieldCheck className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
@@ -1513,7 +1513,7 @@ function GigPostForm({ form, setForm, currencySymbol, submitting, onSubmit }: an
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <DrawerHeader className="shrink-0 gap-0 px-5 pb-3 pt-1 sm:gap-0 sm:px-5 sm:pb-3 sm:pt-1 md:px-6 md:pt-5">
-        <p className="text-[13px] font-semibold text-[#a3186f]">Hire on Zero Club</p>
+        <p className="text-[13px] font-semibold text-[#9a1963]">Hire on Zero Club</p>
         <DrawerTitle className="mt-0.5 font-display text-[20px] font-semibold leading-tight">
           Post a job
         </DrawerTitle>
@@ -1618,7 +1618,7 @@ function GigPostForm({ form, setForm, currencySymbol, submitting, onSubmit }: an
         <button
           onClick={onSubmit}
           disabled={submitting}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white disabled:opacity-40"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white disabled:opacity-40"
         >
           {submitting ? (
             <Loader2 className="h-5 w-5 animate-spin" />

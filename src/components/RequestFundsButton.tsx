@@ -130,7 +130,7 @@ export function RequestFundsButton({
                   text={requested > 0 ? `${purpose} — ${format(requested)}` : purpose}
                   label="Share"
                   wrapperClassName="w-full"
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 text-[16px] font-semibold text-white transition-opacity hover:opacity-90"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] px-5 text-[16px] font-semibold text-white transition-opacity hover:opacity-90"
                 />
                 <button
                   onClick={() => copyToClipboard(shareUrl, "Request link copied")}

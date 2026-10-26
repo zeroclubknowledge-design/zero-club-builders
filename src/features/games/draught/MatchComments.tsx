@@ -58,7 +58,7 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035]">
       <header className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3">
         <h3 className="flex items-center gap-2 text-sm font-bold">
-          <MessageCircle className="h-4 w-4 text-[#ff9bdd]" /> Match chat
+          <MessageCircle className="h-4 w-4 text-[#fe94d1]" /> Match chat
         </h3>
         <span className="text-[11px] text-white/40">{comments.data?.length || 0} comments</span>
       </header>
@@ -73,7 +73,7 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
         {comments.error ? (
           <div role="alert" className="py-4 text-center text-[12.5px] text-white/60">
             <p>{draughtWatchError(comments.error, "chat")}</p>
-            <button type="button" disabled={comments.isFetching} onClick={() => void comments.refetch()} className="mt-2 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#ff9bdd] disabled:opacity-40">Try again</button>
+            <button type="button" disabled={comments.isFetching} onClick={() => void comments.refetch()} className="mt-2 min-h-11 rounded-full bg-white/[0.08] px-4 font-semibold text-[#fe94d1] disabled:opacity-40">Try again</button>
           </div>
         ) : comments.isPending ? (
           <p className="flex justify-center py-6 text-white/40"><Loader2 className="h-4 w-4 animate-spin" /></p>
@@ -89,7 +89,7 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 text-[12px] font-semibold text-white/80">
                     <span className="truncate">{c.profile_id === myId ? "You" : name}</span>
-                    {isPlayer && <span className="rounded-full bg-[#ff4fc3]/20 px-1.5 py-px text-[9.5px] font-bold uppercase tracking-wide text-[#ff9bdd]">Player</span>}
+                    {isPlayer && <span className="rounded-full bg-[#fd49b0]/20 px-1.5 py-px text-[9.5px] font-bold uppercase tracking-wide text-[#fe94d1]">Player</span>}
                   </p>
                   <p className="mt-0.5 break-words text-[13px] leading-snug text-white/75">{c.body}</p>
                 </div>
@@ -111,13 +111,13 @@ export function MatchComments({ roomId, myId, playerIds }: { roomId: string; myI
           onChange={(e) => setText(e.target.value)}
           placeholder="Say something about the match"
           aria-label="Comment on this match"
-          className="min-h-11 min-w-0 flex-1 rounded-full bg-white/[0.06] px-4 text-[14px] text-white outline-none ring-1 ring-white/10 placeholder:text-white/35 focus:ring-[#ff4fc3]/50"
+          className="min-h-11 min-w-0 flex-1 rounded-full bg-white/[0.06] px-4 text-[14px] text-white outline-none ring-1 ring-white/10 placeholder:text-white/35 focus:ring-[#fd49b0]/50"
         />
         <button
           type="submit"
           disabled={!myId || !text.trim() || sending || Boolean(comments.error)}
           aria-label="Send comment"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#ff4fc3,#c02a8f)] text-white transition active:scale-95 disabled:opacity-35"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#fd49b0,#b82a7b)] text-white transition active:scale-95 disabled:opacity-35"
         >
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </button>

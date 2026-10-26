@@ -15,7 +15,7 @@ export function GameAvatar({
   const [failed, setFailed] = useState<string | null>(null);
   let seed = 2166136261;
   for (const character of id) seed = Math.imul(seed ^ character.charCodeAt(0), 16777619) >>> 0;
-  const colors = ["#bd9bff", "#73e6b1", "#ffbca1", "#75cfff", "#ff8bd7", "#ffd575"];
+  const colors = ["#bd9bff", "#73e6b1", "#ffbca1", "#75cfff", "#fd85ca", "#ffd575"];
   const color = colors[seed % colors.length];
   return (
     <span

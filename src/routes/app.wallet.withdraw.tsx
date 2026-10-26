@@ -76,7 +76,7 @@ function WithdrawPage() {
           {overBalance ? (
             <p className="mt-1 text-[13px] font-semibold text-destructive">More than you've earned</p>
           ) : (
-            <button type="button" onClick={() => setAmount(String(withdrawable > 0 ? fromBaseAmount(withdrawable) : ""))} className="mt-1 text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+            <button type="button" onClick={() => setAmount(String(withdrawable > 0 ? fromBaseAmount(withdrawable) : ""))} className="mt-1 text-[14px] font-semibold text-[#c3217e] hover:text-[#9a1963]">
               Withdraw all
             </button>
           )}

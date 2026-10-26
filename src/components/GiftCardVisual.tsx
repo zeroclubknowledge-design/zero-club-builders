@@ -6,14 +6,14 @@ export const giftTemplates = [
     id: "signature",
     name: "Signature",
     shell: "bg-[#171218] text-white",
-    accent: "bg-[#cc208f]",
+    accent: "bg-[#c3217e]",
     muted: "text-white/55",
   },
   {
     id: "studio",
     name: "Studio",
-    shell: "bg-[#cc208f] text-white",
-    accent: "bg-white text-[#cc208f]",
+    shell: "bg-[#c3217e] text-white",
+    accent: "bg-white text-[#c3217e]",
     muted: "text-white/70",
   },
   {

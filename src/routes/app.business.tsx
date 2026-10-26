@@ -118,7 +118,7 @@ function BusinessHub() {
                 className={`relative shrink-0 px-3 pb-3 pt-1 text-[14px] font-semibold transition ${tab === t.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               >
                 {t.label}
-                {tab === t.id && <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-[#cc208f]" />}
+                {tab === t.id && <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-[#c3217e]" />}
               </button>
             ))}
           </div>
@@ -183,7 +183,7 @@ function Overview({ ws, onApply, onTab }: { ws: Workspace; onApply: () => void; 
           <h2 className="text-[15px] font-semibold">Your priorities</h2>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {goals.map((g) => (
-              <span key={g} className="rounded-full bg-[#cc208f]/10 px-3 py-1 text-[12.5px] font-semibold text-[#cc208f]">{allGoals.find((x) => x.key === g)?.label || g}</span>
+              <span key={g} className="rounded-full bg-[#c3217e]/10 px-3 py-1 text-[12.5px] font-semibold text-[#c3217e]">{allGoals.find((x) => x.key === g)?.label || g}</span>
             ))}
           </div>
         </div>
@@ -241,8 +241,8 @@ function HubStatus({ hub, mode, onApply }: { hub: Workspace["hub"]; mode: string
 }
 
 function Banner({ tone, Icon, title, body, children }: { tone: "ok" | "info" | "wait" | "warn"; Icon: any; title: string; body: string; children?: React.ReactNode }) {
-  const ring = tone === "ok" ? "ring-emerald-500/25 bg-emerald-500/[0.06]" : tone === "wait" ? "ring-amber-500/25 bg-amber-500/[0.06]" : tone === "warn" ? "ring-rose-500/25 bg-rose-500/[0.06]" : "ring-[#cc208f]/25 bg-[#cc208f]/[0.05]";
-  const ic = tone === "ok" ? "text-emerald-600" : tone === "wait" ? "text-amber-600" : tone === "warn" ? "text-rose-600" : "text-[#cc208f]";
+  const ring = tone === "ok" ? "ring-emerald-500/25 bg-emerald-500/[0.06]" : tone === "wait" ? "ring-amber-500/25 bg-amber-500/[0.06]" : tone === "warn" ? "ring-rose-500/25 bg-rose-500/[0.06]" : "ring-[#c3217e]/25 bg-[#c3217e]/[0.05]";
+  const ic = tone === "ok" ? "text-emerald-600" : tone === "wait" ? "text-amber-600" : tone === "warn" ? "text-rose-600" : "text-[#c3217e]";
   return (
     <div className={`flex flex-col gap-3 rounded-2xl p-4 ring-1 sm:flex-row sm:items-center ${ring}`}>
       <Icon className={`h-6 w-6 shrink-0 ${ic}`} />
@@ -257,7 +257,7 @@ function Banner({ tone, Icon, title, body, children }: { tone: "ok" | "info" | "
 
 function Stat({ label, value, hint, onClick }: { label: string; value?: number; hint?: string; onClick?: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="rounded-2xl border border-border bg-card p-4 text-left transition hover:border-[#cc208f]/35">
+    <button type="button" onClick={onClick} className="rounded-2xl border border-border bg-card p-4 text-left transition hover:border-[#c3217e]/35">
       <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
       <p className="mt-1 font-display text-[26px] font-semibold tabular-nums">{Number(value || 0).toLocaleString()}</p>
       {hint && <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{hint}</p>}
@@ -268,12 +268,12 @@ function Stat({ label, value, hint, onClick }: { label: string; value?: number; 
 function Action({ to, search, onClick, Icon, title, body }: { to?: string; search?: Record<string, unknown>; onClick?: () => void; Icon: any; title: string; body: string }) {
   const inner = (
     <>
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Icon className="h-5 w-5" /></span>
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><Icon className="h-5 w-5" /></span>
       <span className="mt-3 block text-[14.5px] font-semibold">{title}</span>
       <span className="mt-1 block text-[13px] leading-5 text-muted-foreground">{body}</span>
     </>
   );
-  const cls = "block rounded-2xl border border-border bg-card p-4 text-left transition hover:border-[#cc208f]/35 hover:shadow-sm";
+  const cls = "block rounded-2xl border border-border bg-card p-4 text-left transition hover:border-[#c3217e]/35 hover:shadow-sm";
   return to ? <Link to={to as never} search={search as never} className={cls}>{inner}</Link> : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
 
@@ -295,7 +295,7 @@ function Hiring({ orgId }: { orgId: string }) {
   return (
     <div>
       <SectionHead title="Roles and gigs" body="Everything you've posted. Applicants come with their proof of work.">
-        <Link to={"/app/quests" as never} search={{ post: 1 } as never} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#cc208f] px-4 text-[13.5px] font-semibold text-white"><Plus className="h-4 w-4" /> Post a role</Link>
+        <Link to={"/app/quests" as never} search={{ post: 1 } as never} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#c3217e] px-4 text-[13.5px] font-semibold text-white"><Plus className="h-4 w-4" /> Post a role</Link>
       </SectionHead>
       {gigs.isLoading ? (
         <Skeleton />
@@ -394,7 +394,7 @@ function PersonCard({ person, children }: { person: any; children?: React.ReactN
           <span className="block truncate text-[12.5px] text-muted-foreground">@{person.username}{person.location ? ` · ${person.location}` : ""}</span>
           {person.bio && <span className="mt-1 line-clamp-2 block text-[13px] leading-5 text-foreground/80">{person.bio}</span>}
         </span>
-        <span className="shrink-0 rounded-full bg-[#cc208f]/10 px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-[#cc208f]">{Number(person.xp || 0).toLocaleString()} XP</span>
+        <span className="shrink-0 rounded-full bg-[#c3217e]/10 px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-[#c3217e]">{Number(person.xp || 0).toLocaleString()} XP</span>
       </Link>
       {Array.isArray(person.interests) && person.interests.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1">
@@ -470,7 +470,7 @@ function Sponsor({ orgId }: { orgId: string }) {
             <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {challenges.data.map((c: any) => (
                 <Link key={c.id} to="/app/challenge/$id" params={{ id: c.id }} search={{ created: undefined }} className="flex items-center gap-3 px-4 py-3.5 hover:bg-foreground/[0.03]">
-                  <Trophy className="h-5 w-5 shrink-0 text-[#cc208f]" />
+                  <Trophy className="h-5 w-5 shrink-0 text-[#c3217e]" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14.5px] font-semibold">{c.title}</p>
                     <p className="text-[12.5px] text-muted-foreground">{c.deadline ? `Deadline ${new Date(c.deadline).toLocaleDateString([], { day: "numeric", month: "short" })}` : "No deadline"}</p>
@@ -549,8 +549,8 @@ function Team() {
     <div className="space-y-6">
       <SectionHead title="Team" body="Invite people from Zero Club, open anyone's full record, set their role and assign bootcamps. They accept from their own Zero Club account." />
       {orgId && (
-        <Link to="/app/teams/$orgId" params={{ orgId }} className="flex items-center gap-3 rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.05] p-4 transition hover:bg-[#cc208f]/[0.08]">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f] text-white"><Users className="h-5 w-5" /></span>
+        <Link to="/app/teams/$orgId" params={{ orgId }} className="flex items-center gap-3 rounded-2xl border border-[#c3217e]/30 bg-[#c3217e]/[0.05] p-4 transition hover:bg-[#c3217e]/[0.08]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e] text-white"><Users className="h-5 w-5" /></span>
           <span className="min-w-0 flex-1">
             <span className="block text-[14.5px] font-semibold">Open your team workspace</span>
             <span className="block text-[12.5px] text-muted-foreground">Announcements, channels, meetings, programmes and people — what your team sees.</span>
@@ -597,7 +597,7 @@ function Team() {
                 <button type="button" onClick={() => setDossier(m.member_id)} className="min-w-0 flex-1 text-left">
                   <p className="truncate text-[14.5px] font-semibold">{m.full_name || m.username}</p>
                   <p className="truncate text-[12.5px] text-muted-foreground">@{m.username}{m.title ? ` · ${m.title}` : ""}{m.role && m.role !== "member" ? ` · ${m.role === "manager" ? "Admin" : "Staff"}` : ""}</p>
-                  <p className="mt-0.5 text-[12px] font-semibold text-[#cc208f]">View full record</p>
+                  <p className="mt-0.5 text-[12px] font-semibold text-[#c3217e]">View full record</p>
                 </button>
                 {m.status === "invited" ? (
                   <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-[11.5px] font-semibold text-amber-600">Invite pending</span>
@@ -613,7 +613,7 @@ function Team() {
                     <div className="mb-3 space-y-2">
                       {m.training.map((t: any) => (
                         <div key={t.bootcamp_id} className="flex items-center gap-3 rounded-xl bg-foreground/[0.03] px-3 py-2">
-                          <GraduationCap className="h-4 w-4 shrink-0 text-[#cc208f]" />
+                          <GraduationCap className="h-4 w-4 shrink-0 text-[#c3217e]" />
                           <Link to="/app/bootcamps/$id" params={{ id: t.bootcamp_id }} className="min-w-0 flex-1 truncate text-[13.5px] font-semibold hover:underline">{t.title}</Link>
                           <TrainingStatus t={t} />
                           <button type="button" onClick={() => unassign.mutate({ member: m.member_id, bootcamp: t.bootcamp_id })} aria-label="Unassign" className="text-muted-foreground hover:text-rose-600"><X className="h-3.5 w-3.5" /></button>
@@ -649,7 +649,7 @@ function TrainingStatus({ t }: { t: any }) {
   const end = t.ends_at ? new Date(t.ends_at).getTime() : null;
   if (!t.enrolled_at) return <span className="shrink-0 text-[11.5px] font-semibold text-amber-600">Not enrolled yet</span>;
   if (end && now > end) return <span className="shrink-0 text-[11.5px] font-semibold text-emerald-600">Finished</span>;
-  if (start && now >= start) return <span className="shrink-0 text-[11.5px] font-semibold text-[#cc208f]">In progress</span>;
+  if (start && now >= start) return <span className="shrink-0 text-[11.5px] font-semibold text-[#c3217e]">In progress</span>;
   return <span className="shrink-0 text-[11.5px] font-semibold text-muted-foreground">Enrolled</span>;
 }
 
@@ -707,7 +707,7 @@ function CompanyPage({ me, business }: { me: any; business: BusinessProfile | nu
     }
   };
 
-  const field = "h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-[#cc208f]/50";
+  const field = "h-11 w-full rounded-xl border border-border bg-background px-3.5 text-[14px] outline-none focus:border-[#c3217e]/50";
   const label = "mb-1.5 block text-[12.5px] font-semibold text-muted-foreground";
 
   return (
@@ -766,7 +766,7 @@ function CompanyPage({ me, business }: { me: any; business: BusinessProfile | nu
       </div>
 
       <div className="flex justify-end">
-        <button type="button" onClick={save} disabled={busy !== ""} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#cc208f] px-6 text-[14px] font-semibold text-white disabled:opacity-60">
+        <button type="button" onClick={save} disabled={busy !== ""} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#c3217e] px-6 text-[14px] font-semibold text-white disabled:opacity-60">
           {busy === "save" && <Loader2 className="h-4 w-4 animate-spin" />} Save page
         </button>
       </div>

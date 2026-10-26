@@ -30,11 +30,11 @@ import { useQuest } from "./useQuest";
 import { QuestCity } from "./QuestCity";
 
 const primary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#ff4fc3] px-5 text-sm font-bold text-[#190c20] transition hover:bg-[#ff85d5] disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#fd49b0] px-5 text-sm font-bold text-[#190c20] transition hover:bg-[#fd7fc7] disabled:opacity-40";
 const secondary =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-40";
 const input =
-  "w-full min-w-0 rounded-2xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#ff4fc3]/70";
+  "w-full min-w-0 rounded-2xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#fd49b0]/70";
 type Act = (
   action: QuestAction,
   payload?: Record<string, unknown>,
@@ -109,7 +109,7 @@ export function ZeroQuest({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#ff8bd7]">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#fd85ca]">
               Zero Games · Co-op
             </p>
             <h1 className="font-display text-xl font-bold">Zero Quest</h1>
@@ -156,7 +156,7 @@ export function ZeroQuest({
           <>
             <div className="grid gap-6 py-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:py-12">
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#ff4fc3]/25 bg-[#ff4fc3]/10 px-3 py-1.5 text-xs font-semibold text-[#ff9bdd]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#fd49b0]/25 bg-[#fd49b0]/10 px-3 py-1.5 text-xs font-semibold text-[#fe94d1]">
                   <Building2 className="h-4 w-4" />A city built by your skills
                 </span>
                 <h2 className="mt-5 max-w-lg font-display text-4xl font-bold leading-tight sm:text-5xl">
@@ -164,7 +164,7 @@ export function ZeroQuest({
                   <br />
                   Your squad.
                   <br />
-                  <span className="text-[#ff8bd7]">One shared city.</span>
+                  <span className="text-[#fd85ca]">One shared city.</span>
                 </h2>
                 <p className="mt-5 max-w-lg text-sm leading-relaxed text-white/60">
                   Solve challenges, create useful work and review your teammates’ ideas. Bring four
@@ -275,7 +275,7 @@ export function ZeroQuest({
                       onClick={() => onRoom(city.id)}
                       className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left"
                     >
-                      <Building2 className="h-7 w-7 shrink-0 text-[#ff8bd7]" />
+                      <Building2 className="h-7 w-7 shrink-0 text-[#fd85ca]" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-semibold">{city.title}</span>
                         <span className="mt-1 block text-xs text-white/50">
@@ -522,11 +522,11 @@ function TeamChat({
             key={message.id}
             className={
               message.profile_id === userId
-                ? "ml-4 rounded-2xl bg-[#ff4fc3]/10 p-3"
+                ? "ml-4 rounded-2xl bg-[#fd49b0]/10 p-3"
                 : "mr-4 rounded-2xl bg-white/[0.05] p-3"
             }
           >
-            <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold text-[#ff9bdd]">
+            <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold text-[#fe94d1]">
               <GameAvatar id={message.profile_id} name={data.members.find(member => member.id === message.profile_id)?.name || "Teammate"} photo={data.members.find(member => member.id === message.profile_id)?.avatar} className="h-6 w-6" />
               {data.members.find((member) => member.id === message.profile_id)?.name || "Teammate"}
             </p>
@@ -621,7 +621,7 @@ function ActiveCity({
           </div>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-[#ff4fc3] transition-all duration-700"
+              className="h-full rounded-full bg-[#fd49b0] transition-all duration-700"
               style={{ width: `${(complete / 8) * 100}%` }}
             />
           </div>
@@ -834,7 +834,7 @@ function MissionPanel({
                 onClick={() => setChoice(index)}
                 aria-pressed={choice === index}
                 disabled={busy}
-                className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border p-3 text-left text-sm ${choice === index ? "border-[#ff4fc3]/70 bg-[#ff4fc3]/10" : "border-white/10 bg-white/[0.03]"}`}
+                className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border p-3 text-left text-sm ${choice === index ? "border-[#fd49b0]/70 bg-[#fd49b0]/10" : "border-white/10 bg-white/[0.03]"}`}
               >
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/10 text-xs">
                   {String.fromCharCode(65 + index)}
@@ -891,7 +891,7 @@ function MissionPanel({
                   href={mission.work_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex min-h-10 items-center break-all text-sm text-[#ff9bdd] underline"
+                  className="mt-3 inline-flex min-h-10 items-center break-all text-sm text-[#fe94d1] underline"
                 >
                   Open submitted work
                 </a>
@@ -1036,7 +1036,7 @@ function CityResult({
         >
           <Trophy className="h-8 w-8" />
         </span>
-        <p className="mt-5 text-xs font-bold uppercase tracking-widest text-[#ff9bdd]">
+        <p className="mt-5 text-xs font-bold uppercase tracking-widest text-[#fe94d1]">
           {won ? "Built together" : "Every attempt teaches you something"}
         </p>
         <h3 className="mt-2 font-display text-3xl font-bold">
@@ -1090,7 +1090,7 @@ function CityResult({
                   </p>
                   {mission.work_url && (
                     <a
-                      className="mt-3 inline-flex min-h-10 items-center break-all text-sm text-[#ff9bdd] underline"
+                      className="mt-3 inline-flex min-h-10 items-center break-all text-sm text-[#fe94d1] underline"
                       href={mission.work_url}
                       target="_blank"
                       rel="noopener noreferrer"

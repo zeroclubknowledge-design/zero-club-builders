@@ -397,9 +397,9 @@ function GroupChatPage() {
           onClick={() => document.getElementById(`gm-${pinned.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
           className="relative z-10 mx-3 mt-2 flex items-center gap-2.5 rounded-2xl bg-card px-3.5 py-2 text-left shadow-[0_8px_24px_-18px_rgba(0,0,0,0.6)] ring-1 ring-foreground/[0.06]"
         >
-          <Pin className="h-4 w-4 shrink-0 fill-current text-[#cc208f]" />
+          <Pin className="h-4 w-4 shrink-0 fill-current text-[#c3217e]" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[12px] font-semibold text-[#cc208f]">Pinned</span>
+            <span className="block text-[12px] font-semibold text-[#c3217e]">Pinned</span>
             <span className="block truncate text-[13.5px] text-foreground/85">{previewText(pinned)}</span>
           </span>
           {isAdmin && (
@@ -509,9 +509,9 @@ function GroupChatPage() {
           <>
             {(replyTo || editing) && (
               <div className="mb-2 flex items-center gap-2 rounded-2xl bg-card px-3 py-2 shadow-[0_10px_28px_-18px_rgba(0,0,0,0.6)] ring-1 ring-foreground/[0.06]">
-                {editing ? <Pencil className="h-4 w-4 shrink-0 text-[#cc208f]" /> : <Reply className="h-4 w-4 shrink-0 text-[#cc208f]" />}
+                {editing ? <Pencil className="h-4 w-4 shrink-0 text-[#c3217e]" /> : <Reply className="h-4 w-4 shrink-0 text-[#c3217e]" />}
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[12px] font-semibold text-[#cc208f]">
+                  <span className="block text-[12px] font-semibold text-[#c3217e]">
                     {editing ? "Editing message" : `Replying to ${replyTo!.sender_id === myId ? "yourself" : displayName(memberById.get(replyTo!.sender_id || "")?.profile)}`}
                   </span>
                   <span className="block truncate text-[12.5px] text-muted-foreground">{previewText((editing || replyTo)!)}</span>
@@ -529,7 +529,7 @@ function GroupChatPage() {
                 ))}
               </div>
             )}
-            <div className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] transition-[padding] duration-200 focus-within:ring-[#cc208f]/40 ${groupHasContent ? "pl-4" : "pl-1.5"}`}>
+            <div className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] transition-[padding] duration-200 focus-within:ring-[#c3217e]/40 ${groupHasContent ? "pl-4" : "pl-1.5"}`}>
               {/* Options on the left, voice note on the right; both fold away
                   while typing so only Send shows and the text gets the room. */}
               <ComposerSlot show={!groupHasContent}>
@@ -571,7 +571,7 @@ function GroupChatPage() {
                 </button>
               </ComposerSlot>
               <ComposerSlot show={groupHasContent}>
-                <button type="button" disabled={sending} onClick={() => void send()} aria-label="Send" className="grid h-11 w-11 shrink-0 place-items-center rounded-full active:scale-95 bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]">
+                <button type="button" disabled={sending} onClick={() => void send()} aria-label="Send" className="grid h-11 w-11 shrink-0 place-items-center rounded-full active:scale-95 bg-[linear-gradient(135deg,#d22c8b,#a7196b)] text-white shadow-[0_6px_16px_-8px_rgba(195,33,126,0.8)]">
                   {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : editing ? <Check className="h-5 w-5" /> : <Send className="h-5 w-5" />}
                 </button>
               </ComposerSlot>
@@ -770,7 +770,7 @@ function Bubble({
         <div
           className={`relative rounded-[18px] px-3.5 py-2 ${hasVisual ? "mt-1" : ""} ${
             mine
-              ? `bg-[linear-gradient(135deg,#d6309b_0%,#b0187f_100%)] text-white shadow-[0_8px_20px_-12px_rgba(204,32,143,0.75)] ${groupEnd ? "rounded-br-[4px]" : ""} ${!groupStart ? "rounded-tr-[4px]" : ""}`
+              ? `bg-[linear-gradient(135deg,#d22c8b_0%,#a7196b_100%)] text-white shadow-[0_8px_20px_-12px_rgba(195,33,126,0.75)] ${groupEnd ? "rounded-br-[4px]" : ""} ${!groupStart ? "rounded-tr-[4px]" : ""}`
               : `bg-foreground/[0.07] ${groupEnd ? "rounded-bl-[4px]" : ""} ${!groupStart ? "rounded-tl-[4px]" : ""}`
           } ${m.pending ? "opacity-70" : ""}`}
         >
@@ -788,9 +788,9 @@ function Bubble({
                 <button
                   type="button"
                   onClick={() => document.getElementById(`gm-${replied.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                  className={`mb-1.5 block w-full rounded-[12px] border-l-[3px] px-2.5 py-1.5 text-left ${mine ? "border-white/70 bg-white/15" : "border-[#cc208f] bg-card"}`}
+                  className={`mb-1.5 block w-full rounded-[12px] border-l-[3px] px-2.5 py-1.5 text-left ${mine ? "border-white/70 bg-white/15" : "border-[#c3217e] bg-card"}`}
                 >
-                  <span className={`block text-[12px] font-semibold ${mine ? "text-white/90" : "text-[#cc208f]"}`}>{repliedName(replied.sender_id)}</span>
+                  <span className={`block text-[12px] font-semibold ${mine ? "text-white/90" : "text-[#c3217e]"}`}>{repliedName(replied.sender_id)}</span>
                   <span className={`block max-w-[220px] truncate text-[12.5px] ${mine ? "text-white/80" : "text-muted-foreground"}`}>{previewText(replied)}</span>
                 </button>
               )}
@@ -800,7 +800,7 @@ function Bubble({
                 <>
                   {text?.trim() && (
                     <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.4]">
-                      <LinkifiedText text={text.trim()} linkColor={mine ? "text-white underline font-semibold" : "text-[#cc208f] underline font-semibold"} />
+                      <LinkifiedText text={text.trim()} linkColor={mine ? "text-white underline font-semibold" : "text-[#c3217e] underline font-semibold"} />
                     </p>
                   )}
                   {text?.trim() && <LinkPreview text={text} mine={mine} />}
@@ -834,7 +834,7 @@ function Bubble({
         {reactions.length > 0 && (
           <div className={`-mt-1.5 flex flex-wrap gap-1 ${mine ? "justify-end pr-1" : "pl-1"}`}>
             {reactions.map(([emoji, r]) => (
-              <button key={emoji} type="button" onClick={() => onReact(emoji)} className={`flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${r.mine ? "text-[#cc208f]" : "text-muted-foreground"}`}>
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className={`flex items-center gap-0.5 px-0.5 text-[11px] font-semibold transition-transform active:scale-90 ${r.mine ? "text-[#c3217e]" : "text-muted-foreground"}`}>
                 <span className="text-[18px] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">{emoji}</span>{r.count > 1 ? <span>{r.count}</span> : null}
               </button>
             ))}
@@ -875,7 +875,7 @@ function dayLabel(iso: string) {
 
 /** A steady colour per person, so names are easy to tell apart. */
 function nameColor(id: string) {
-  const palette = ["#cc208f", "#7c3aed", "#0ea5e9", "#16a34a", "#ea580c", "#db2777", "#0891b2", "#9333ea", "#ca8a04"];
+  const palette = ["#c3217e", "#7c3aed", "#0ea5e9", "#16a34a", "#ea580c", "#d4268a", "#0891b2", "#9333ea", "#ca8a04"];
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return palette[h % palette.length];

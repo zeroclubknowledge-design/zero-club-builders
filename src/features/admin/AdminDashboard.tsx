@@ -303,7 +303,7 @@ export function AdminDashboard() {
         <aside className="no-scrollbar hidden border-r border-border/70 px-3 py-5 lg:sticky lg:top-[61px] lg:flex lg:h-[calc(100vh-61px)] lg:flex-col lg:self-start lg:overflow-y-auto">
           <p className="px-3 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operations</p>
           <nav className="mt-3 space-y-1">{NAV_ITEMS.map(({ id, label, Icon }) => <AdminNavButton key={id} active={activeTab === id} label={label} Icon={Icon} onClick={() => setActiveTab(id)} badge={id === "moderation" ? data.metrics.open_reports : undefined} />)}</nav>
-          <div className="mt-8 border-t border-border pt-5 lg:mt-auto"><div className="rounded-lg bg-[#171218] p-4 text-white"><HeartPulse className="h-4 w-4 text-[#f06ac3]" /><p className="mt-3 text-[14px] font-semibold">Platform pulse</p><p className="mt-1 text-[13px] leading-relaxed text-white/55">{compact(data.metrics.notifications_24h)} notifications delivered in the last 24 hours.</p></div></div>
+          <div className="mt-8 border-t border-border pt-5 lg:mt-auto"><div className="rounded-lg bg-[#171218] p-4 text-white"><HeartPulse className="h-4 w-4 text-[#ee64b3]" /><p className="mt-3 text-[14px] font-semibold">Platform pulse</p><p className="mt-1 text-[13px] leading-relaxed text-white/55">{compact(data.metrics.notifications_24h)} notifications delivered in the last 24 hours.</p></div></div>
         </aside>
 
         <main className="min-w-0 px-4 pb-12 pt-4 md:px-6 md:pt-6 xl:px-8">
@@ -970,7 +970,7 @@ function Analytics({ query, format }: { query: any; format: (value: number) => s
         <MetricCard Icon={BarChart3} label="Posts, 30 days" value={compact(e.posts_30d)} detail={`${compact(e.active_promotions)} active campaigns`} tone="bg-emerald-500/10 text-emerald-600" />
       </div>
       <div className="mt-5 grid gap-4 xl:grid-cols-2">
-        <TrendChart title="New signups" data={a.signups_daily || []} color="#cc208f" kind="area" />
+        <TrendChart title="New signups" data={a.signups_daily || []} color="#c3217e" kind="area" />
         <TrendChart title="Posts published" data={a.posts_daily || []} color="#7c3aed" kind="bar" />
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-2">

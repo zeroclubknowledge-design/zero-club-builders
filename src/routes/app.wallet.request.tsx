@@ -166,8 +166,8 @@ function RequestPage() {
               Anyone can pay this by card — they don't need a Zero Club account. Your wallet is
               credited the moment it clears.
             </p>
-            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-[#cc208f]/[0.06] p-3">
-              <Link2 className="h-[18px] w-[18px] shrink-0 text-[#cc208f]" />
+            <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-[#c3217e]/[0.06] p-3">
+              <Link2 className="h-[18px] w-[18px] shrink-0 text-[#c3217e]" />
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium">
                 {shareUrl.replace(/^https?:\/\//, "")}
               </span>

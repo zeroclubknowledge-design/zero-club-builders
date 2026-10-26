@@ -15,7 +15,7 @@ function OrgLogo({ url, name, size = 52 }: { url?: string | null; name?: string;
   return url ? (
     <img src={url} alt="" className="shrink-0 rounded-[14px] object-cover" style={{ width: size, height: size }} />
   ) : (
-    <span className="grid shrink-0 place-items-center rounded-[14px] bg-[#cc208f]/12 font-display font-semibold text-[#cc208f]" style={{ width: size, height: size, fontSize: size * 0.4 }}>
+    <span className="grid shrink-0 place-items-center rounded-[14px] bg-[#c3217e]/12 font-display font-semibold text-[#c3217e]" style={{ width: size, height: size, fontSize: size * 0.4 }}>
       {(name || "O").charAt(0)}
     </span>
   );
@@ -47,7 +47,7 @@ function MyTeams() {
 
       <div className="px-4 pt-5 md:px-6">
         <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 md:p-6">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-25 blur-3xl" style={{ background: "#cc208f" }} />
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-25 blur-3xl" style={{ background: "#c3217e" }} />
           <p className="relative font-display text-[22px] font-semibold leading-tight tracking-tight md:text-[26px]">Your organizations</p>
           <p className="relative mt-1.5 max-w-[520px] text-[14px] leading-relaxed text-muted-foreground">
             Companies and tech hubs you work or learn with. Each has its own workspace — announcements, channels, meetings, programmes, communities and the people behind them.
@@ -63,7 +63,7 @@ function MyTeams() {
                 <p className="px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Invitations</p>
                 <div className="mt-2 space-y-3">
                   {invites.map((t) => (
-                    <div key={t.org_id} className="rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.04] p-4">
+                    <div key={t.org_id} className="rounded-2xl border border-[#c3217e]/30 bg-[#c3217e]/[0.04] p-4">
                       <div className="flex items-center gap-3">
                         <OrgLogo url={t.avatar_url} name={t.org_name} size={48} />
                         <div className="min-w-0 flex-1">
@@ -74,7 +74,7 @@ function MyTeams() {
                         </div>
                       </div>
                       <p className="mt-3 flex items-start gap-2 text-[12.5px] leading-snug text-foreground/75">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#cc208f]" />
+                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#c3217e]" />
                         Joining lets {t.org_name} see your Zero Club record — profile, experience, credentials, learning, shipped projects and activity. Your messages and wallet stay private.
                       </p>
                       <div className="mt-3 flex gap-2">
@@ -95,7 +95,7 @@ function MyTeams() {
               {spaces.length > 0 && <p className="px-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Workspaces</p>}
               {spaces.length === 0 && invites.length === 0 ? (
                 <div className="mt-5 rounded-2xl border border-dashed border-border px-6 py-14 text-center">
-                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><Building2 className="h-6 w-6" /></span>
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><Building2 className="h-6 w-6" /></span>
                   <p className="mt-4 font-display text-[17px] font-semibold">No teams yet</p>
                   <p className="mx-auto mt-1.5 max-w-[380px] text-[13.5px] leading-relaxed text-muted-foreground">
                     When a company or tech hub adds you to its team on Zero Club, its workspace opens up here.
@@ -114,7 +114,7 @@ function MyTeams() {
                         <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
                       </div>
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px]">
-                        <span className={`inline-flex h-[22px] items-center rounded-full px-2 font-semibold ${t.role === "owner" ? "bg-foreground text-background" : "bg-[#cc208f]/12 text-[#cc208f]"}`}>
+                        <span className={`inline-flex h-[22px] items-center rounded-full px-2 font-semibold ${t.role === "owner" ? "bg-foreground text-background" : "bg-[#c3217e]/12 text-[#c3217e]"}`}>
                           {t.role === "owner" ? "Your organization" : ROLE_LABEL(t.role, t.org_kind)}
                         </span>
                         {t.title && t.role !== "owner" && <span className="font-medium text-foreground/75">{t.title}</span>}

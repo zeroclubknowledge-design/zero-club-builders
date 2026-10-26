@@ -66,7 +66,7 @@ function Dashboard() {
 function Metric({ icon: Icon, label, value, sub }: { icon: LucideIcon; label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-[20px] border border-border bg-card p-4">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]"><Icon className="h-[18px] w-[18px]" /></span>
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]"><Icon className="h-[18px] w-[18px]" /></span>
       <p className="mt-3 font-display text-[22px] font-bold tabular-nums leading-none">{value}</p>
       <p className="mt-1 text-[12px] text-muted-foreground">{label}{sub ? ` · ${sub}` : ""}</p>
     </div>

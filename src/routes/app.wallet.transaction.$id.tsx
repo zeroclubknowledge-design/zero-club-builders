@@ -140,7 +140,7 @@ function TransactionDetailPage() {
                   hand over rather than transcribed by hand. */}
               <button
                 onClick={() => copyToClipboard(String(entry.reference), "Reference copied")}
-                className="flex min-w-0 items-center gap-1.5 text-right font-mono text-[13px] font-medium text-foreground hover:text-[#cc208f]"
+                className="flex min-w-0 items-center gap-1.5 text-right font-mono text-[13px] font-medium text-foreground hover:text-[#c3217e]"
                 aria-label="Copy reference"
               >
                 <span className="truncate">{entry.reference}</span>

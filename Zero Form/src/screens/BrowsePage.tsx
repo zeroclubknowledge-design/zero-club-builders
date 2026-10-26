@@ -17,7 +17,7 @@ export function BrowsePage() {
       {!loading && !session && (
         <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-border bg-card p-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#cc208f]/10 text-[#cc208f]"><ClipboardList className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#c3217e]/10 text-[#c3217e]"><ClipboardList className="h-5 w-5" /></span>
             <div className="min-w-0">
               <h2 className="text-[15px] font-bold">Running a bootcamp or launching something?</h2>
               <p className="text-[13px] text-muted-foreground">Make your own Zero Form with your Zero Club account. Forms you made on Zero Club are already here.</p>

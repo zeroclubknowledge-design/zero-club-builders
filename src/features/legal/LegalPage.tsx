@@ -5,7 +5,7 @@ import { PublicHeader } from "@/components/public/PublicHeader";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { CONTACT_EMAIL, LEGAL_EFFECTIVE, LEGAL_UPDATED, type LegalBlock, type LegalDoc } from "./content";
 
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 
 /** The shared layout for Zero Club's legal documents. */
 export function LegalPage({ doc }: { doc: LegalDoc }) {
@@ -39,10 +39,10 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_80%_at_100%_0%,rgba(204,32,143,0.12),transparent_60%)] dark:bg-[radial-gradient(70%_80%_at_100%_0%,rgba(204,32,143,0.22),transparent_60%)]" />
-        <ZeroMark size={320} className="pointer-events-none absolute -right-20 -top-16 rotate-12 text-[#cc208f] opacity-[0.06] dark:opacity-[0.1]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_80%_at_100%_0%,rgba(195,33,126,0.12),transparent_60%)] dark:bg-[radial-gradient(70%_80%_at_100%_0%,rgba(195,33,126,0.22),transparent_60%)]" />
+        <ZeroMark size={320} className="pointer-events-none absolute -right-20 -top-16 rotate-12 text-[#c3217e] opacity-[0.06] dark:opacity-[0.1]" />
         <div className="relative mx-auto max-w-[1120px] px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36">
-          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: PINK, background: "rgba(204,32,143,0.08)", boxShadow: "inset 0 0 0 1px rgba(204,32,143,0.22)" }}>
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: PINK, background: "rgba(195,33,126,0.08)", boxShadow: "inset 0 0 0 1px rgba(195,33,126,0.22)" }}>
             {doc.slug === "terms" ? <FileText className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
             {doc.eyebrow}
           </span>
@@ -85,7 +85,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
                     onClick={() => jump(s.id)}
                     className={`w-full rounded-lg px-3 py-2 text-left text-[13.5px] leading-snug transition lg:border-l-2 lg:rounded-none lg:py-1.5 ${
                       active === s.id
-                        ? "font-semibold text-[#171717] dark:text-white lg:border-[#cc208f]"
+                        ? "font-semibold text-[#171717] dark:text-white lg:border-[#c3217e]"
                         : "text-[#6a646d] hover:text-[#171717] dark:text-white/50 dark:hover:text-white lg:border-transparent"
                     }`}
                   >
@@ -110,7 +110,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           {/* Contact + the other document */}
           <div className="mt-10 grid gap-3 sm:grid-cols-2">
             <a href={`mailto:${CONTACT_EMAIL}`} className="group rounded-2xl bg-[#16111a] p-6 text-white transition hover:-translate-y-0.5">
-              <Mail className="h-5 w-5" style={{ color: "#f28fd0" }} />
+              <Mail className="h-5 w-5" style={{ color: "#f089c4" }} />
               <p className="mt-4 text-[16px] font-semibold">Questions? Talk to us</p>
               <p className="mt-1 text-[13.5px] text-white/60">{CONTACT_EMAIL}</p>
             </a>
@@ -134,7 +134,7 @@ function withLinks(text: string) {
   const parts = text.split(/([\w.+-]+@[\w-]+\.[\w.]+)/g);
   return parts.map((p, i) =>
     /^[\w.+-]+@[\w-]+\.[\w.]+$/.test(p)
-      ? <a key={i} href={`mailto:${p}`} className="font-medium underline decoration-[#cc208f]/40 underline-offset-2" style={{ color: PINK }}>{p}</a>
+      ? <a key={i} href={`mailto:${p}`} className="font-medium underline decoration-[#c3217e]/40 underline-offset-2" style={{ color: PINK }}>{p}</a>
       : p,
   );
 }
@@ -154,7 +154,7 @@ function Block({ block }: { block: LegalBlock }) {
   }
   if ("note" in block) {
     return (
-      <p className="rounded-xl border-l-4 px-4 py-3 text-[15px] font-medium leading-relaxed" style={{ borderColor: PINK, background: "rgba(204,32,143,0.06)" }}>
+      <p className="rounded-xl border-l-4 px-4 py-3 text-[15px] font-medium leading-relaxed" style={{ borderColor: PINK, background: "rgba(195,33,126,0.06)" }}>
         {block.note}
       </p>
     );

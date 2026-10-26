@@ -11,8 +11,8 @@ if (!fs.existsSync(outDir)) {
 }
 
 const TEMPLATES = {
-  signature: { shell: "#171218", ink: "#ffffff", muted: "#ffffff8c", accent: "#cc208f", accentInk: "#ffffff", name: "Signature" },
-  studio:    { shell: "#cc208f", ink: "#ffffff", muted: "#ffffffb3", accent: "#ffffff", accentInk: "#cc208f", name: "Studio" },
+  signature: { shell: "#171218", ink: "#ffffff", muted: "#ffffff8c", accent: "#c3217e", accentInk: "#ffffff", name: "Signature" },
+  studio:    { shell: "#c3217e", ink: "#ffffff", muted: "#ffffffb3", accent: "#ffffff", accentInk: "#c3217e", name: "Studio" },
   paper:     { shell: "#f4f0e8", ink: "#171218", muted: "#17121880", accent: "#171218", accentInk: "#ffffff", name: "Paper" },
   signal:    { shell: "#184f3c", ink: "#ffffff", muted: "#ffffff99", accent: "#d6ff62", accentInk: "#173328", name: "Signal" },
   cobalt:    { shell: "#2446a8", ink: "#ffffff", muted: "#ffffffa6", accent: "#ffffff", accentInk: "#2446a8", name: "Cobalt" },

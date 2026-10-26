@@ -125,7 +125,7 @@ export function AmbassadorsAdmin() {
           >
             {label}
             {value === "applications" && pendingCount > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#cc208f] px-1.5 text-[10.5px] font-bold text-white">{pendingCount}</span>
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#c3217e] px-1.5 text-[10.5px] font-bold text-white">{pendingCount}</span>
             )}
           </button>
         ))}
@@ -230,7 +230,7 @@ function ApplicationCard({ app, defaultRate }: { app: ApplicationRow; defaultRat
           {!!app.focus_labels?.length && (
             <div className="flex flex-wrap gap-1.5">
               {app.focus_labels.map((f) => (
-                <span key={f} className="rounded-full bg-[#cc208f]/10 px-2.5 py-1 text-[12px] font-semibold text-[#cc208f]">{f}</span>
+                <span key={f} className="rounded-full bg-[#c3217e]/10 px-2.5 py-1 text-[12px] font-semibold text-[#c3217e]">{f}</span>
               ))}
             </div>
           )}
@@ -256,7 +256,7 @@ function ApplicationCard({ app, defaultRate }: { app: ApplicationRow; defaultRat
             {app.username && (
               <>
                 {" · "}
-                <a href={`/@${app.username}`} target="_blank" rel="noreferrer" className="font-semibold text-[#cc208f]">View profile</a>
+                <a href={`/@${app.username}`} target="_blank" rel="noreferrer" className="font-semibold text-[#c3217e]">View profile</a>
               </>
             )}
           </p>
@@ -268,7 +268,7 @@ function ApplicationCard({ app, defaultRate }: { app: ApplicationRow; defaultRat
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 placeholder="Note to the applicant (required to decline, optional to approve)"
-                className="w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-[13.5px] outline-none focus:border-[#cc208f]"
+                className="w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-[13.5px] outline-none focus:border-[#c3217e]"
               />
               <label className="mt-2 flex items-center gap-2 text-[12.5px] text-muted-foreground">
                 Commission
@@ -277,7 +277,7 @@ function ApplicationCard({ app, defaultRate }: { app: ApplicationRow; defaultRat
                   onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ""))}
                   inputMode="decimal"
                   placeholder={String(defaultRate)}
-                  className="h-8 w-16 rounded-lg border border-border bg-card px-2 text-center text-[13px] font-semibold text-foreground outline-none focus:border-[#cc208f]"
+                  className="h-8 w-16 rounded-lg border border-border bg-card px-2 text-center text-[13px] font-semibold text-foreground outline-none focus:border-[#c3217e]"
                 />
                 % <span className="text-[11.5px]">(leave blank for the default {defaultRate}%)</span>
               </label>
@@ -351,7 +351,7 @@ function Roster() {
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 truncate text-[14.5px] font-semibold">
                   {row.display_name}
-                  {row.status === "active" && <BadgeCheck className="h-4 w-4 shrink-0 text-[#cc208f]" />}
+                  {row.status === "active" && <BadgeCheck className="h-4 w-4 shrink-0 text-[#c3217e]" />}
                 </p>
                 <p className="truncate text-[12.5px] text-muted-foreground">
                   {row.username ? `@${row.username} · ` : ""}{row.location} · since {new Date(row.joined_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
@@ -406,7 +406,7 @@ function RateEditor({ value, disabled, onSave }: { value: number; disabled: bool
         value={draft}
         onChange={(e) => setDraft(e.target.value.replace(/[^\d.]/g, ""))}
         inputMode="decimal"
-        className="h-8 w-14 rounded-lg border border-border bg-background px-2 text-center text-[13px] font-semibold text-foreground outline-none focus:border-[#cc208f]"
+        className="h-8 w-14 rounded-lg border border-border bg-background px-2 text-center text-[13px] font-semibold text-foreground outline-none focus:border-[#c3217e]"
       />
       %
       {changed && (
@@ -424,7 +424,7 @@ function Avatar({ name, url }: { name: string; url: string | null }) {
   return url ? (
     <img src={url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
   ) : (
-    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 font-bold text-[#cc208f]">{name.charAt(0)}</span>
+    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 font-bold text-[#c3217e]">{name.charAt(0)}</span>
   );
 }
 
@@ -447,7 +447,7 @@ function Block({ title, children }: { title: string; children: string }) {
 }
 
 function StatusPill({ status }: { status: AppStatus }) {
-  const cls = status === "approved" ? "bg-emerald-500/10 text-emerald-600" : status === "rejected" ? "bg-rose-500/10 text-rose-600" : "bg-[#cc208f]/10 text-[#cc208f]";
+  const cls = status === "approved" ? "bg-emerald-500/10 text-emerald-600" : status === "rejected" ? "bg-rose-500/10 text-rose-600" : "bg-[#c3217e]/10 text-[#c3217e]";
   const label = status === "approved" ? "Approved" : status === "rejected" ? "Declined" : "Pending";
   return <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${cls}`}>{label}</span>;
 }

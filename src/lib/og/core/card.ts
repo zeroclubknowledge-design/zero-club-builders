@@ -42,7 +42,7 @@ export type PreviewSpec = {
 
 const W = 1200;
 const H = 630;
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 
 /* Tiny element builder: satori takes React-shaped objects, no React needed. */
 type Style = Record<string, string | number>;
@@ -165,7 +165,7 @@ export async function drawPostPhoto(image: string): Promise<ArrayBuffer | null> 
 
 export function cardTree(spec: PreviewSpec, visual: string | null, family: string): Node {
   const accent = spec.accent || PINK;
-  const accent2 = spec.accent2 || "#7a1e66";
+  const accent2 = spec.accent2 || "#721e4e";
   const title = clip(spec.title || "Zero Club", 90);
   const subtitle = spec.subtitle ? clip(spec.subtitle.replace(/\s+/g, " ").trim(), 120) : null;
   const chips = (spec.chips || []).filter(Boolean).slice(0, 3) as string[];
@@ -212,7 +212,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
         box(
           { alignItems: "center", gap: "14px" },
           h("img", { src: ZERO_CLUB_MARK, width: 44, height: 44 }),
-          box({ fontSize: "30px", fontWeight: 800, letterSpacing: "-0.5px" }, h("span", {}, "Zero"), h("span", { style: { color: "#ff4fc3", marginLeft: "8px" } }, "Club")),
+          box({ fontSize: "30px", fontWeight: 800, letterSpacing: "-0.5px" }, h("span", {}, "Zero"), h("span", { style: { color: "#fd49b0", marginLeft: "8px" } }, "Club")),
         ),
         box(
           { alignItems: "center", gap: "10px", padding: "10px 20px", borderRadius: "999px", background: photo ? "rgba(10,6,9,0.72)" : "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", fontSize: "18px", fontWeight: 700, letterSpacing: "3px", color: "rgba(255,255,255,0.9)" },
@@ -269,7 +269,7 @@ export function cardTree(spec: PreviewSpec, visual: string | null, family: strin
       // Footer: action + address
       box(
         { alignItems: "center", justifyContent: "space-between" },
-        box({ padding: "16px 32px", borderRadius: "999px", background: `linear-gradient(90deg, ${accent} 0%, #ff4fc3 100%)`, fontSize: "24px", fontWeight: 800 }, `${clip(spec.cta || "Open on Zero Club", 30)} →`),
+        box({ padding: "16px 32px", borderRadius: "999px", background: `linear-gradient(90deg, ${accent} 0%, #fd49b0 100%)`, fontSize: "24px", fontWeight: 800 }, `${clip(spec.cta || "Open on Zero Club", 30)} →`),
         photo ? null : box({ fontSize: "22px", fontWeight: 700, letterSpacing: "1px", color: "rgba(255,255,255,0.45)" }, "zeroclubs.xyz"),
       ),
     ),

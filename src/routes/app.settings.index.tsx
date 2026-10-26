@@ -159,7 +159,7 @@ function SettingsIndex() {
               </p>
             </div>
             {profile?.id && (
-              <Link to="/app/profile/$id" params={{ id: profile.username || profile.id }} className="shrink-0 text-[14px] font-semibold text-[#cc208f] hover:text-[#a3186f]">
+              <Link to="/app/profile/$id" params={{ id: profile.username || profile.id }} className="shrink-0 text-[14px] font-semibold text-[#c3217e] hover:text-[#9a1963]">
                 View profile
               </Link>
             )}
@@ -205,7 +205,7 @@ function SettingsIndex() {
             <button
               type="button"
               onClick={signOut}
-              className="flex items-center gap-3.5 px-4 py-3.5 text-left text-[15px] font-semibold text-[#cc208f] hover:bg-[#cc208f]/[0.04]"
+              className="flex items-center gap-3.5 px-4 py-3.5 text-left text-[15px] font-semibold text-[#c3217e] hover:bg-[#c3217e]/[0.04]"
             >
               <LogOut className="h-5 w-5" /> Sign out
             </button>

@@ -152,7 +152,7 @@ function InstitutionPage() {
           <div className="px-4 pt-2">
             <div className="flex items-center gap-1.5">
               <h1 className="font-display text-[22px] font-semibold leading-tight">{name}</h1>
-              <BadgeCheck className="h-[18px] w-[18px] shrink-0 fill-[#cc208f] text-white" />
+              <BadgeCheck className="h-[18px] w-[18px] shrink-0 fill-[#c3217e] text-white" />
             </div>
             {institution.bio && <p className="mt-1 text-[14px] leading-relaxed text-foreground/85">{institution.bio}</p>}
             <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
@@ -209,7 +209,7 @@ function InstitutionPage() {
                   {bootcamp.banner_url && <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-semibold text-[#a3186f]">{bootcamp.category || "Programme"}</p>
+                  <p className="text-[12px] font-semibold text-[#9a1963]">{bootcamp.category || "Programme"}</p>
                   <h2 className="line-clamp-2 text-[15px] font-semibold leading-snug">{bootcamp.title}</h2>
                   <p className="mt-0.5 text-[13px] font-semibold tabular-nums">
                     {Number(bootcamp.price) > 0 ? format(Number(bootcamp.price)) : <span className="text-[#1a7f4b]">Free</span>}

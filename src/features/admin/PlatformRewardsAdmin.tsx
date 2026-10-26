@@ -73,7 +73,7 @@ export function PlatformRewardsAdmin() {
             Money and ZP paid by Zero Club itself — direct rewards to members and prizes from sponsored tournaments. Nothing here comes out of an admin's own wallet.
           </p>
         </div>
-        <Link to="/app/games/create" search={{ game: undefined }} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-semibold text-white" style={{ background: "#cc208f" }}>
+        <Link to="/app/games/create" search={{ game: undefined }} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[13.5px] font-semibold text-white" style={{ background: "#c3217e" }}>
           <Trophy className="h-4 w-4" /> Host a sponsored game
         </Link>
       </div>
@@ -144,7 +144,7 @@ export function PlatformRewardsAdmin() {
                           {r.recipient_username && <span className="ml-1 text-muted-foreground">@{r.recipient_username}</span>}
                         </td>
                         <td className="max-w-[240px] px-3 py-2.5">
-                          <span className={`mr-1.5 inline-flex rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${r.kind === "direct_reward" ? "bg-[#cc208f]/10 text-[#cc208f]" : "bg-amber-500/10 text-amber-700"}`}>
+                          <span className={`mr-1.5 inline-flex rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${r.kind === "direct_reward" ? "bg-[#c3217e]/10 text-[#c3217e]" : "bg-amber-500/10 text-amber-700"}`}>
                             {r.kind === "direct_reward" ? "Reward" : `#${r.place} prize`}
                           </span>
                           <span className="text-foreground/80">{r.kind === "direct_reward" ? r.reason : r.tournament_title}</span>
@@ -224,19 +224,19 @@ function GrantReward({ money }: { money: (n: number) => string }) {
 
   return (
     <section className="mt-6 rounded-2xl border border-border bg-card p-4">
-      <h3 className="flex items-center gap-2 text-[15px] font-semibold"><Gift className="h-4 w-4 text-[#cc208f]" /> Reward a member</h3>
+      <h3 className="flex items-center gap-2 text-[15px] font-semibold"><Gift className="h-4 w-4 text-[#c3217e]" /> Reward a member</h3>
       <p className="mt-0.5 text-[12.5px] text-muted-foreground">Paid by Zero Club. The member is notified and it's added to the record below.</p>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <div className="relative">
           {member ? (
-            <div className="flex h-11 items-center gap-2 rounded-xl border border-[#cc208f] bg-[#cc208f]/[0.04] px-3">
-              {member.avatar_url ? <img src={member.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="grid h-7 w-7 place-items-center rounded-full bg-[#cc208f]/10 text-[12px] font-bold text-[#cc208f]">{(member.full_name || member.username || "?").charAt(0)}</span>}
+            <div className="flex h-11 items-center gap-2 rounded-xl border border-[#c3217e] bg-[#c3217e]/[0.04] px-3">
+              {member.avatar_url ? <img src={member.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="grid h-7 w-7 place-items-center rounded-full bg-[#c3217e]/10 text-[12px] font-bold text-[#c3217e]">{(member.full_name || member.username || "?").charAt(0)}</span>}
               <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">{member.full_name || member.username} <span className="font-normal text-muted-foreground">@{member.username}</span></span>
               <button onClick={() => setMember(null)} aria-label="Change member" className="grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.05]"><X className="h-3.5 w-3.5" /></button>
             </div>
           ) : (
-            <label className="flex h-11 items-center gap-2 rounded-xl border border-border px-3 focus-within:border-[#cc208f]">
+            <label className="flex h-11 items-center gap-2 rounded-xl border border-border px-3 focus-within:border-[#c3217e]">
               <Search className="h-4 w-4 text-muted-foreground" />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Find a member by name or @username" className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none" />
             </label>
@@ -245,7 +245,7 @@ function GrantReward({ money }: { money: (n: number) => string }) {
             <div className="absolute inset-x-0 top-12 z-10 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
               {results.map((m) => (
                 <button key={m.id} onClick={() => { setMember(m); setResults([]); }} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-foreground/[0.04]">
-                  {m.avatar_url ? <img src={m.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="grid h-7 w-7 place-items-center rounded-full bg-[#cc208f]/10 text-[12px] font-bold text-[#cc208f]">{(m.full_name || m.username || "?").charAt(0)}</span>}
+                  {m.avatar_url ? <img src={m.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="grid h-7 w-7 place-items-center rounded-full bg-[#c3217e]/10 text-[12px] font-bold text-[#c3217e]">{(m.full_name || m.username || "?").charAt(0)}</span>}
                   <span className="truncate text-[13px] font-semibold">{m.full_name || m.username}</span>
                   {m.username && <span className="truncate text-[12px] text-muted-foreground">@{m.username}</span>}
                 </button>
@@ -262,7 +262,7 @@ function GrantReward({ money }: { money: (n: number) => string }) {
               </button>
             ))}
           </div>
-          <label className="flex h-11 min-w-0 flex-1 items-center gap-1.5 rounded-xl border border-border px-3 focus-within:border-[#cc208f]">
+          <label className="flex h-11 min-w-0 flex-1 items-center gap-1.5 rounded-xl border border-border px-3 focus-within:border-[#c3217e]">
             {type === "funds" && <span className="text-[14px] font-semibold text-muted-foreground">₦</span>}
             <input value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, "").slice(0, 9))} inputMode="numeric" placeholder={type === "funds" ? "Amount" : "Steps of 10"} className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold tabular-nums outline-none" />
             {type === "zp" && <span className="text-[12.5px] font-semibold text-muted-foreground">ZP</span>}
@@ -271,7 +271,7 @@ function GrantReward({ money }: { money: (n: number) => string }) {
       </div>
 
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <input value={reason} onChange={(e) => setReason(e.target.value.slice(0, 300))} placeholder="Reason (shown to the member and kept in the record)" className="h-11 min-w-0 flex-1 rounded-xl border border-border px-3 text-[13.5px] outline-none focus:border-[#cc208f]" />
+        <input value={reason} onChange={(e) => setReason(e.target.value.slice(0, 300))} placeholder="Reason (shown to the member and kept in the record)" className="h-11 min-w-0 flex-1 rounded-xl border border-border px-3 text-[13.5px] outline-none focus:border-[#c3217e]" />
         <button onClick={() => void send()} disabled={!valid || busy} className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-foreground px-5 text-[13.5px] font-semibold text-background disabled:opacity-40">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4" />} Send reward
         </button>

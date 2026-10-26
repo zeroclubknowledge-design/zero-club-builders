@@ -401,7 +401,7 @@ function ShipPage() {
           <button
             onClick={handleShip}
             disabled={!canShip}
-            className="flex h-9 min-w-[84px] items-center justify-center rounded-full bg-[#cc208f] px-4 text-[15px] font-semibold text-white tap hover:bg-[#b01c7b] disabled:opacity-40"
+            className="flex h-9 min-w-[84px] items-center justify-center rounded-full bg-[#c3217e] px-4 text-[15px] font-semibold text-white tap hover:bg-[#a71d6c] disabled:opacity-40"
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : shipLabel}
           </button>

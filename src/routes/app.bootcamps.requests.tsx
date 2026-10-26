@@ -19,7 +19,7 @@ function SeatsAndRequests() {
       </div>
       <div className="px-4 pt-5 md:px-6">
         <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="flex items-center gap-2 text-[15px] font-semibold"><TicketPercent className="h-5 w-5 text-[#cc208f]" /> Have a seat code?</p>
+          <p className="flex items-center gap-2 text-[15px] font-semibold"><TicketPercent className="h-5 w-5 text-[#c3217e]" /> Have a seat code?</p>
           <p className="mt-1 text-[13px] text-muted-foreground">Someone bought you a place. Enter the code to join the bootcamp.</p>
           <div className="mt-3"><ClaimSeatBox /></div>
         </div>

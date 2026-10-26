@@ -21,7 +21,7 @@ export const Route = createFileRoute("/app/tutor-apply")({
 });
 
 const draftStorageKey = () => `zc-tutor-application-draft:${storedDraftOwner() || "guest"}`;
-const PINK = "#cc208f";
+const PINK = "#c3217e";
 
 const EXPERIENCE = ["Under 1 year", "1–2 years", "3–5 years", "6–10 years", "10+ years"];
 const LEVELS = ["Beginners", "Intermediate", "Advanced"];
@@ -147,8 +147,8 @@ function IntroScreen({ firstName, onStart, onBack }: { firstName: string; onStar
     <Shell>
       <TopBar onBack={onBack}><p className="text-[15px] font-semibold">Become a Tutor</p></TopBar>
       <main className="zc-page-width mx-auto w-full max-w-[680px] flex-1 px-4 pb-32 pt-4">
-        <section className="relative overflow-hidden rounded-[26px] bg-[#16111a] px-6 pb-7 pt-8 text-white shadow-[0_30px_60px_-30px_rgba(204,32,143,0.55)]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_70%_at_100%_0%,rgba(204,32,143,0.55),transparent_60%),radial-gradient(70%_60%_at_0%_100%,rgba(109,40,217,0.45),transparent_60%)]" />
+        <section className="relative overflow-hidden rounded-[26px] bg-[#16111a] px-6 pb-7 pt-8 text-white shadow-[0_30px_60px_-30px_rgba(195,33,126,0.55)]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_70%_at_100%_0%,rgba(195,33,126,0.55),transparent_60%),radial-gradient(70%_60%_at_0%_100%,rgba(109,40,217,0.45),transparent_60%)]" />
           <ZeroMark size={220} className="pointer-events-none absolute -right-16 -top-10 rotate-12 text-white/[0.07]" />
           <div className="relative">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11.5px] font-semibold tracking-wide ring-1 ring-white/15">
@@ -194,7 +194,7 @@ function IntroScreen({ firstName, onStart, onBack }: { firstName: string; onStar
         </div>
       </main>
       <StickyFooter>
-        <button onClick={onStart} className="flex h-12 w-full items-center justify-center gap-2 rounded-full text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(204,32,143,0.8)] transition active:scale-[0.99]" style={{ background: PINK }}>
+        <button onClick={onStart} className="flex h-12 w-full items-center justify-center gap-2 rounded-full text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(195,33,126,0.8)] transition active:scale-[0.99]" style={{ background: PINK }}>
           Start application <ArrowRight className="h-4 w-4" />
         </button>
       </StickyFooter>
@@ -409,7 +409,7 @@ function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorAppli
                 ["Availability", `${draft.availability.join(", ")} · ${draft.weekly_hours}/week`],
               ]} />
 
-              <label className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${draft.agreed ? "border-[#cc208f]/50 bg-[#cc208f]/[0.05]" : "border-border bg-card"}`}>
+              <label className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${draft.agreed ? "border-[#c3217e]/50 bg-[#c3217e]/[0.05]" : "border-border bg-card"}`}>
                 <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border-2 transition ${draft.agreed ? "border-transparent text-white" : "border-foreground/25"}`} style={draft.agreed ? { background: PINK } : undefined}>
                   {draft.agreed && <Check className="h-3.5 w-3.5" />}
                 </span>
@@ -436,7 +436,7 @@ function ApplicationForm({ prefill, onExit, onSubmitted }: { prefill: TutorAppli
           <button
             onClick={() => void next()}
             disabled={!valid || submitting}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(204,32,143,0.8)] transition active:scale-[0.99] disabled:opacity-40 disabled:shadow-none"
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(195,33,126,0.8)] transition active:scale-[0.99] disabled:opacity-40 disabled:shadow-none"
             style={{ background: PINK }}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -484,7 +484,7 @@ function Chips({ options, selected, onToggle }: { options: string[]; selected: s
             onClick={() => onToggle(o)}
             aria-pressed={on}
             className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-4 text-[13.5px] font-medium transition active:scale-[0.97] ${
-              on ? "border-transparent text-white shadow-[0_8px_18px_-10px_rgba(204,32,143,0.9)]" : "border-border bg-card text-foreground hover:border-foreground/25"
+              on ? "border-transparent text-white shadow-[0_8px_18px_-10px_rgba(195,33,126,0.9)]" : "border-border bg-card text-foreground hover:border-foreground/25"
             }`}
             style={on ? { background: PINK } : undefined}
           >
@@ -653,7 +653,7 @@ function ApprovedScreen({ firstName, onBack }: { firstName: string; onBack: () =
       <main className="zc-page-width mx-auto flex w-full max-w-[520px] flex-1 flex-col items-center px-4 pb-32 pt-10 text-center">
         <div className="relative grid h-28 w-28 place-items-center">
           <span className="absolute inset-0 animate-ping rounded-full opacity-20" style={{ background: PINK }} />
-          <span className="relative grid h-24 w-24 place-items-center rounded-full text-white shadow-[0_20px_40px_-16px_rgba(204,32,143,0.9)]" style={{ background: PINK }}>
+          <span className="relative grid h-24 w-24 place-items-center rounded-full text-white shadow-[0_20px_40px_-16px_rgba(195,33,126,0.9)]" style={{ background: PINK }}>
             <ZeroMark size={52} />
           </span>
           <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-card text-emerald-600 shadow ring-4 ring-canvas"><BadgeCheck className="h-6 w-6" /></span>

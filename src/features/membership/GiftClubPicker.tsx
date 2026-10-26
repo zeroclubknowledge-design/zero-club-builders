@@ -53,7 +53,7 @@ export function GiftClubPicker({ selected, onChange }: { selected: string[]; onC
             const on = selected.includes(club.id);
             return (
               <label key={club.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted/40">
-                <input type="checkbox" className="h-4 w-4 shrink-0 accent-[#cc208f]" checked={on} disabled={!on && selected.length >= MAX_GIFT_CLUBS} onChange={(e) => onChange(e.target.checked ? [...selected, club.id] : selected.filter((id) => id !== club.id))} />
+                <input type="checkbox" className="h-4 w-4 shrink-0 accent-[#c3217e]" checked={on} disabled={!on && selected.length >= MAX_GIFT_CLUBS} onChange={(e) => onChange(e.target.checked ? [...selected, club.id] : selected.filter((id) => id !== club.id))} />
                 <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-lg bg-foreground/[0.06] text-[12px] font-bold">
                   {club.logo_url ? <img src={club.logo_url} alt="" className="h-full w-full object-cover" /> : (club.name || "?").charAt(0).toUpperCase()}
                 </span>

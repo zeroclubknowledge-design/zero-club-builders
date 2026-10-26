@@ -97,7 +97,7 @@ export function Home() {
 
         {earn && Number(earn.ready_total) > 0 && (
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white/[0.08] px-4 py-3 ring-1 ring-white/10">
-            <Hourglass className="h-5 w-5 shrink-0 text-[#f28fd0]" />
+            <Hourglass className="h-5 w-5 shrink-0 text-[#f089c4]" />
             <p className="text-[12.5px] leading-snug text-white/80">
               <span className="font-semibold text-white">{money(earn.ready_total, currency)}</span> approved — it's in the next payout.
             </p>

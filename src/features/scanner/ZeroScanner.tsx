@@ -202,7 +202,7 @@ export function ZeroScanner({ onClose }: { onClose: () => void }) {
             "left-0 bottom-0 border-l-4 border-b-4 rounded-bl-2xl",
             "right-0 bottom-0 border-r-4 border-b-4 rounded-br-2xl",
           ].map((c) => (
-            <span key={c} className={`absolute h-10 w-10 border-[#cc208f] ${c}`} />
+            <span key={c} className={`absolute h-10 w-10 border-[#c3217e] ${c}`} />
           ))}
           {status === "starting" ? (
             <span className="absolute inset-0 grid place-items-center">
@@ -264,15 +264,15 @@ function ScanSmiley({ mood }: { mood: "look" | "smile" | "sad" }) {
           <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
-      <g className="zsm-face" filter="url(#zsm-glow)" stroke="#ff4fc3" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <g className="zsm-face" filter="url(#zsm-glow)" stroke="#fd49b0" strokeLinecap="round" strokeLinejoin="round" fill="none">
         {/* Cheeks */}
-        <circle className="zsm-cheek" cx="70" cy="150" r="14" fill="#ff4fc3" stroke="none" />
-        <circle className="zsm-cheek" cx="190" cy="150" r="14" fill="#ff4fc3" stroke="none" />
+        <circle className="zsm-cheek" cx="70" cy="150" r="14" fill="#fd49b0" stroke="none" />
+        <circle className="zsm-cheek" cx="190" cy="150" r="14" fill="#fd49b0" stroke="none" />
         {/* Open eyes (look around + blink) */}
         <g className="zsm-eyes-open">
           <g className="zsm-glance">
-            <ellipse className="zsm-eye" cx="95" cy="108" rx="11" ry="15" fill="#ff4fc3" stroke="none" />
-            <ellipse className="zsm-eye" cx="165" cy="108" rx="11" ry="15" fill="#ff4fc3" stroke="none" />
+            <ellipse className="zsm-eye" cx="95" cy="108" rx="11" ry="15" fill="#fd49b0" stroke="none" />
+            <ellipse className="zsm-eye" cx="165" cy="108" rx="11" ry="15" fill="#fd49b0" stroke="none" />
           </g>
         </g>
         {/* Happy eyes: ^ ^ */}

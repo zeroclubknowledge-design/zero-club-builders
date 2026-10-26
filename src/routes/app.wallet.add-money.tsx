@@ -515,7 +515,7 @@ function AddMoneyPage() {
           {zpBalance >= ZP_PER_NAIRA && (
             <div className="border-t border-border/60 px-4 py-3.5">
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#c3217e]/10 text-[13px] font-bold text-[#c3217e]">
                   ZP
                 </span>
                 <div className="min-w-0 flex-1">
@@ -551,7 +551,7 @@ function AddMoneyPage() {
                     // Solid Zero Club pink once there's an amount to convert;
                     // an outline while there isn't.
                     zpCredit >= 1
-                      ? "border-[1.5px] border-[#cc208f] bg-[#cc208f] text-white hover:bg-[#b01c7b]"
+                      ? "border-[1.5px] border-[#c3217e] bg-[#c3217e] text-white hover:bg-[#a71d6c]"
                       : "border-[1.5px] border-foreground/30 text-foreground disabled:opacity-40"
                   }`}
                 >
@@ -788,7 +788,7 @@ function AddMoneyPage() {
                 <button
                   onClick={handleCreateLink}
                   disabled={creating}
-                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
+                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
                 >
                   {creating && <Loader2 className="h-4 w-4 animate-spin" />}
                   Create link

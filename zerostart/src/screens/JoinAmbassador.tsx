@@ -207,7 +207,7 @@ export function JoinAmbassador() {
   return (
     <div className="zs-rise mx-auto max-w-2xl">
       {!isAmbassador && (
-        <div className="relative mb-7 overflow-hidden rounded-[24px] shadow-[0_24px_60px_-30px_rgba(204,32,143,0.55)] ring-1 ring-black/5">
+        <div className="relative mb-7 overflow-hidden rounded-[24px] shadow-[0_24px_60px_-30px_rgba(195,33,126,0.55)] ring-1 ring-black/5">
           <img
             src="/ambassador-banner.jpg"
             alt="Zero Club — The Student Ambassador Program, for the top 1,000 Nigerian students"

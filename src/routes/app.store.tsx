@@ -374,7 +374,7 @@ function StorePage() {
                         </div>
                       )}
                       {(selected.discount_percent || 0) > 0 && (
-                        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-[#cc208f] px-2.5 py-0.5 text-[12px] font-semibold text-white">
+                        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-[#c3217e] px-2.5 py-0.5 text-[12px] font-semibold text-white">
                           <Tag className="h-3 w-3" /> {formatPercent(selected.discount_percent)}% off
                         </span>
                       )}
@@ -536,7 +536,7 @@ function StorePage() {
                     <button
                       onClick={() => handlePurchase(selected, appliedCoupon)}
                       disabled={purchasingId === selected.id}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#cc208f] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#c3217e] text-[16px] font-semibold text-white tap hover:opacity-90 disabled:opacity-40"
                     >
                       {purchasingId === selected.id && <Loader2 className="h-4 w-4 animate-spin" />}
                       Buy now

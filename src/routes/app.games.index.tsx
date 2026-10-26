@@ -54,7 +54,7 @@ function ZeroGamesHub() {
             <ArrowLeft className="h-[22px] w-[22px]" />
           </button>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Zero Games</h1>
-          <Link to="/app/wallet" className="mr-1 flex h-8 items-center gap-1.5 rounded-full bg-[#cc208f]/10 px-3 text-[13px] font-bold tabular-nums text-[#a3186f]">
+          <Link to="/app/wallet" className="mr-1 flex h-8 items-center gap-1.5 rounded-full bg-[#c3217e]/10 px-3 text-[13px] font-bold tabular-nums text-[#9a1963]">
             <WalletCards className="h-3.5 w-3.5" />
             {format(Number(profile?.coins || 0), { notation: "compact" })}
           </Link>
@@ -65,7 +65,7 @@ function ZeroGamesHub() {
         {/* Featured: Zero Space */}
         <section className="bg-card p-3 md:rounded-xl md:border md:border-border">
           <Link to="/app/games/quest" search={{ room: undefined, code: undefined }} className="mb-3 flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-white/10 p-5 text-white" style={{ background: "radial-gradient(ellipse at 100% 0%,#583058,#160d24 75%)" }}>
-            <div className="min-w-0 flex-1"><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold"><Users className="h-3.5 w-3.5" />New · 2–6 players</span><p className="mt-3 font-display text-[26px] font-bold">Zero Quest</p><p className="mt-1 text-sm text-white/65">Build a city with your squad. Turn skills into progress.</p><span className="mt-4 inline-flex min-h-10 items-center rounded-full bg-[#ff4fc3] px-4 text-sm font-bold text-[#190c20]">Build together · earn XP</span></div><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[#ff4fc3]/15"><Users className="h-8 w-8 text-[#ff9bdd]" /></span>
+            <div className="min-w-0 flex-1"><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold"><Users className="h-3.5 w-3.5" />New · 2–6 players</span><p className="mt-3 font-display text-[26px] font-bold">Zero Quest</p><p className="mt-1 text-sm text-white/65">Build a city with your squad. Turn skills into progress.</p><span className="mt-4 inline-flex min-h-10 items-center rounded-full bg-[#fd49b0] px-4 text-sm font-bold text-[#190c20]">Build together · earn XP</span></div><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[#fd49b0]/15"><Users className="h-8 w-8 text-[#fe94d1]" /></span>
           </Link>
           <button
             onClick={() => navigate({ to: "/app/games/play/$game", params: { game: "space" }, search: { t: undefined, code: undefined } })}
@@ -82,7 +82,7 @@ function ZeroGamesHub() {
           </button>
 
           <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-<Link to="/app/games/draught" search={{ room: undefined, code: undefined, mode: undefined }} className="flex flex-col items-start rounded-2xl border border-white/10 p-4 text-left text-white" style={{ background: "linear-gradient(150deg,#633148,#160d24)" }}><span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border-4 border-[#ff80bc] bg-[#a71f63] text-3xl">♛</span><p className="mt-3 font-display text-[17px] font-bold">Zero Draught</p><p className="mt-1 text-[12.5px] text-white/65">Solo or multiplayer. Your avatar. Your strategy.</p></Link>
+<Link to="/app/games/draught" search={{ room: undefined, code: undefined, mode: undefined }} className="flex flex-col items-start rounded-2xl border border-white/10 p-4 text-left text-white" style={{ background: "linear-gradient(150deg,#633148,#160d24)" }}><span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border-4 border-[#fd7ac5] bg-[#9f1f68] text-3xl">♛</span><p className="mt-3 font-display text-[17px] font-bold">Zero Draught</p><p className="mt-1 text-[12.5px] text-white/65">Solo or multiplayer. Your avatar. Your strategy.</p></Link>
             {ZERO_GAME_LIST.filter((g) => g.key !== "space").map((g) => (
               <button
                 key={g.key}
@@ -102,7 +102,7 @@ function ZeroGamesHub() {
             search={{ game: filter === "all" ? undefined : filter }}
             className="mt-2.5 flex items-center gap-3 rounded-2xl border border-border p-3.5 transition hover:bg-foreground/[0.02]"
           >
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#cc208f,#6b2a8f)" }}>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#c3217e,#6b2a8f)" }}>
               <Trophy className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
@@ -131,7 +131,7 @@ function ZeroGamesHub() {
               <button
                 key={g}
                 onClick={() => setFilter(g)}
-                className={`h-7 shrink-0 rounded-full border px-3 text-[12.5px] font-semibold transition ${filter === g ? "border-[#cc208f] bg-[#cc208f]/10 text-[#cc208f]" : "border-border text-muted-foreground"}`}
+                className={`h-7 shrink-0 rounded-full border px-3 text-[12.5px] font-semibold transition ${filter === g ? "border-[#c3217e] bg-[#c3217e]/10 text-[#c3217e]" : "border-border text-muted-foreground"}`}
               >
                 {g === "all" ? "All games" : ZERO_GAMES[g].name}
               </button>
@@ -147,7 +147,7 @@ function ZeroGamesHub() {
               <p className="text-[15px] font-semibold">
                 {tab === "mine" ? "You haven't joined any tournaments" : tab === "ended" ? "No results yet" : "No tournaments running"}
               </p>
-              <Link to="/app/games/create" search={{ game: filter === "all" ? undefined : filter }} className="mt-1 inline-flex text-[14px] font-semibold text-[#cc208f]">
+              <Link to="/app/games/create" search={{ game: filter === "all" ? undefined : filter }} className="mt-1 inline-flex text-[14px] font-semibold text-[#c3217e]">
                 Host the first one
               </Link>
             </div>
@@ -175,8 +175,8 @@ function TournamentCard({ row, now, money }: { row: TournamentRow; now: number; 
           {status === "live" && <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-[#e0245e]" />}
           <p className="truncate text-[15px] font-semibold">{row.title}</p>
           {row.visibility === "private" && <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-          {row.eligibility === "subscribers" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#cc208f]" />}
-          {row.sponsored && <span className="shrink-0 rounded-full bg-[#cc208f] px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-white">Zero Club</span>}
+          {row.eligibility === "subscribers" && <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#c3217e]" />}
+          {row.sponsored && <span className="shrink-0 rounded-full bg-[#c3217e] px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-white">Zero Club</span>}
         </div>
         <p className="mt-0.5 flex items-center gap-1 truncate text-[12.5px] text-muted-foreground">
           <Clock3 className="h-3 w-3 shrink-0" />
@@ -190,7 +190,7 @@ function TournamentCard({ row, now, money }: { row: TournamentRow; now: number; 
       </div>
       <div className="shrink-0 text-right">
         <p className="max-w-[110px] truncate text-[13px] font-bold text-[#1a7f4b]">{rewardHeadline(row, money)}</p>
-        <p className="mt-0.5 flex items-center justify-end gap-0.5 text-[11.5px] font-semibold text-[#cc208f]">
+        <p className="mt-0.5 flex items-center justify-end gap-0.5 text-[11.5px] font-semibold text-[#c3217e]">
           {row.my_best ? `Best ${row.my_best.toLocaleString()}` : "Leaderboard"} <ChevronRight className="h-3.5 w-3.5" />
         </p>
       </div>

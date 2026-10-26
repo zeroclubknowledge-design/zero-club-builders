@@ -345,8 +345,8 @@ function ProductDetailPage() {
         <section>
           <div className="mx-auto grid max-w-[1180px] gap-12 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[1fr_0.72fr] lg:items-end">
             <div>
-              <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
-                <span className="grid h-9 w-9 place-items-center rounded-md bg-[#cc208f]/10">
+              <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#94185f]">
+                <span className="grid h-9 w-9 place-items-center rounded-md bg-[#c3217e]/10">
                   <Icon className="h-4 w-4 fill-current" />
                 </span>
                 {product.eyebrow}
@@ -355,7 +355,7 @@ function ProductDetailPage() {
                 {product.statement}
               </h1>
             </div>
-            <div className="border-l-2 border-[#cc208f] pl-5">
+            <div className="border-l-2 border-[#c3217e] pl-5">
               <p className="text-[15px] leading-7 text-[#5f5a5d] dark:text-white/55">
                 {product.summary}
               </p>
@@ -383,7 +383,7 @@ function ProductDetailPage() {
           <div className="mx-auto grid max-w-[1180px] md:grid-cols-3 md:divide-x md:-0">
             {product.proof.map((item) => (
               <div key={item.value} className="px-6 py-8 md:px-8 md:py-10">
-                <p className="font-display text-[22px] font-semibold tracking-tight text-[#f28fd0]">
+                <p className="font-display text-[22px] font-semibold tracking-tight text-[#f089c4]">
                   {item.value}
                 </p>
                 <p className="mt-1 text-[11px] leading-5 text-white/50">{item.label}</p>
@@ -395,7 +395,7 @@ function ProductDetailPage() {
         <section>
           <div className="mx-auto max-w-[1180px] px-5 py-16 md:px-8 md:py-24">
             <div className="max-w-[620px]">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#94185f]">
                 Designed for useful work
               </p>
               <h2 className="mt-3 font-display text-[32px] font-semibold leading-tight tracking-[-0.025em] md:text-[46px]">
@@ -408,7 +408,7 @@ function ProductDetailPage() {
                   key={item.title}
                   className="grid gap-4 py-7 md:grid-cols-[80px_0.7fr_1fr] md:items-start md:gap-8 md:py-9"
                 >
-                  <span className="font-mono text-[10px] text-[#9d176d]">0{index + 1}</span>
+                  <span className="font-mono text-[10px] text-[#94185f]">0{index + 1}</span>
                   <h3 className="font-display text-[21px] font-semibold tracking-tight">
                     {item.title}
                   </h3>
@@ -424,7 +424,7 @@ function ProductDetailPage() {
         <section className="bg-white dark:bg-[#141118]">
           <div className="mx-auto grid max-w-[1180px] gap-12 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[0.7fr_1fr]">
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#9d176d]">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#94185f]">
                 A clear path
               </p>
               <h2 className="mt-3 font-display text-[31px] font-semibold tracking-tight">
@@ -441,7 +441,7 @@ function ProductDetailPage() {
                     {index + 1}
                   </span>
                   <span className="text-[13px] font-medium leading-5">{step}</span>
-                  <Check className="ml-auto h-4 w-4 shrink-0 text-[#cc208f]" />
+                  <Check className="ml-auto h-4 w-4 shrink-0 text-[#c3217e]" />
                 </li>
               ))}
             </ol>
@@ -449,7 +449,7 @@ function ProductDetailPage() {
         </section>
 
         <section className="bg-[#f7f6f3] dark:bg-[#100e13] px-5 py-16 text-center md:py-20">
-          <ShieldCheck className="mx-auto h-6 w-6 fill-[#cc208f] text-[#cc208f]" />
+          <ShieldCheck className="mx-auto h-6 w-6 fill-[#c3217e] text-[#c3217e]" />
           <h2 className="mx-auto mt-5 max-w-xl font-display text-[30px] font-semibold tracking-tight md:text-[40px]">
             Put your next step where your progress can be seen.
           </h2>

@@ -145,7 +145,7 @@ export function CertificateSetup({
     );
 
   const brandOn = design.use_brand;
-  const accent = safeAccent(design.appearance?.accent_color || design.brand_accent, "#cc208f");
+  const accent = safeAccent(design.appearance?.accent_color || design.brand_accent, "#c3217e");
   const canBrand = studio.data.can_brand;
 
   return (
@@ -172,10 +172,10 @@ export function CertificateSetup({
                 use_brand: !brandOn,
                 brand_name: design.brand_name || studio.data.issuer_name,
                 brand_logo: design.brand_logo || studio.data.brand_logo || "",
-                brand_accent: design.brand_accent || "#cc208f",
+                brand_accent: design.brand_accent || "#c3217e",
               })
             }
-            className={`relative h-8 w-[58px] shrink-0 rounded-full transition-colors disabled:opacity-45 ${brandOn ? "bg-[#cc208f]" : "bg-foreground/15"}`}
+            className={`relative h-8 w-[58px] shrink-0 rounded-full transition-colors disabled:opacity-45 ${brandOn ? "bg-[#c3217e]" : "bg-foreground/15"}`}
           >
             <span
               className={`absolute top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-bold text-foreground shadow-sm transition-all ${brandOn ? "left-[30px]" : "left-1"}`}
@@ -201,7 +201,7 @@ export function CertificateSetup({
                   brand_logo: option.on ? design.brand_logo || studio.data.brand_logo || "" : design.brand_logo,
                 })
               }
-              className={`rounded-xl border p-3 text-left transition disabled:opacity-45 ${brandOn === option.on ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border hover:border-foreground/25"}`}
+              className={`rounded-xl border p-3 text-left transition disabled:opacity-45 ${brandOn === option.on ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-border hover:border-foreground/25"}`}
             >
               <span className="block text-[13px] font-semibold">{option.title}</span>
               <span className="mt-0.5 block text-[11px] text-muted-foreground">{option.detail}</span>
@@ -212,7 +212,7 @@ export function CertificateSetup({
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
             Your own logo and colour on certificates is a PRO feature: Tutor Pro, Tutor Max or an
             organization plan. Free accounts issue certificates with Zero Club branding.{" "}
-            <Link to="/app/premium" className="font-semibold text-[#cc208f]">
+            <Link to="/app/premium" className="font-semibold text-[#c3217e]">
               Go PRO
             </Link>
           </p>
@@ -332,12 +332,12 @@ export function CertificateSetup({
             <div>
               <p className="flex items-center gap-2 text-[13px] font-semibold">
                 {group.title}
-                {group.pro && <span className="rounded-full bg-[#cc208f] px-2 py-0.5 text-[10px] font-bold tracking-wide text-white">PRO</span>}
+                {group.pro && <span className="rounded-full bg-[#c3217e] px-2 py-0.5 text-[10px] font-bold tracking-wide text-white">PRO</span>}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{group.note}</p>
             </div>
             {group.pro && !canBrand && (
-              <Link to="/app/premium" className="text-xs font-semibold text-[#cc208f]">Go PRO →</Link>
+              <Link to="/app/premium" className="text-xs font-semibold text-[#c3217e]">Go PRO →</Link>
             )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -360,7 +360,7 @@ export function CertificateSetup({
                       signer_name: design.signer_name || studio.data.issuer_name,
                     });
                   }}
-                  className={`relative min-w-0 overflow-hidden rounded-xl border bg-white text-left transition ${selected ? "border-[#cc208f] ring-2 ring-[#cc208f]/25" : "border-border hover:border-foreground/30"}`}
+                  className={`relative min-w-0 overflow-hidden rounded-xl border bg-white text-left transition ${selected ? "border-[#c3217e] ring-2 ring-[#c3217e]/25" : "border-border hover:border-foreground/30"}`}
                 >
                   <div className={locked ? "opacity-80" : undefined}>
                     <CertificateArtwork design={{ ...design, template: template.id }} side={side} course={course} />
@@ -373,7 +373,7 @@ export function CertificateSetup({
                   <div className="border-t border-border bg-card p-3">
                     <p className="flex items-center gap-1.5 text-[13px] font-semibold">
                       {template.name}
-                      {selected && <span className="text-[#cc208f]">✓</span>}
+                      {selected && <span className="text-[#c3217e]">✓</span>}
                     </p>
                     <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
                       {template.note}
@@ -429,7 +429,7 @@ export function CertificateSetup({
       </section>
 
       {needsCosigner(design.template) && (
-        <section className="space-y-4 rounded-2xl border border-[#cc208f]/30 bg-[#cc208f]/[0.035] p-4">
+        <section className="space-y-4 rounded-2xl border border-[#c3217e]/30 bg-[#c3217e]/[0.035] p-4">
           <div>
             <p className="text-[13px] font-semibold">Second signatory</p>
             <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">

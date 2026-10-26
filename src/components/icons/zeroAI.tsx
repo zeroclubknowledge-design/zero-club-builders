@@ -9,7 +9,7 @@ import type { ZeroIconProps } from "@/components/icons/nav";
 export function IconZeroAI({ className, active }: ZeroIconProps) {
   return (
     <svg viewBox="0 0 100 100" className={className ? `zc-icon ${className}` : "zc-icon"} aria-hidden="true">
-      <path d={ZERO_MARK_PATH} fillRule="evenodd" fill={active ? "#cc208f" : "currentColor"} />
+      <path d={ZERO_MARK_PATH} fillRule="evenodd" fill={active ? "#c3217e" : "currentColor"} />
     </svg>
   );
 }

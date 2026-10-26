@@ -266,7 +266,7 @@ export function ProjectPublishConfirmation({
               type="button"
               disabled={busy || phrase !== `PUBLISH ${attempt.project_name}`}
               onClick={() => void confirmText()}
-              className="rounded-full bg-[#cc208f] px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              className="rounded-full bg-[#c3217e] px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
             >
               Confirm publication
             </button>
@@ -280,7 +280,7 @@ export function ProjectPublishConfirmation({
                 onClick={() =>
                   void voice.start({ purpose: "verification", verificationId: attempt.id })
                 }
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#cc208f] px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#c3217e] px-5 py-3 text-sm font-semibold text-white disabled:opacity-40"
               >
                 <Mic className="h-4 w-4" />
                 Start voice confirmation

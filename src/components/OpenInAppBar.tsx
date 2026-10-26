@@ -107,7 +107,7 @@ export function OpenInAppBar() {
       aria-label="Open in the Zero Club app"
       className="fixed inset-x-0 top-0 z-[120] flex items-center gap-3 border-b border-white/10 bg-[#141014]/95 px-3 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] text-white shadow-[0_10px_30px_-18px_rgba(0,0,0,0.8)] backdrop-blur-md"
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#cc208f]">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#c3217e]">
         <svg viewBox="0 0 100 100" className="h-5 w-5 text-white" aria-hidden="true">
           <path d={ZERO_MARK_PATH} fillRule="evenodd" fill="currentColor" />
         </svg>

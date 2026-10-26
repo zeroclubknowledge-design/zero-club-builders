@@ -4,7 +4,7 @@ export function Brand() {
     <>
       <img src="/brand/zero-gifts-mark.svg" alt="" className="h-8 w-8 shrink-0" />
       <span className="font-display text-[17px] font-bold tracking-tight">
-        Zero <span className="text-[#cc208f]">Gifts</span>
+        Zero <span className="text-[#c3217e]">Gifts</span>
       </span>
     </>
   );

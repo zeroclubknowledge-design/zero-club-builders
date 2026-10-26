@@ -105,7 +105,7 @@ function ChallengePage() {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
         <p className="font-display text-[19px] font-semibold">Challenge not found</p>
-        <Link to="/app/zerohub" className="mt-4 text-[14px] font-semibold text-[#cc208f]">
+        <Link to="/app/zerohub" className="mt-4 text-[14px] font-semibold text-[#c3217e]">
           Back to Zero Proofs
         </Link>
       </div>
@@ -313,9 +313,9 @@ function ChallengeView({
             <div className="relative px-4 pb-2 pt-4">
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#cc208f]/15 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#c3217e]/15 to-transparent"
               />
-              <p className="relative flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#cc208f]">
+              <p className="relative flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#c3217e]">
                 <Trophy className="h-4 w-4" /> {winners.length > 1 ? "Winners" : "Winner"}
               </p>
             </div>
@@ -398,7 +398,7 @@ function ChallengeView({
                   {[1, 2, 3].map((i) => (
                     <span
                       key={i}
-                      className={`h-1.5 w-4 rounded-full ${i <= cr.weight ? "bg-[#cc208f]" : "bg-foreground/[0.08]"}`}
+                      className={`h-1.5 w-4 rounded-full ${i <= cr.weight ? "bg-[#c3217e]" : "bg-foreground/[0.08]"}`}
                     />
                   ))}
                 </span>
@@ -422,7 +422,7 @@ function ChallengeView({
           <button
             type="button"
             onClick={() => setShowTerms(!showTerms)}
-            className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-[#cc208f]"
+            className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-[#c3217e]"
           >
             {showTerms ? "Hide full terms" : "Read the full terms"}{" "}
             <ChevronDown className={`h-3.5 w-3.5 transition ${showTerms ? "rotate-180" : ""}`} />
@@ -491,7 +491,7 @@ function ChallengeView({
             params={{ id: c.adopted_version_id }}
             className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
           >
-            <GitBranch className="h-5 w-5 text-[#cc208f]" />
+            <GitBranch className="h-5 w-5 text-[#c3217e]" />
             <span className="flex-1 text-[14px] font-semibold">
               The winning work was adopted into a new version
             </span>
@@ -600,7 +600,7 @@ function ActionBar({
     content = (
       <Link
         to="/signin"
-        className="flex h-12 w-full items-center justify-center rounded-full bg-[#cc208f] text-[15px] font-semibold text-white"
+        className="flex h-12 w-full items-center justify-center rounded-full bg-[#c3217e] text-[15px] font-semibold text-white"
       >
         Sign in to enter
       </Link>
@@ -628,7 +628,7 @@ function Primary({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="h-12 flex-1 rounded-full bg-[#cc208f] px-5 text-[15px] font-semibold text-white transition active:scale-[0.99] disabled:opacity-40 w-full"
+      className="h-12 flex-1 rounded-full bg-[#c3217e] px-5 text-[15px] font-semibold text-white transition active:scale-[0.99] disabled:opacity-40 w-full"
     >
       {children}
     </button>
@@ -680,11 +680,11 @@ function MyEntry({
   const paid = d.paid.filter((p) => p.profile_id === e.entrant_id);
   return (
     <section
-      className={`rounded-3xl border p-4 ${e.status === "winner" ? "border-[#cc208f]/50 bg-[#cc208f]/[0.05]" : "border-border bg-card"}`}
+      className={`rounded-3xl border p-4 ${e.status === "winner" ? "border-[#c3217e]/50 bg-[#c3217e]/[0.05]" : "border-border bg-card"}`}
     >
       <div className="flex items-center gap-2">
         {e.status === "winner" ? (
-          <Trophy className="h-5 w-5 text-[#cc208f]" />
+          <Trophy className="h-5 w-5 text-[#c3217e]" />
         ) : (
           <BadgeCheck className="h-5 w-5 text-emerald-500" />
         )}
@@ -823,7 +823,7 @@ function EntryCard({
   const max = c.criteria.reduce((sum, cr) => sum + 5 * cr.weight, 0);
   const badge =
     e.status === "winner"
-      ? { t: `${placeLabel(e.place || 1)} place`, cls: "bg-[#cc208f] text-white" }
+      ? { t: `${placeLabel(e.place || 1)} place`, cls: "bg-[#c3217e] text-white" }
       : e.status === "mention"
         ? { t: "Honourable mention", cls: "bg-violet-500/15 text-violet-600 dark:text-violet-300" }
         : e.status === "disqualified"
@@ -845,7 +845,7 @@ function EntryCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-3xl border bg-card ${e.status === "winner" ? "border-[#cc208f]/50" : "border-border"}`}
+      className={`overflow-hidden rounded-3xl border bg-card ${e.status === "winner" ? "border-[#c3217e]/50" : "border-border"}`}
     >
       <button
         type="button"
@@ -936,7 +936,7 @@ function EntryCard({
                         key={n}
                         type="button"
                         onClick={() => setScores({ ...scores, [cr.name]: n })}
-                        className={`h-9 rounded-lg text-[13px] font-semibold transition ${scores[cr.name] === n ? "bg-[#cc208f] text-white" : (scores[cr.name] || 0) >= n ? "bg-[#cc208f]/20" : "bg-foreground/[0.06] text-muted-foreground"}`}
+                        className={`h-9 rounded-lg text-[13px] font-semibold transition ${scores[cr.name] === n ? "bg-[#c3217e] text-white" : (scores[cr.name] || 0) >= n ? "bg-[#c3217e]/20" : "bg-foreground/[0.06] text-muted-foreground"}`}
                       >
                         {n}
                       </button>
@@ -1197,7 +1197,7 @@ function EnterSheet({
             type="checkbox"
             checked={accept}
             onChange={(e) => setAccept(e.target.checked)}
-            className="mt-0.5 h-5 w-5 accent-[#cc208f]"
+            className="mt-0.5 h-5 w-5 accent-[#c3217e]"
           />
           <span className="text-[13px] leading-snug">
             This is my own work, and I accept the <b>{rightsInfo(c.rights_preset).title}</b> terms:{" "}
@@ -1209,7 +1209,7 @@ function EnterSheet({
           type="button"
           disabled={Boolean(problem) || busy || uploading}
           onClick={submit}
-          className="h-12 w-full rounded-full bg-[#cc208f] text-[15px] font-semibold text-white disabled:opacity-40"
+          className="h-12 w-full rounded-full bg-[#c3217e] text-[15px] font-semibold text-white disabled:opacity-40"
         >
           {busy ? "Sending…" : prev ? "Save changes" : "Submit entry"}
         </button>
@@ -1265,7 +1265,7 @@ function FinalizeSheet({
                     type="button"
                     disabled={taken}
                     onClick={() => setPicks({ ...picks, [p.place]: on ? "" : e.id })}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition disabled:opacity-35 ${on ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border"}`}
+                    className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition disabled:opacity-35 ${on ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-border"}`}
                   >
                     <Avatar p={e.entrant} size={32} />
                     <span className="min-w-0 flex-1 truncate text-[14px] font-medium">
@@ -1274,7 +1274,7 @@ function FinalizeSheet({
                     <span className="text-[12px] tabular-nums text-muted-foreground">
                       {scorePct(c, e)}
                     </span>
-                    {on && <Check className="h-4 w-4 text-[#cc208f]" />}
+                    {on && <Check className="h-4 w-4 text-[#c3217e]" />}
                   </button>
                 );
               })}
@@ -1517,7 +1517,7 @@ function ExtendSheet({
                 type="button"
                 disabled={new Date(c.deadline).getTime() + x * 86_400_000 > maxEnd}
                 onClick={() => setExtra(x)}
-                className={`h-11 rounded-xl border text-[14px] font-semibold disabled:opacity-30 ${extra === x ? "border-[#cc208f] bg-[#cc208f]/[0.06]" : "border-border text-muted-foreground"}`}
+                className={`h-11 rounded-xl border text-[14px] font-semibold disabled:opacity-30 ${extra === x ? "border-[#c3217e] bg-[#c3217e]/[0.06]" : "border-border text-muted-foreground"}`}
               >
                 {x === 0 ? "Keep" : `+${x}d`}
               </button>
@@ -1621,7 +1621,7 @@ function AdoptSheet({
               }}
               className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left"
             >
-              <GitBranch className="h-4 w-4 text-[#cc208f]" />
+              <GitBranch className="h-4 w-4 text-[#c3217e]" />
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-semibold">v{v.version_label}</span>
                 <span className="block truncate text-[12.5px] text-muted-foreground">
@@ -1691,7 +1691,7 @@ function ResolveSheet({
             type="button"
             disabled={busy || note.trim().length < 5}
             onClick={() => run(true)}
-            className="h-12 flex-1 rounded-full bg-[#cc208f] text-[14px] font-semibold text-white disabled:opacity-40"
+            className="h-12 flex-1 rounded-full bg-[#c3217e] text-[14px] font-semibold text-white disabled:opacity-40"
           >
             Release prize
           </button>
@@ -1729,7 +1729,7 @@ function Timeline({ c }: { c: ChallengeDetail["challenge"] }) {
         {steps.map((s) => (
           <li key={s.label} className="relative">
             <span
-              className={`absolute -left-[21.5px] top-1 h-2.5 w-2.5 rounded-full ${s.done ? "bg-[#cc208f]" : "border border-border bg-card"}`}
+              className={`absolute -left-[21.5px] top-1 h-2.5 w-2.5 rounded-full ${s.done ? "bg-[#c3217e]" : "border border-border bg-card"}`}
             />
             <p className={`text-[13.5px] ${s.done ? "font-semibold" : "text-muted-foreground"}`}>
               {s.label}
@@ -1773,7 +1773,7 @@ function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: s
 function Req({ children }: { children: ReactNode; ok?: boolean }) {
   return (
     <li className="flex items-center gap-2.5">
-      <span className="grid h-5 w-5 place-items-center rounded-full bg-[#cc208f]/12 text-[#cc208f]">
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-[#c3217e]/12 text-[#c3217e]">
         <FileText className="h-3 w-3" />
       </span>
       {children}
@@ -1788,7 +1788,7 @@ function ScoreLine({ name, score }: { name: string; score?: number }) {
         {[1, 2, 3, 4, 5].map((n) => (
           <span
             key={n}
-            className={`h-1.5 w-4 rounded-full ${(score || 0) >= n ? "bg-[#cc208f]" : "bg-foreground/[0.08]"}`}
+            className={`h-1.5 w-4 rounded-full ${(score || 0) >= n ? "bg-[#c3217e]" : "bg-foreground/[0.08]"}`}
           />
         ))}
       </span>
@@ -1817,7 +1817,7 @@ function Avatar({
   ring?: boolean;
 }) {
   const style = { width: size, height: size };
-  const cls = `shrink-0 rounded-full object-cover ${ring ? "ring-2 ring-[#cc208f] ring-offset-2 ring-offset-card" : ""}`;
+  const cls = `shrink-0 rounded-full object-cover ${ring ? "ring-2 ring-[#c3217e] ring-offset-2 ring-offset-card" : ""}`;
   return p.avatar_url ? (
     <img src={p.avatar_url} alt="" style={style} className={cls} />
   ) : (

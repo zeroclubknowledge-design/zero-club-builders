@@ -58,7 +58,7 @@ export const certificateTemplates = [
     id: "vivid",
     name: "Vivid Band",
     note: "A bold side band with a vertical wordmark, framed learner name, two signatures and a dated seal.",
-    color: "#cc208f",
+    color: "#c3217e",
     style: "band",
     pro: true,
     signatures: 2,
@@ -67,7 +67,7 @@ export const certificateTemplates = [
     id: "achieve",
     name: "Achievement",
     note: "A patterned header, the learner's name in flowing script, a medal and two signatures.",
-    color: "#cc208f",
+    color: "#c3217e",
     style: "header",
     pro: true,
     signatures: 2,
@@ -76,7 +76,7 @@ export const certificateTemplates = [
     id: "collective",
     name: "Creative Collective",
     note: "Full-colour contour lines, a floating logo card and a ribbon medal.",
-    color: "#cc208f",
+    color: "#c3217e",
     style: "full",
     pro: true,
     signatures: 1,
@@ -85,7 +85,7 @@ export const certificateTemplates = [
     id: "aurora",
     name: "Aurora",
     note: "A glowing gradient, stacked arches and a starburst for creative programmes.",
-    color: "#cc208f",
+    color: "#c3217e",
     style: "gradient",
     pro: true,
     signatures: 1,
@@ -94,7 +94,7 @@ export const certificateTemplates = [
     id: "union",
     name: "Union",
     note: "Confident type, sweeping curves, the issue date up top and two signatures.",
-    color: "#cc208f",
+    color: "#c3217e",
     style: "curves",
     pro: true,
     signatures: 2,
@@ -108,7 +108,7 @@ export const needsCosigner = (id?: string) => (templateById(id)?.signatures ?? 1
 
 /** Brand colours offered in the studio. Any valid six-digit hex also works. */
 export const certificateAccents = [
-  "#cc208f",
+  "#c3217e",
   "#243be3",
   "#0f6b52",
   "#6846c5",
@@ -157,7 +157,7 @@ export const emptyCertificateDesign: CertificateDesign = {
   use_brand: false,
   brand_name: "",
   brand_logo: "",
-  brand_accent: "#cc208f",
+  brand_accent: "#c3217e",
   brand_logo_scale: 1,
   signature_url: "",
   signer_name: "",
@@ -215,11 +215,11 @@ export const certificatePalettes: Record<string, CertificatePalette> = {
   coral: { paper: "#fffaf6", ink: "#422e2d", muted: "#897370", accent: "#a65448", deep: "#643c37", metal: "#c49a82" },
   mosaic: { paper: "#fcfcf7", ink: "#203d36", muted: "#65766c", accent: "#346451", deep: "#173f34", metal: "#b3a272" },
   orbit: { paper: "#f8fbfc", ink: "#15343f", muted: "#60757d", accent: "#1b7077", deep: "#112f3b", metal: "#79b2b7" },
-  vivid: { paper: "#ffffff", ink: "#1f1f22", muted: "#4a4a50", accent: "#cc208f", deep: "#cc208f", metal: "#ffc800" },
-  achieve: { paper: "#ffffff", ink: "#151515", muted: "#3a3a3a", accent: "#cc208f", deep: "#cc208f", metal: "#ffc800" },
-  collective: { paper: "#cc208f", ink: "#ffffff", muted: "#fde4f3", accent: "#ffc800", deep: "#ffffff", metal: "#e65bbb" },
-  aurora: { paper: "#cc208f", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#f28c38", metal: "#f2a623" },
-  union: { paper: "#cc208f", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#ffffff", metal: "#ffc800" },
+  vivid: { paper: "#ffffff", ink: "#1f1f22", muted: "#4a4a50", accent: "#c3217e", deep: "#c3217e", metal: "#ffc800" },
+  achieve: { paper: "#ffffff", ink: "#151515", muted: "#3a3a3a", accent: "#c3217e", deep: "#c3217e", metal: "#ffc800" },
+  collective: { paper: "#c3217e", ink: "#ffffff", muted: "#fde4f3", accent: "#ffc800", deep: "#ffffff", metal: "#e356a7" },
+  aurora: { paper: "#c3217e", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#f28c38", metal: "#f2a623" },
+  union: { paper: "#c3217e", ink: "#ffffff", muted: "#ffe6f4", accent: "#ffc800", deep: "#ffffff", metal: "#ffc800" },
 };
 export const certificateColorLabels = {
   background_color: "Front background", back_background_color: "Back background",
@@ -234,7 +234,7 @@ export function certificatePalette(design: CertificateDesign, side: "front" | "b
   return {
     paper: safeAccent(side === "back" ? a.back_background_color || a.background_color : a.background_color, base.paper),
     ink: safeAccent(a.text_color, base.ink), muted: safeAccent(a.secondary_text_color, base.muted),
-    accent: safeAccent(a.accent_color, design.use_brand ? safeAccent(design.brand_accent, "#cc208f") : base.accent),
+    accent: safeAccent(a.accent_color, design.use_brand ? safeAccent(design.brand_accent, "#c3217e") : base.accent),
     deep: safeAccent(a.panel_color, base.deep), metal: safeAccent(a.border_color, base.metal),
   };
 }
@@ -281,7 +281,7 @@ export function safeAccent(value: string | undefined, fallback: string) {
  * inheriting white text that disappears into the paper.
  */
 export function readableOn(hex: string) {
-  const value = safeAccent(hex, "#cc208f").slice(1);
+  const value = safeAccent(hex, "#c3217e").slice(1);
   const channel = (offset: number) => {
     const c = parseInt(value.slice(offset, offset + 2), 16) / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;

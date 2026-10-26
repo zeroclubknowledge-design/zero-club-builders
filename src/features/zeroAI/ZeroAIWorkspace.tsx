@@ -71,7 +71,7 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
   learner: {
     label: "Learner",
     icon: BookOpen,
-    accent: "#cc208f",
+    accent: "#c3217e",
     eyebrow: "Your learning companion",
     heading: "What would you like to understand today?",
     description:
@@ -296,7 +296,7 @@ export function ZeroAIWorkspace() {
     return (
       <div className="grid min-h-[60dvh] place-items-center" role="status">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <ZeroMark size={36} className="zero-ai-pulse text-[#cc208f]" />
+          <ZeroMark size={36} className="zero-ai-pulse text-[#c3217e]" />
           <span className="text-sm">Opening Zero AI…</span>
         </div>
       </div>
@@ -475,7 +475,7 @@ function Workspace({
           return (
             <div
               key={d.id}
-              className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#cc208f]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
+              className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#c3217e]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
             >
               <button
                 disabled={sending || voice.status !== "idle"}
@@ -562,7 +562,7 @@ function Workspace({
         aria-label="Chats"
       >
         <div className="mb-5 flex items-center gap-2.5 px-1">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white shadow-[0_8px_24px_-10px_rgba(204,32,143,0.8)]">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#c3217e] to-[#721e4e] text-white shadow-[0_8px_24px_-10px_rgba(195,33,126,0.8)]">
             <ZeroMark size={20} />
           </span>
           <span className="leading-tight">
@@ -591,7 +591,7 @@ function Workspace({
             {avatar ? (
               <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
             ) : (
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#cc208f]/10 text-[13px] font-bold text-[#cc208f]">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#c3217e]/10 text-[13px] font-bold text-[#c3217e]">
                 {(name || "Z")[0].toUpperCase()}
               </span>
             )}
@@ -620,7 +620,7 @@ function Workspace({
               <Menu className="h-5 w-5" />
             </button>
             <span className="flex items-center gap-2 xl:hidden">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#cc208f] to-[#7a1e66] text-white">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#c3217e] to-[#721e4e] text-white">
                 <ZeroMark size={17} />
               </span>
               <span className="text-[16px] font-bold tracking-tight">Zero AI</span>
@@ -671,10 +671,10 @@ function Workspace({
                 aria-hidden
                 className="zero-ai-halo absolute inset-[-14px] rounded-[30px] opacity-70 blur-xl"
                 style={{
-                  background: `conic-gradient(from 120deg, #cc208f, ${role.accent}, #7a1e66, #cc208f)`,
+                  background: `conic-gradient(from 120deg, #c3217e, ${role.accent}, #721e4e, #c3217e)`,
                 }}
               />
-              <div className="relative grid h-full w-full place-items-center rounded-[24px] bg-gradient-to-br from-[#cc208f] via-[#a3197a] to-[#4c0f3f] text-white shadow-[0_20px_44px_-18px_rgba(204,32,143,0.9)] ring-1 ring-white/20">
+              <div className="relative grid h-full w-full place-items-center rounded-[24px] bg-gradient-to-br from-[#c3217e] via-[#9a1a64] to-[#4c0f3f] text-white shadow-[0_20px_44px_-18px_rgba(195,33,126,0.9)] ring-1 ring-white/20">
                 <ZeroMark size={40} />
               </div>
             </div>
@@ -830,7 +830,7 @@ function Workspace({
                     type={sending ? "button" : "submit"}
                     onClick={sending ? () => pending.current?.abort() : undefined}
                     disabled={!sending && (!text.trim() || voice.status !== "idle")}
-                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#cc208f] to-[#e0458f] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(204,32,143,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
+                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
                   >
                     {sending ? (
                       <>
@@ -943,7 +943,7 @@ function Workspace({
           </section>
 
           {available > 0 && (
-            <p className="mt-6 rounded-xl bg-[#cc208f]/[0.06] px-4 py-3 text-center text-[12.5px] leading-5 text-foreground/80">
+            <p className="mt-6 rounded-xl bg-[#c3217e]/[0.06] px-4 py-3 text-center text-[12.5px] leading-5 text-foreground/80">
               Your {format(available)} in Zero AI cards is reserved for paid tools. Chat does not
               spend your cards.
             </p>

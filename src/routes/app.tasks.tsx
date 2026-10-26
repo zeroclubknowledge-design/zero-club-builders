@@ -100,7 +100,7 @@ function TasksPage() {
               quest.isClaimed
                 ? "bg-[#1a7f4b]/10 text-[#1a7f4b]"
                 : isReady
-                  ? "bg-[#cc208f] text-white"
+                  ? "bg-[#c3217e] text-white"
                   : "bg-foreground/[0.05] text-foreground"
             }`}
           >
@@ -110,7 +110,7 @@ function TasksPage() {
             <h3 className={`text-[15px] font-medium leading-snug ${quest.isClaimed ? "line-through" : ""}`}>{quest.title}</h3>
             {quest.description && <p className="text-[13px] leading-snug text-muted-foreground">{quest.description}</p>}
           </div>
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[13px] font-bold tabular-nums ${quest.isClaimed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-[#cc208f]/10 text-[#a3186f]"}`}>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[13px] font-bold tabular-nums ${quest.isClaimed ? "bg-[#1a7f4b]/10 text-[#1a7f4b]" : "bg-[#c3217e]/10 text-[#9a1963]"}`}>
             +{quest.reward_xp}
           </span>
         </div>
@@ -120,7 +120,7 @@ function TasksPage() {
         {target > 1 && !quest.isClaimed && !isReady && (
           <div className="ml-[52px] mt-2">
             <div className="h-1 overflow-hidden rounded-full bg-foreground/[0.08]">
-              <div className="h-full rounded-full bg-[#cc208f] transition-[width] duration-500" style={{ width: `${percent}%` }} />
+              <div className="h-full rounded-full bg-[#c3217e] transition-[width] duration-500" style={{ width: `${percent}%` }} />
             </div>
             <p className="mt-1 text-[12px] text-muted-foreground tabular-nums">{progress} of {target}</p>
           </div>
@@ -167,7 +167,7 @@ function TasksPage() {
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-muted-foreground">Zero Points</p>
             <p className="font-display text-[30px] font-semibold leading-tight tabular-nums">
-              {Number(profile?.zp || 0).toLocaleString()} <span className="text-[16px] text-[#a3186f]">ZP</span>
+              {Number(profile?.zp || 0).toLocaleString()} <span className="text-[16px] text-[#9a1963]">ZP</span>
             </p>
             <p className="text-[13px] text-muted-foreground">
               {claimable > 0
@@ -199,7 +199,7 @@ function TasksPage() {
           </p>
         ) : (
           <>
-            {group("Ready to claim", ready, "text-[#cc208f]", lastGroup === "ready")}
+            {group("Ready to claim", ready, "text-[#c3217e]", lastGroup === "ready")}
             {group("In progress", active, "text-muted-foreground", lastGroup === "active")}
             {group("Claimed", done, "text-muted-foreground", lastGroup === "done")}
           </>

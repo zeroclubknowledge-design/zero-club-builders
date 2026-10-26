@@ -108,7 +108,7 @@ function TournamentPage() {
   if (!data || !data.found || data.locked) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-6 text-center">
-        <span className="grid h-14 w-14 place-items-center rounded-full bg-[#cc208f]/10 text-[#cc208f]"><LockKeyhole className="h-6 w-6" /></span>
+        <span className="grid h-14 w-14 place-items-center rounded-full bg-[#c3217e]/10 text-[#c3217e]"><LockKeyhole className="h-6 w-6" /></span>
         <p className="mt-4 text-[17px] font-semibold">{data && data.found ? `${data.title} is private` : "Tournament not found"}</p>
         <p className="mt-1 max-w-[320px] text-[14px] text-muted-foreground">
           {data && data.found ? "Ask the host for the invite link to see the leaderboard and join." : "It may have been removed, or the link is incomplete."}
@@ -167,7 +167,7 @@ function TournamentPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5">
                 <StatusChip status={status} />
-                {t.sponsored && <span className="inline-flex h-6 items-center gap-1 rounded-full bg-white px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#cc208f]"><ShieldCheck className="h-3 w-3" /> Sponsored by Zero Club</span>}
+                {t.sponsored && <span className="inline-flex h-6 items-center gap-1 rounded-full bg-white px-2.5 text-[11px] font-bold uppercase tracking-wide text-[#c3217e]"><ShieldCheck className="h-3 w-3" /> Sponsored by Zero Club</span>}
               </div>
               <h1 className="mt-2 font-display text-[24px] font-bold leading-tight tracking-[-0.02em]">{t.title}</h1>
               <p className="mt-1 text-[13px] text-white/65">{info.name} · hosted by {t.sponsored ? "Zero Club" : t.is_creator ? "you" : t.creator_name || "a member"}</p>
@@ -239,7 +239,7 @@ function TournamentPage() {
               {(showAll ? leaderboard : leaderboard.slice(0, 10)).map((row) => {
                 const mine = me && row.rank === me.rank;
                 return (
-                  <li key={row.profile_id} className={`flex items-center gap-3 border-t border-border/60 px-4 py-2.5 ${mine ? "bg-[#cc208f]/[0.06]" : ""}`}>
+                  <li key={row.profile_id} className={`flex items-center gap-3 border-t border-border/60 px-4 py-2.5 ${mine ? "bg-[#c3217e]/[0.06]" : ""}`}>
                     <span className={`w-7 shrink-0 text-center text-[14px] font-bold tabular-nums ${row.rank <= 3 ? "" : "text-muted-foreground"}`} style={row.rank <= 3 ? { color: row.rank === 1 ? "#e3a008" : row.rank === 2 ? "#8a94a3" : "#c26d3a" } : undefined}>
                       {row.rank === 1 ? <Crown className="mx-auto h-4 w-4" /> : row.rank}
                     </span>
@@ -258,7 +258,7 @@ function TournamentPage() {
             </ol>
             {/* Outside the top 10: still show where you stand. */}
             {!showAll && me?.rank && me.rank > 10 && (
-              <div className="flex items-center gap-3 border-t-2 border-dashed border-border/70 bg-[#cc208f]/[0.06] px-4 py-2.5">
+              <div className="flex items-center gap-3 border-t-2 border-dashed border-border/70 bg-[#c3217e]/[0.06] px-4 py-2.5">
                 <span className="w-7 shrink-0 text-center text-[14px] font-bold tabular-nums text-muted-foreground">{me.rank}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[14px] font-semibold">You</p>
@@ -268,7 +268,7 @@ function TournamentPage() {
               </div>
             )}
             {leaderboard.length > 10 && (
-              <button type="button" onClick={() => setShowAll((v) => !v)} className="w-full border-t border-border/60 py-3 text-[13.5px] font-semibold text-[#cc208f] transition hover:bg-foreground/[0.03]">
+              <button type="button" onClick={() => setShowAll((v) => !v)} className="w-full border-t border-border/60 py-3 text-[13.5px] font-semibold text-[#c3217e] transition hover:bg-foreground/[0.03]">
                 {showAll ? "Show top 10" : `Show all ${leaderboard.length} players`}
               </button>
             )}
@@ -277,7 +277,7 @@ function TournamentPage() {
         </section>
         {/* Prizes */}
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
-          <h2 className="flex items-center gap-2 font-display text-[17px] font-semibold"><Trophy className="h-4 w-4 text-[#cc208f]" /> Prizes</h2>
+          <h2 className="flex items-center gap-2 font-display text-[17px] font-semibold"><Trophy className="h-4 w-4 text-[#c3217e]" /> Prizes</h2>
           {t.reward_type === "none" || !t.prizes.length ? (
             <p className="mt-2 text-[13.5px] text-muted-foreground">No prize — just the crown and the bragging rights.</p>
           ) : (
@@ -335,7 +335,7 @@ function TournamentPage() {
             {!can_enter ? (
               <Link to="/app/premium" className="flex h-11 shrink-0 items-center rounded-full bg-foreground px-5 text-[14px] font-semibold text-background">Go Premium</Link>
             ) : joined ? (
-              <button onClick={play} disabled={status !== "live"} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-40" style={{ background: "#cc208f" }}>
+              <button onClick={play} disabled={status !== "live"} className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-5 text-[14px] font-bold text-white disabled:opacity-40" style={{ background: "#c3217e" }}>
                 <Play className="h-4 w-4 fill-current" /> Play
               </button>
             ) : (
@@ -412,7 +412,7 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
     }
   };
 
-  const field = "h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#cc208f]";
+  const field = "h-11 w-full rounded-xl border border-border bg-card px-3 text-[14px] outline-none focus:border-[#c3217e]";
   const seg = (active: boolean) => `h-9 flex-1 rounded-full text-[13px] font-semibold transition ${active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`;
 
   /*
@@ -490,7 +490,7 @@ function EditTournamentSheet({ open, onOpenChange, tournament: t, status, prizeS
                 <span className="font-semibold text-foreground">Prize and game are locked.</span> {prizeSummary}. {ZERO_GAMES[t.game_type].name} — players joined on these terms{t.reward_type === "funds" || t.reward_type === "zp" ? " and the prize is already held" : ""}.
               </div>
             </div>
-            <button onClick={() => void save()} disabled={saving || title.trim().length < 3} className="flex h-12 w-full items-center justify-center rounded-full text-[15px] font-bold text-white disabled:opacity-50" style={{ background: "#cc208f" }}>
+            <button onClick={() => void save()} disabled={saving || title.trim().length < 3} className="flex h-12 w-full items-center justify-center rounded-full text-[15px] font-bold text-white disabled:opacity-50" style={{ background: "#c3217e" }}>
               {saving ? "Saving…" : "Save changes"}
             </button>
           </div>
@@ -528,6 +528,6 @@ function Avatar({ url, name }: { url: string | null; name: string }) {
   return url ? (
     <img src={url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" loading="lazy" />
   ) : (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#cc208f]/10 text-[14px] font-bold text-[#cc208f]">{(name || "?").charAt(0).toUpperCase()}</span>
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 text-[14px] font-bold text-[#c3217e]">{(name || "?").charAt(0).toUpperCase()}</span>
   );
 }

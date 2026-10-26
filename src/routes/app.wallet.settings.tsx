@@ -132,7 +132,7 @@ function PaymentsSettings() {
           <aside className="grid gap-5">
             <section className="rounded-lg bg-[#171417] p-5 text-white ring-1 ring-white/[0.06]">
               <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/[0.08] text-[#f28fd0]">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/[0.08] text-[#f089c4]">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>

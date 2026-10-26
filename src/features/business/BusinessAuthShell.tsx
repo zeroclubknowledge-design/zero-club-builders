@@ -46,12 +46,12 @@ export function BusinessAuthShell({
               className="absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(120% 90% at 50% 22%, rgba(255,61,176,0.85) 0%, rgba(204,32,143,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
+                  "radial-gradient(120% 90% at 50% 22%, rgba(252,56,169,0.85) 0%, rgba(195,33,126,0.45) 26%, rgba(94,12,64,0.28) 48%, rgba(10,7,10,0.96) 74%)",
               }}
             />
             <div aria-hidden className="zc-grain absolute inset-0 opacity-[0.14]" />
             <div className="relative">
-              <p className="text-sm font-medium text-[#f2a8dc]">Zero Club for Business</p>
+              <p className="text-sm font-medium text-[#f0a2cf]">Zero Club for Business</p>
               <h2 className="mt-3 font-display text-[34px] font-normal leading-[1.08] text-white">
                 One account for your whole organization.
               </h2>
@@ -65,7 +65,7 @@ export function BusinessAuthShell({
               <AsideRow Icon={ShieldCheck} title="Verified hubs" body="Institutions are reviewed before they go live." />
             </div>
             <div className="relative mt-auto pt-8 text-center">
-              <img decoding="async" src="/logo.png" alt="" className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(204,32,143,0.7)]" />
+              <img decoding="async" src="/logo.png" alt="" className="mx-auto h-10 w-10 object-contain drop-shadow-[0_0_26px_rgba(195,33,126,0.7)]" />
               <p className="mt-3 font-display text-[19px] font-medium tracking-tight text-white">Zero Club for Business</p>
               <p className="mt-1 text-[12.5px] text-white/55">Where organizations meet builders.</p>
             </div>
@@ -80,7 +80,7 @@ export function BusinessAuthShell({
 function AsideRow({ Icon, title, body }: { Icon: any; title: string; body: string }) {
   return (
     <div className="flex items-center gap-3.5 rounded-2xl bg-black/25 p-3.5 ring-1 ring-white/10 backdrop-blur-xl">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/25 text-[#f2a8dc] ring-1 ring-[#cc208f]/30">
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e]/25 text-[#f0a2cf] ring-1 ring-[#c3217e]/30">
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
@@ -98,7 +98,7 @@ export function BusinessFormMark() {
       decoding="async"
       src="/logo.png"
       alt="Zero Club"
-      className="mx-auto mb-4 h-10 w-10 object-contain drop-shadow-[0_0_22px_rgba(204,32,143,0.6)] lg:hidden"
+      className="mx-auto mb-4 h-10 w-10 object-contain drop-shadow-[0_0_22px_rgba(195,33,126,0.6)] lg:hidden"
     />
   );
 }
@@ -106,9 +106,9 @@ export function BusinessFormMark() {
 export const businessTopLink =
   "rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-[#5a5056] ring-1 ring-black/10 transition hover:bg-black/[0.07] active:scale-[0.98] dark:bg-white/[0.06] dark:text-white/80 dark:ring-white/10 dark:hover:bg-white/10";
 export const businessInput =
-  "h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 text-[15px] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#cc208f]/45 focus:bg-white focus:ring-4 focus:ring-[#cc208f]/10 dark:border-white/12 dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/35 dark:focus:bg-white/[0.07]";
+  "h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 text-[15px] text-[#171417] outline-none transition placeholder:text-[#9b9297] focus:border-[#c3217e]/45 focus:bg-white focus:ring-4 focus:ring-[#c3217e]/10 dark:border-white/12 dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/35 dark:focus:bg-white/[0.07]";
 export const businessLabel = "mb-1.5 block text-[12px] font-medium text-[#5a5056] dark:text-white/60";
 export const businessPrimary =
-  "flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#cc208f] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(204,32,143,0.8)] transition hover:bg-[#ad1b79] active:scale-[0.99] disabled:opacity-60";
+  "flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c3217e] text-sm font-medium text-white shadow-[0_18px_36px_-20px_rgba(195,33,126,0.8)] transition hover:bg-[#a41c6a] active:scale-[0.99] disabled:opacity-60";
 export const businessMuted = "text-[#6d6269] dark:text-white/50";
 export const businessStrong = "text-[#241f23] dark:text-white";

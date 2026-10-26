@@ -185,7 +185,7 @@ export function ClubComposer({
           aria-label={sendLabel}
           className={`grid h-11 w-11 place-items-center rounded-full transition active:scale-95 ${
             draft.trim() || hasMedia
-              ? "bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-white shadow-[0_6px_16px_-8px_rgba(204,32,143,0.8)]"
+              ? "bg-[linear-gradient(135deg,#d22c8b,#a7196b)] text-white shadow-[0_6px_16px_-8px_rgba(195,33,126,0.8)]"
               : "text-muted-foreground"
           }`}
         >

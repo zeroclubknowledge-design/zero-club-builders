@@ -671,7 +671,7 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
             url={profile?.banner_url}
             alt="Profile banner"
             empty={
-              <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(204,32,143,0.35),transparent_60%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(195,33,126,0.35),transparent_60%)]" />
             }
           />
 

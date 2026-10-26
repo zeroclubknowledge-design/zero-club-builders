@@ -71,7 +71,7 @@ function NewGroupPage() {
             <button
               onClick={submit}
               disabled={busy || !name.trim()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#d6309b,#b0187f)] px-4 text-[14px] font-semibold text-white disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#d22c8b,#a7196b)] px-4 text-[14px] font-semibold text-white disabled:opacity-50"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />} Create
             </button>
@@ -114,7 +114,7 @@ function NewGroupPage() {
                 onChange={(e) => setName(e.target.value.slice(0, 60))}
                 autoFocus
                 placeholder="e.g. Design squad"
-                className="mt-1.5 h-12 w-full rounded-2xl bg-foreground/[0.05] px-4 text-[16px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40"
+                className="mt-1.5 h-12 w-full rounded-2xl bg-foreground/[0.05] px-4 text-[16px] font-semibold outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40"
               />
             </label>
             <label className="mt-4 block">
@@ -124,7 +124,7 @@ function NewGroupPage() {
                 onChange={(e) => setDescription(e.target.value.slice(0, 500))}
                 rows={3}
                 placeholder="What's this group for?"
-                className="mt-1.5 w-full resize-none rounded-2xl bg-foreground/[0.05] px-4 py-3 text-[15px] outline-none ring-1 ring-transparent focus:ring-[#cc208f]/40"
+                className="mt-1.5 w-full resize-none rounded-2xl bg-foreground/[0.05] px-4 py-3 text-[15px] outline-none ring-1 ring-transparent focus:ring-[#c3217e]/40"
               />
             </label>
             <p className="mt-4 text-[12.5px] leading-relaxed text-muted-foreground">

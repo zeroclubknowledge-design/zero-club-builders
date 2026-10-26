@@ -211,7 +211,7 @@ function SignedOutClaim({ card, onAuthed }: { card: any; onAuthed: () => void })
           </>
         ) : step === "card" || unavailable ? (
           <>
-            <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-[#ff8fd2]">{unavailable ? "Gift unavailable" : "A gift for you"}</p>
+            <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-[#fd89cc]">{unavailable ? "Gift unavailable" : "A gift for you"}</p>
             <h1 className="mt-2 font-display text-[26px] font-bold leading-tight">
               {unavailable ? (card.status === "expired" || (card.expires_at && Date.parse(card.expires_at) <= Date.now()) ? "This gift has expired" : "This gift is no longer available") : `You've received ${format(Number(card.amount))}`}
             </h1>

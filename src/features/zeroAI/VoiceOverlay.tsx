@@ -8,18 +8,18 @@ export function VoiceWaveform({ voice }: { voice: VoiceState }) {
   const level = voice.assistantSpeaking ? voice.assistantVolume : voice.localVolume;
   return (
     <div
-      className="relative mx-auto my-7 grid h-36 w-36 place-items-center rounded-full bg-[#cc208f]/10"
+      className="relative mx-auto my-7 grid h-36 w-36 place-items-center rounded-full bg-[#c3217e]/10"
       aria-hidden="true"
     >
       <div
-        className="absolute inset-3 rounded-full bg-gradient-to-tr from-[#cc208f]/30 to-violet-500/25 blur-lg transition-transform duration-100 motion-reduce:transform-none"
+        className="absolute inset-3 rounded-full bg-gradient-to-tr from-[#c3217e]/30 to-violet-500/25 blur-lg transition-transform duration-100 motion-reduce:transform-none"
         style={{ transform: `scale(${1 + level * 0.5})` }}
       />
       <div className="relative flex h-16 items-center gap-1.5">
         {[0.4, 0.75, 1, 0.65, 0.9, 0.5, 0.3].map((weight, index) => (
           <span
             key={index}
-            className="w-1.5 rounded-full bg-[#cc208f] transition-[height] duration-100 motion-reduce:transition-none"
+            className="w-1.5 rounded-full bg-[#c3217e] transition-[height] duration-100 motion-reduce:transition-none"
             style={{ height: 8 + level * 52 * weight }}
           />
         ))}

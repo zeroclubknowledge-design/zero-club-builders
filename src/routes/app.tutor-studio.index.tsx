@@ -1306,7 +1306,7 @@ function TutorStudioPage() {
                               disabled={busy || updatingMemberId !== null}
                               className={`inline-flex h-9 shrink-0 items-center rounded-full px-4 text-[14px] font-semibold tap disabled:opacity-40 ${
                                 isRep
-                                  ? "bg-[#cc208f]/10 text-[#a3186f] hover:bg-[#cc208f]/15"
+                                  ? "bg-[#c3217e]/10 text-[#9a1963] hover:bg-[#c3217e]/15"
                                   : "bg-foreground text-background hover:opacity-90"
                               }`}
                             >
@@ -1889,7 +1889,7 @@ function TutorStudioPage() {
           </Link>
           <button
             onClick={() => router.navigate({ to: "/app/tutor-studio/create" })}
-            className="mr-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#cc208f] px-3.5 text-[14px] font-semibold text-white tap hover:opacity-90"
+            className="mr-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[#c3217e] px-3.5 text-[14px] font-semibold text-white tap hover:opacity-90"
           >
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             <span className="hidden sm:inline">New bootcamp</span>
@@ -1900,7 +1900,7 @@ function TutorStudioPage() {
 
       <main className="zc-page-width mx-auto flex w-full max-w-[1080px] flex-1 flex-col gap-2 pt-2 md:px-4 md:pb-8">
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border md:p-5">
-          <p className="text-[12px] font-semibold text-[#a3186f]">Your teaching business</p>
+          <p className="text-[12px] font-semibold text-[#9a1963]">Your teaching business</p>
           <h2 className="mt-1 font-display text-[22px] font-semibold leading-tight tracking-[-0.01em] md:text-[26px]">
             Welcome back{profile?.full_name ? `, ${String(profile.full_name).split(" ")[0]}` : ""}
           </h2>
@@ -1955,7 +1955,7 @@ function TutorStudioPage() {
                 onClick={() => setView(key)}
                 className="group flex w-full items-center gap-3 border-t border-border/60 px-4 py-3.5 text-left hover:bg-foreground/[0.02]"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#cc208f]/10 text-[#cc208f]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c3217e]/10 text-[#c3217e]">
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -2060,7 +2060,7 @@ function TutorStudioPage() {
                             <span aria-hidden className="text-muted-foreground">
                               ·
                             </span>
-                            <span className="text-[#a3186f]">Assigned to you</span>
+                            <span className="text-[#9a1963]">Assigned to you</span>
                           </>
                         )}
                       </div>

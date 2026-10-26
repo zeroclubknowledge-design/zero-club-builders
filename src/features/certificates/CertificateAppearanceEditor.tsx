@@ -68,7 +68,7 @@ export function CertificateAppearanceEditor({ design, disabled, onChange }: { de
         </label>)}
         {([["title_size","Heading size",28,48,design.template==="cobalt"?39:43],["recipient_size","Learner name size",24,50,46],["course_size","Programme title size",14,24,21]] as const).map(([key,label,min,max,fallback])=><label key={key} className="block text-[11px] font-semibold">
           <span className="flex justify-between"><span>{label}</span><span>{a[key] ?? fallback}</span></span>
-          <input type="range" aria-label={label} min={min} max={max} step={1} value={a[key] ?? fallback} disabled={disabled} onChange={e=>update({[key]:Number(e.currentTarget.value)})} className="h-11 w-full accent-[#cc208f]" />
+          <input type="range" aria-label={label} min={min} max={max} step={1} value={a[key] ?? fallback} disabled={disabled} onChange={e=>update({[key]:Number(e.currentTarget.value)})} className="h-11 w-full accent-[#c3217e]" />
         </label>)}
         <label className="block space-y-1 text-[11px] font-semibold"><span>Front layout</span>
           <select aria-label="Front layout" value={a.alignment || "template"} disabled={disabled} onChange={e=>update({alignment:e.currentTarget.value as CertificateAppearance["alignment"]})} className={field}>
@@ -76,7 +76,7 @@ export function CertificateAppearanceEditor({ design, disabled, onChange }: { de
           </select>
         </label>
         {([["show_ornaments","Decorative borders and panels"],["show_seal","Completion seal"],["show_texture","Paper texture"]] as const).map(([key,label])=><label key={key} className="flex min-h-10 items-center justify-between gap-3 text-xs">
-          <span>{label}</span><input type="checkbox" checked={a[key]!==false} disabled={disabled} onChange={e=>update({[key]:e.currentTarget.checked})} className="h-4 w-4 accent-[#cc208f]" />
+          <span>{label}</span><input type="checkbox" checked={a[key]!==false} disabled={disabled} onChange={e=>update({[key]:e.currentTarget.checked})} className="h-4 w-4 accent-[#c3217e]" />
         </label>)}
       </div>
     </details>

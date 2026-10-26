@@ -101,7 +101,7 @@ export function SignatureInput({
             type="button"
             disabled={busy || disabled}
             onClick={() => onChange("")}
-            className="min-h-11 text-xs font-semibold text-[#a3186f]"
+            className="min-h-11 text-xs font-semibold text-[#9a1963]"
           >
             Remove
           </button>

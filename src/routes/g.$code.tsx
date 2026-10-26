@@ -82,7 +82,7 @@ function GroupInvitePage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(120%_70%_at_50%_0%,rgba(204,32,143,0.18),transparent_60%)] bg-background px-5 py-10">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(120%_70%_at_50%_0%,rgba(195,33,126,0.18),transparent_60%)] bg-background px-5 py-10">
       <div className="w-full max-w-sm rounded-[28px] bg-card p-7 text-center shadow-[0_30px_80px_-40px_rgba(0,0,0,0.55)] ring-1 ring-foreground/[0.06]">
         {isLoading || userLoading ? (
           <div className="grid h-60 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -96,7 +96,7 @@ function GroupInvitePage() {
         ) : (
           <>
             <div className="flex justify-center"><GroupAvatar name={preview.name || "Group"} url={preview.avatar_url} size={88} /></div>
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#cc208f]">Group invite</p>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#c3217e]">Group invite</p>
             <h1 className="mt-1.5 text-[22px] font-semibold leading-tight">{preview.name}</h1>
             {preview.description && <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">{preview.description}</p>}
             <div className="mt-4 flex items-center justify-center gap-2">
@@ -113,7 +113,7 @@ function GroupInvitePage() {
               type="button"
               onClick={() => void join()}
               disabled={joining}
-              className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#d6309b,#b0187f)] text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(204,32,143,0.8)] disabled:opacity-60"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#d22c8b,#a7196b)] text-[15px] font-semibold text-white shadow-[0_12px_28px_-12px_rgba(195,33,126,0.8)] disabled:opacity-60"
             >
               {joining && <Loader2 className="h-4 w-4 animate-spin" />} {me ? "Join group" : "Sign in to join"}
             </button>
