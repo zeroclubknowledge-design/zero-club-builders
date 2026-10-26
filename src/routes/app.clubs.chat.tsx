@@ -1668,6 +1668,17 @@ function ClubChat() {
           >
             <ChevronDown className="h-[18px] w-[18px]" />
           </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => { setShowScheduleForm(true); setShowLiveMenu(true); }}
+              aria-label="Schedule a space"
+              title="Schedule a space"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-foreground hover:bg-foreground/[0.04] active:scale-95"
+            >
+              <CalendarDays className="h-[21px] w-[21px]" />
+            </button>
+          )}
         </div>
       </header>
 

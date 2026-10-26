@@ -375,7 +375,7 @@ function GroupChatPage() {
           </span>
         </button>
         {canSend && (
-          <button onClick={() => setScheduleOpen(true)} aria-label="Schedule a call" title="Schedule a call" className="grid h-11 w-10 shrink-0 place-items-center rounded-full hover:bg-foreground/[0.04]">
+          <button type="button" onClick={() => setScheduleOpen(true)} aria-label="Schedule a call" title="Schedule a call" className="hidden h-11 w-10 shrink-0 place-items-center rounded-full hover:bg-foreground/[0.04] sm:grid">
             <CalendarDays className="h-[21px] w-[21px]" />
           </button>
         )}
@@ -386,6 +386,14 @@ function GroupChatPage() {
           <Phone className="h-[21px] w-[21px]" />
         </button>
       </header>
+
+      {canSend && (
+        <div className="relative z-10 flex shrink-0 justify-end border-b border-border/60 bg-background px-3 pb-2 sm:hidden">
+          <button type="button" onClick={() => setScheduleOpen(true)} aria-label="Schedule a call" className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-foreground/[0.06] px-3 text-[12px] font-semibold text-foreground active:scale-95">
+            <CalendarDays className="h-[18px] w-[18px] shrink-0" /> Schedule a call
+          </button>
+        </div>
+      )}
 
       {callLive && (
         <button type="button" onClick={() => startCall()} className="relative z-10 mx-3 mt-2 flex items-center gap-3 rounded-2xl bg-[linear-gradient(135deg,#16a34a,#15803d)] px-4 py-2.5 text-left text-white shadow-[0_10px_24px_-14px_rgba(22,163,74,0.8)]">
