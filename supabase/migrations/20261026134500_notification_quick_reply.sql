@@ -1,0 +1,6 @@
+-- Applied to the live project on 2026-10-26: reply to messages from the Android notification.
+-- Table public.notification_reply_keys (one private key per person per conversation, RLS on, no policies),
+-- notification_reply_key(profile, kind, target)  -> service_role only, used by send-push,
+-- reply_from_notification(token, text)            -> anon/authenticated, posts as the key's owner
+--   (groups go through send_chat_group_message with all its checks; direct messages are rate limited).
+-- See the live database for the full definitions.

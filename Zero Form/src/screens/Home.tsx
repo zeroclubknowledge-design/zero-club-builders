@@ -77,6 +77,6 @@ function Metric({ icon: Icon, label, value, sub }: { icon: LucideIcon; label: st
 
 function SignedOutWorkspace() {
   const navigate = useNavigate();
-  useEffect(() => { void navigate({ to: "/browse", replace: true }); }, [navigate]);
+  useEffect(() => { void navigate({ to: "/", replace: true }); }, [navigate]);
   return null;
 }

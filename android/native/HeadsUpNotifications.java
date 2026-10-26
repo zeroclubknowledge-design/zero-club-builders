@@ -17,6 +17,42 @@
      */
     static final String ZC_ALERTS_CHANNEL_ID = "zc_alerts_heads_up";
 
+    /* ── Incoming calls ring like a phone call ─────────────────────────────
+     *
+     * A group call or a club going live is pushed with the web tag
+     * "zc-ring:..." (src/sw.ts). Those go on their own channel that plays the
+     * phone's ringtone on the ringer volume and vibrates in long pulses, and
+     * the notification is made "insistent", so the ringtone repeats until it
+     * is answered, declined or swiped away. It stops by itself after 45
+     * seconds, the same time the app gives up on the ring.
+     */
+    static final String ZC_CALLS_CHANNEL_ID = "zc_incoming_calls";
+    static final String ZC_RING_MARK = "zc-ring:";
+    static final long[] ZC_RING_VIBRATION = new long[] {0, 900, 600, 900, 600, 900, 600, 900, 600};
+
+    static void zcEnsureCallsChannel(android.content.Context context) {
+        if (android.os.Build.VERSION.SDK_INT < 26) return;
+        android.app.NotificationManager manager =
+                (android.app.NotificationManager) context.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+        if (manager == null || manager.getNotificationChannel(ZC_CALLS_CHANNEL_ID) != null) return;
+        android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                ZC_CALLS_CHANNEL_ID, "Incoming calls",
+                android.app.NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription("Rings when someone calls you or a club you follow goes live");
+        channel.setSound(
+                android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE),
+                new android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build());
+        channel.enableVibration(true);
+        channel.setVibrationPattern(ZC_RING_VIBRATION);
+        channel.enableLights(true);
+        channel.setLightColor(0xFFC3217E);
+        channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+        manager.createNotificationChannel(channel);
+    }
+
     static void zcEnsureAlertsChannel(android.content.Context context) {
         if (android.os.Build.VERSION.SDK_INT < 26) return;
         android.app.NotificationManager manager =
@@ -42,6 +78,41 @@
                 manager.deleteNotificationChannel(id);
             }
         }
+    }
+
+    /* ── Reply from the notification ───────────────────────────────────────
+     * Message pushes carry a private reply key at the end of their web tag
+     * ("chat:<id>|zr:<key>" or "group:<id>|zr:<key>", set by send-push). */
+    private static final java.util.regex.Pattern ZC_REPLY_KEY =
+            java.util.regex.Pattern.compile("\\|zr:([0-9a-f]{48})");
+
+    static String zcReplyToken(String platformTag) {
+        if (platformTag == null) return null;
+        java.util.regex.Matcher m = ZC_REPLY_KEY.matcher(platformTag);
+        return m.find() ? m.group(1) : null;
+    }
+
+    @android.annotation.TargetApi(24)
+    private android.app.Notification.Action zcReplyAction(String platformTag, int platformId, String token) {
+        android.content.Intent intent = new android.content.Intent(this, NotificationReplyReceiver.class)
+                .setAction(NotificationReplyReceiver.ACTION)
+                .putExtra(NotificationReplyReceiver.EXTRA_TOKEN, token)
+                .putExtra(NotificationReplyReceiver.EXTRA_TAG, platformTag)
+                .putExtra(NotificationReplyReceiver.EXTRA_ID, platformId);
+        int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+        // The reply text is filled in by the system, so the intent must be mutable (Android 12+).
+        if (android.os.Build.VERSION.SDK_INT >= 31) flags |= android.app.PendingIntent.FLAG_MUTABLE;
+        android.app.PendingIntent reply = android.app.PendingIntent.getBroadcast(
+                this, platformTag.hashCode() ^ platformId, intent, flags);
+        android.app.RemoteInput input = new android.app.RemoteInput.Builder(NotificationReplyReceiver.KEY_TEXT)
+                .setLabel("Reply\u2026")
+                .build();
+        return new android.app.Notification.Action.Builder(
+                android.graphics.drawable.Icon.createWithResource("android", android.R.drawable.ic_menu_send),
+                "Reply", reply)
+                .addRemoteInput(input)
+                .setAllowGeneratedReplies(true)
+                .build();
     }
 
     private boolean zcNotificationsAllowed() {
@@ -80,6 +151,39 @@
         android.app.NotificationManager manager =
                 (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
         android.app.Notification out = notification;
+        if (platformTag.contains(ZC_RING_MARK)) {
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                zcEnsureCallsChannel(this);
+                out = android.app.Notification.Builder.recoverBuilder(this, notification)
+                        .setChannelId(ZC_CALLS_CHANNEL_ID)
+                        .setCategory(android.app.Notification.CATEGORY_CALL)
+                        .setTimeoutAfter(45_000)
+                        .build();
+            } else {
+                out.priority = android.app.Notification.PRIORITY_MAX;
+                out.sound = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE);
+                out.vibrate = ZC_RING_VIBRATION;
+            }
+            // Repeat the ringtone until the ring is answered, declined or dismissed.
+            out.flags |= android.app.Notification.FLAG_INSISTENT;
+            manager.notify(platformTag, platformId, out);
+            return true;
+        }
+        // A direct or group message: add a Reply box (NotificationReplyReceiver.java).
+        String replyToken = zcReplyToken(platformTag);
+        if (replyToken != null && android.os.Build.VERSION.SDK_INT >= 24) {
+            android.app.Notification.Builder builder =
+                    android.app.Notification.Builder.recoverBuilder(this, notification)
+                            .addAction(zcReplyAction(platformTag, platformId, replyToken));
+            if (android.os.Build.VERSION.SDK_INT >= 26) builder.setChannelId(ZC_ALERTS_CHANNEL_ID);
+            out = builder.build();
+            if (android.os.Build.VERSION.SDK_INT < 26) {
+                out.priority = android.app.Notification.PRIORITY_HIGH;
+                out.defaults |= android.app.Notification.DEFAULT_SOUND;
+            }
+            manager.notify(platformTag, platformId, out);
+            return true;
+        }
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             out = android.app.Notification.Builder.recoverBuilder(this, notification)
                     .setChannelId(ZC_ALERTS_CHANNEL_ID)

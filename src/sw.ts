@@ -127,7 +127,9 @@ self.addEventListener('push', (event) => {
         vibrate: [900, 500, 900, 500, 900, 500, 900, 500, 900, 500, 900],
         requireInteraction: true,
         renotify: true,
-        tag: `ring:${payload.url || payload.tag || ''}`,
+        // The Android app looks for "zc-ring:" and rings with the phone's ringtone
+        // (android/native/HeadsUpNotifications.java).
+        tag: `zc-ring:${payload.url || payload.tag || ''}`,
         data: { url: payload.url || '/app', ring: true },
         actions: [
           { action: 'join', title: payload.type === 'club_live' ? 'Join live' : 'Join call' },

@@ -2,8 +2,8 @@ import { ClipboardList, Compass, TicketPercent as Ticket, LayoutDashboard } from
 import type { NavItem } from "@/components/AppShell";
 
 export const NAV: NavItem[] = [
-  { to: "/browse", label: "Browse", icon: Compass },
-  { to: "/", label: "My forms", icon: LayoutDashboard, exact: true },
+  { to: "/", label: "Browse", icon: Compass, exact: true },
+  { to: "/forms", label: "My forms", icon: LayoutDashboard },
   { to: "/me", label: "Registrations", icon: ClipboardList },
 ];
 void Ticket;

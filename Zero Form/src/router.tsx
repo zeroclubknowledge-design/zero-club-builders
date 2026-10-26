@@ -1,4 +1,4 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, Outlet, redirect } from "@tanstack/react-router";
 import { Home } from "@/screens/Home";
 import { MyRegistrations } from "@/screens/MyRegistrations";
 import { AuthPage } from "@/screens/AuthPage";
@@ -12,8 +12,11 @@ import { BrowsePage } from "@/screens/BrowsePage";
  */
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
-const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: Home });
-const browseRoute = createRoute({ getParentRoute: () => rootRoute, path: "/browse", component: BrowsePage });
+// form.zeroclubs.xyz opens on Browse for everyone; your own forms live at /forms.
+const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: BrowsePage });
+const myFormsRoute = createRoute({ getParentRoute: () => rootRoute, path: "/forms", component: Home });
+// Older links to /browse still work.
+const browseRoute = createRoute({ getParentRoute: () => rootRoute, path: "/browse", beforeLoad: () => { throw redirect({ to: "/", replace: true }); } });
 const meRoute = createRoute({ getParentRoute: () => rootRoute, path: "/me", component: MyRegistrations });
 const signInRoute = createRoute({ getParentRoute: () => rootRoute, path: "/signin", component: () => <AuthPage mode="signin" /> });
 const signUpRoute = createRoute({ getParentRoute: () => rootRoute, path: "/signup", component: () => <AuthPage mode="signup" /> });
@@ -34,7 +37,7 @@ const shortFormRoute = createRoute({
   },
 });
 
-const routeTree = rootRoute.addChildren([homeRoute, browseRoute, meRoute, signInRoute, signUpRoute, formRoute, shortFormRoute]);
+const routeTree = rootRoute.addChildren([homeRoute, myFormsRoute, browseRoute, meRoute, signInRoute, signUpRoute, formRoute, shortFormRoute]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent", scrollRestoration: true });
 

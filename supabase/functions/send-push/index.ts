@@ -320,6 +320,25 @@ serve(async (req) => {
       });
     }
 
+    /*
+     * Reply from the notification (Android app): a direct or group message to
+     * one person carries that person's private reply key for the conversation
+     * at the end of its tag ("|zr:<key>"). The key is stable per conversation,
+     * so messages from the same chat still replace each other in one
+     * notification. android/native/HeadsUpNotifications.java adds the Reply box.
+     */
+    if (push.receivers.length === 1 && push.tag && (push.type === "message" || push.type === "group_message")) {
+      const target = push.type === "message" ? record.sender_id : String(push.tag).replace(/^group:/, "");
+      if (target && /^[0-9a-f-]{36}$/i.test(String(target))) {
+        const { data: key } = await supabase.rpc("notification_reply_key", {
+          p_profile: push.receivers[0],
+          p_kind: push.type === "message" ? "direct" : "group",
+          p_target: target,
+        });
+        if (typeof key === "string" && key) push.tag = `${push.tag}|zr:${key}`;
+      }
+    }
+
     const pushPayload = JSON.stringify({
       title: push.title,
       body: push.body,

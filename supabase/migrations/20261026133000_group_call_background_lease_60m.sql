@@ -1,0 +1,4 @@
+-- Applied to the live project on 2026-10-26.
+-- group_call_heartbeat_v2: a background (minimised) check-in now holds your place in a
+-- call for 60 minutes instead of 15, so a silent call (waiting alone for people to join)
+-- isn't ended while Android has the app frozen. Only the interval changed.

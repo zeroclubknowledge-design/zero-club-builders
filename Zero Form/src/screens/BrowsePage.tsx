@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { BrowseForms } from "./Browse";
 import { NAV } from "./nav";
 
-/** /browse, and what signed-out visitors land on: every open Zero Form from every club. */
+/** The home page (form.zeroclubs.xyz) for everyone: every open Zero Form from every club. */
 export function BrowsePage() {
   const { session, loading } = useAuth();
   const [auth, setAuth] = useState<null | "signup" | "signin">(null);
