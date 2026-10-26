@@ -182,12 +182,6 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
             Register learners for a bootcamp, or run a waitlist for anything you're launching.
           </p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground"
-        >
-          <Plus className="h-4 w-4" /> New Zero Form
-        </button>
       </div>
 
       {list.length === 0 ? (
@@ -257,6 +251,9 @@ export function ZeroFormWorkspace({ ownerLabel = "Tutor Studio" }: { ownerLabel?
               </div>
             </article>
           ))}
+          <button onClick={() => setCreating(true)} className="inline-flex h-11 items-center justify-center gap-2 justify-self-start rounded-full bg-foreground px-5 text-[13px] font-semibold text-background">
+            <Plus className="h-4 w-4" /> Create another Zero Form
+          </button>
         </div>
       )}
     </div>

@@ -7,11 +7,13 @@ interface LiveSessionState {
   userName: string | null;
   userAvatar: string | null;
   micOn: boolean;
+  /** What a host chose when going live (voice or video); null when just joining. */
+  mode: "voice" | "video" | null;
 }
 
 interface LiveSessionContextValue extends LiveSessionState {
   /** Mark that a live session is active (called when entering the live room) */
-  startSession: (channelId: string, userName: string, userAvatar: string | null) => void;
+  startSession: (channelId: string, userName: string, userAvatar: string | null, mode?: "voice" | "video" | null) => void;
   /** Minimize the live view – user navigates elsewhere but session indicator stays */
   minimize: () => void;
   /** Restore the full live view */
@@ -38,9 +40,10 @@ export function LiveSessionProvider({ children }: { children: React.ReactNode })
     userName: null,
     userAvatar: null,
     micOn: true,
+    mode: null,
   });
 
-  const startSession = useCallback((channelId: string, userName: string, userAvatar: string | null) => {
+  const startSession = useCallback((channelId: string, userName: string, userAvatar: string | null, mode: "voice" | "video" | null = null) => {
     setState({
       isActive: true,
       isMinimized: false,
@@ -48,6 +51,7 @@ export function LiveSessionProvider({ children }: { children: React.ReactNode })
       userName,
       userAvatar,
       micOn: true,
+      mode,
     });
   }, []);
 
@@ -67,6 +71,7 @@ export function LiveSessionProvider({ children }: { children: React.ReactNode })
       userName: null,
       userAvatar: null,
       micOn: true,
+      mode: null,
     });
   }, []);
 

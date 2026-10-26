@@ -379,12 +379,12 @@ function GiftCardsPage() {
                 className="min-w-0 flex-1 bg-transparent font-display text-[34px] font-semibold tabular-nums outline-none placeholder:text-muted-foreground/35 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 grid grid-cols-4 gap-1.5 sm:flex sm:gap-2">
               {[3000, 5000, 7000, 12000].map((value) => (
                 <button
                   key={value}
                   onClick={() => setAmount(String(fromBaseAmount(value)))}
-                  className={`h-9 rounded-full px-3.5 text-[14px] font-semibold tabular-nums transition ${numericAmount === value ? "bg-foreground text-background" : "border border-foreground/20 text-muted-foreground hover:border-foreground/40"}`}
+                  className={`h-9 min-w-0 whitespace-nowrap rounded-full px-1 text-[12px] font-semibold tabular-nums transition sm:px-3.5 sm:text-[14px] ${numericAmount === value ? "bg-foreground text-background" : "border border-foreground/20 text-muted-foreground hover:border-foreground/40"}`}
                 >
                   {format(value)}
                 </button>

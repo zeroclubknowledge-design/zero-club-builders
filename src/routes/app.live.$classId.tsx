@@ -6,6 +6,10 @@ import { supabase } from "@/lib/supabase";
 import { ZeroLoader } from "@/components/ZeroLoader";
 
 export const Route = createFileRoute("/app/live/$classId")({
+  /* A host going live picks voice or video (club chat, "Go live"). Without it,
+     joining keeps whatever the live already is. */
+  validateSearch: (search: Record<string, unknown>): { mode?: "voice" | "video" } =>
+    search.mode === "voice" || search.mode === "video" ? { mode: search.mode } : {},
   /*
    * A meeting link is the most-pasted link in the app, and it had no preview
    * of its own — so it fell through to the site-wide card and every invitation
@@ -60,6 +64,7 @@ export const Route = createFileRoute("/app/live/$classId")({
  */
 function LiveClassEntrypoint() {
   const { classId } = Route.useParams();
+  const { mode } = Route.useSearch();
   const { data: profile, isLoading } = useUser();
   const liveSession = useLiveSession();
   const hasInitialized = useRef(false);
@@ -86,7 +91,7 @@ function LiveClassEntrypoint() {
     if (typeof index !== "number" || index === 0) {
       hasInitialized.current = true;
       void navigate({ to: "/app/clubs/chat", search: { clubId: classId } as never, replace: true }).then(() =>
-        navigate({ to: "/app/live/$classId", params: { classId } }),
+        navigate({ to: "/app/live/$classId", params: { classId }, search: mode ? { mode } : {} }),
       );
       return;
     }
@@ -103,7 +108,7 @@ function LiveClassEntrypoint() {
       return; // already running — leave it alone
     }
 
-    session.startSession(classId, profile.username || "You", profile.avatar_url || null);
+    session.startSession(classId, profile.username || "You", profile.avatar_url || null, mode ?? null);
   }, [classId, profile, isLoading]);
 
   // The actual UI is rendered by <GlobalLiveRoom /> which overlays the entire app.

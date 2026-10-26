@@ -410,6 +410,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   const { data: profile } = useUser();
   const liveSession = useLiveSession();
   const { isMinimized } = liveSession;
+  /* Voice or video live (clubs.live_mode). The host's choice when going live
+     wins; otherwise it's read from the club. A voice live never opens anyone's
+     camera unless they turn it on. */
+  const chosenModeRef = useRef(liveSession.mode);
+  const [liveMode, setLiveMode] = useState<"voice" | "video" | null>(liveSession.mode);
   /*
    * Back minimises, never leaves. The phone's (or browser's) back button while
    * the class fills the screen moves the app to the previous page; the class
@@ -449,14 +454,19 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   }, [channel, isUuid]);
   useEffect(() => {
     if (!isAdmin || !isUuid) return;
-    void supabase.rpc("ring_club_live" as never, { p_club: channel } as never);
+    void (async () => {
+      // Record voice or video first, so the ring says which it is.
+      if (chosenModeRef.current) await supabase.rpc("set_club_live_mode" as never, { p_club: channel, p_mode: chosenModeRef.current } as never);
+      await supabase.rpc("ring_club_live" as never, { p_club: channel } as never);
+    })();
   }, [isAdmin, channel, isUuid]);
 
   useEffect(() => {
     async function checkAdmin() {
       if (!profile?.id) return;
-      const { data: club } = await supabase.from("clubs").select("creator_id, name").eq("id", channel).single();
+      const { data: club } = await supabase.from("clubs").select("creator_id, name, live_mode").eq("id", channel).single();
       if (club?.name) setClubName(club.name);
+      if (!chosenModeRef.current) setLiveMode((club as { live_mode?: string } | null)?.live_mode === "voice" ? "voice" : "video");
       if (club?.creator_id === profile.id) {
         setIsAdmin(true);
         return;
@@ -564,7 +574,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   /* Start smooth. Higher modes are available in Camera settings and are applied
      to both capture and encoding so they improve the source rather than merely
      upscaling a low-resolution camera frame. */
-  const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing, {
+  // In a voice live the camera is only opened once someone turns it on.
+  const cameraWantedRef = useRef(false);
+  if (cameraOn) cameraWantedRef.current = true;
+  const openCamera = liveMode === "video" || cameraWantedRef.current;
+  const { localCameraTrack } = useLocalCameraTrack(!isScreenSharing && openCamera, {
     encoderConfig: {
       width: 1280,
       height: 720,
@@ -745,9 +759,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
     if (isAdmin && !hostAutoOnRef.current) {
       hostAutoOnRef.current = true;
       setMicOn(true);
-      setCameraOn(true);
+      // A voice live starts (and stays) camera-free until the host turns it on.
+      setCameraOn(liveMode !== "voice");
     }
-  }, [isAdmin]);
+  }, [isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const t = window.setTimeout(() => {
       if (!isAdminRef.current && !hostAutoOnRef.current) {
@@ -2122,8 +2137,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center">
           <Avatar url={profile?.avatar_url} name={profile?.username || "U"} className="w-20 h-20 text-2xl" />
           <div>
-            <p className="text-[15px] font-semibold tracking-tight text-white">Your camera is off</p>
-            <p className="text-[12.5px] text-white/45 mt-1">Learners see this screen — turn on your camera or present to begin teaching.</p>
+            <p className="text-[15px] font-semibold tracking-tight text-white">{liveMode === "voice" ? "You're live on voice" : "Your camera is off"}</p>
+            <p className="text-[12.5px] text-white/45 mt-1">{liveMode === "voice" ? "Everyone in the room can hear you. Turn on your camera or present any time to show something." : "Learners see this screen — turn on your camera or present to begin teaching."}</p>
           </div>
         </div>
       );
@@ -2147,8 +2162,8 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
             )}
           </div>
           <div>
-            <p className="text-[15px] font-semibold tracking-tight text-white">{tutorName} is live</p>
-            <p className="text-[12.5px] text-white/45 mt-1">Audio only — video will appear here when they share.</p>
+            <p className="text-[15px] font-semibold tracking-tight text-white">{liveMode === "voice" ? `${tutorName} is live on voice` : `${tutorName} is live`}</p>
+            <p className="text-[12.5px] text-white/45 mt-1">{liveMode === "voice" ? "Voice live — listen in, and raise your hand to speak." : "Audio only — video will appear here when they share."}</p>
           </div>
         </div>
       );

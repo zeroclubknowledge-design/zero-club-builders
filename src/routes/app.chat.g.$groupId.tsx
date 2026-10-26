@@ -3,7 +3,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft, BarChart3, Check, Copy, File, FileText, Download, Image, Loader2, Lock, Mic, Paperclip, Pencil, Phone, Pin,
+  ArrowLeft, BarChart3, CalendarDays, Check, Copy, File, FileText, Download, Image, Loader2, Lock, Mic, Paperclip, Pencil, Phone, Pin,
   Plus, Reply, Send, Square, Trash2, Users, Video, X,
 } from "@/components/icons/glyphs";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -29,6 +29,7 @@ import {
 import { GroupAvatar, PersonAvatar } from "@/features/groups/components";
 import { PollCard, PollComposer } from "@/features/groups/Poll";
 import { GroupInfoSheet } from "@/features/groups/GroupInfoSheet";
+import { ScheduleCallSheet, ScheduledCallsSheet, UpcomingCallBanner, useScheduledCalls } from "@/features/groups/ScheduledCalls";
 
 import { confirmCard } from "@/components/ConfirmCard";
 import { ComposerSlot } from "@/components/ComposerSlot";
@@ -56,6 +57,10 @@ function GroupChatPage() {
   const memberById = useMemo(() => new Map(members.map((m) => [m.profile_id, m])), [members]);
   const myRole = memberById.get(myId)?.role;
   const isAdmin = myRole === "owner" || myRole === "admin";
+  // Scheduled voice and video calls (features/groups/ScheduledCalls.tsx).
+  const scheduledCalls = useScheduledCalls(groupId).data || [];
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduledListOpen, setScheduledListOpen] = useState(false);
 
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -369,6 +374,11 @@ function GroupChatPage() {
             </span>
           </span>
         </button>
+        {canSend && (
+          <button onClick={() => setScheduleOpen(true)} aria-label="Schedule a call" title="Schedule a call" className="grid h-11 w-10 shrink-0 place-items-center rounded-full hover:bg-foreground/[0.04]">
+            <CalendarDays className="h-[21px] w-[21px]" />
+          </button>
+        )}
         <button onClick={() => startCall(true)} aria-label="Video call" className="grid h-11 w-10 shrink-0 place-items-center rounded-full hover:bg-foreground/[0.04]">
           <Video className="h-[22px] w-[22px]" />
         </button>
@@ -389,6 +399,10 @@ function GroupChatPage() {
           </span>
           <span className="rounded-full bg-white px-3 py-1 text-[12.5px] font-bold text-green-700">Join</span>
         </button>
+      )}
+
+      {!callLive && (
+        <UpcomingCallBanner calls={scheduledCalls} onJoin={(video) => startCall(video)} onOpenAll={() => setScheduledListOpen(true)} />
       )}
 
       {pinned && (
@@ -542,6 +556,7 @@ function GroupChatPage() {
                   <DropdownMenuItem onSelect={() => fileRef.current?.click()} className="gap-2.5"><File className="h-4 w-4" /> File</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setPollOpen(true)} className="gap-2.5"><BarChart3 className="h-4 w-4" /> Poll</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => startCall()} className="gap-2.5"><Phone className="h-4 w-4" /> Group call</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setScheduleOpen(true)} className="gap-2.5"><CalendarDays className="h-4 w-4" /> Schedule a call</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               </ComposerSlot>
@@ -638,6 +653,18 @@ function GroupChatPage() {
       </Sheet>
 
       <PollComposer open={pollOpen} onOpenChange={setPollOpen} groupId={groupId} />
+      <ScheduleCallSheet open={scheduleOpen} onOpenChange={setScheduleOpen} groupId={groupId} />
+      {myId && (
+        <ScheduledCallsSheet
+          open={scheduledListOpen}
+          onOpenChange={setScheduledListOpen}
+          calls={scheduledCalls}
+          myId={myId}
+          isAdmin={isAdmin}
+          onJoin={(video) => startCall(video)}
+          onSchedule={canSend ? () => setScheduleOpen(true) : null}
+        />
+      )}
       {myId && <GroupInfoSheet open={infoOpen} onOpenChange={setInfoOpen} group={group} members={members} myId={myId} onStartCall={() => startCall()} />}
       {viewer && <ImageLightbox mediaUrls={viewer.urls} initialIndex={viewer.index} mediaTypes={viewer.types} caption={viewer.caption} sender={viewer.sender} isOpen onClose={() => setViewer(null)} allowDownload />}
     </div>

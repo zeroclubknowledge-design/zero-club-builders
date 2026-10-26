@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Clock, Compass, Gift, Loader2, Search, Users, X } from "@/components/icons/glyphs";
+import { ArrowRight, Check, Clock, Compass, Loader2, Search, Users, X } from "@/components/icons/glyphs";
 import { AppShell, PageHead } from "@/components/AppShell";
 import { Brand } from "@/components/Brand";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
@@ -57,11 +57,6 @@ export function BrowseGifts() {
         eyebrow="Open to claim"
         title="Browse gifts"
         sub="Zero Cards people have shared with everyone on Zero Club. Claim one before it runs out; each account can claim a gift once."
-        action={
-          <Link to="/create" className="inline-flex h-11 items-center gap-2 rounded-full bg-foreground px-5 text-[13.5px] font-semibold text-background">
-            <Gift className="h-4 w-4" /> Create a gift
-          </Link>
-        }
       />
 
       <label className="relative block max-w-[640px]">

@@ -1,0 +1,8 @@
+-- Applied to the live project on 2026-10-26.
+-- 1. Scheduled group calls: table public.chat_group_scheduled_calls (RLS: members read),
+--    schedule_group_call(group, title, starts_at, video, when_label), cancel_group_call_schedule(id),
+--    group_schedule_push(...) and group_call_schedule_tick() run every minute by pg_cron
+--    (job "group-call-schedule-tick"): reminder 10 minutes before, "starting now" at the time.
+-- 2. Club voice lives: clubs.live_mode ('video' | 'voice'), set_club_live_mode(club, mode) for hosts,
+--    ring_club_live now says "is live on voice" for a voice live.
+-- See the live database for the full definitions.

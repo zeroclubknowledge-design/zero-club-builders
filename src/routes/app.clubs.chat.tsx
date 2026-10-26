@@ -338,6 +338,9 @@ function ClubChat() {
     setLiveAdminsCount(inRoom);
   }, [presenceState]);
   const [spaceTitle, setSpaceTitle] = useState("");
+  // Voice or video, for scheduling and for what's live right now (clubs.live_mode).
+  const [spaceVoice, setSpaceVoice] = useState(false);
+  const [liveMode, setLiveMode] = useState<"video" | "voice">("video");
   const [spaceDate, setSpaceDate] = useState("");
   const [spaceTime, setSpaceTime] = useState("");
 
@@ -1106,7 +1109,7 @@ function ClubChat() {
       return;
     }
 
-    const formattedMessage = `📅 **[SCHEDULED SPACE]** Topic: "${spaceTitle}" | Date: ${spaceDate} | Time: ${spaceTime}`;
+    const formattedMessage = `📅 **[SCHEDULED SPACE]** Topic: "${spaceTitle}" | Date: ${spaceDate} | Time: ${spaceTime} | Mode: ${spaceVoice ? "Voice" : "Video"}`;
 
     // Post to database
     await handleSendMessage(formattedMessage);
@@ -1115,6 +1118,7 @@ function ClubChat() {
     setSpaceTitle("");
     setSpaceDate("");
     setSpaceTime("");
+    setSpaceVoice(false);
     setShowScheduleForm(false);
     setShowLiveMenu(false);
   };
@@ -1528,6 +1532,11 @@ function ClubChat() {
 
   const clubRooms = getClubRooms(club?.rooms);
   const liveNow = liveAdminsCount > 0;
+  useEffect(() => {
+    if (!liveNow || !club?.id) return;
+    void supabase.from("clubs").select("live_mode").eq("id", club.id).maybeSingle()
+      .then(({ data }) => setLiveMode((data as { live_mode?: string } | null)?.live_mode === "voice" ? "voice" : "video"));
+  }, [liveNow, club?.id]);
   const memberCount = members.length > 0 ? members.length : club?.members_count || 1;
 
   return (
@@ -1586,7 +1595,7 @@ function ClubChat() {
               className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-full bg-[#e0245e] px-3 text-[13px] font-semibold text-white transition active:scale-95"
             >
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />{" "}
-              {isAdmin ? "Live" : "Join live"}
+              {liveMode === "voice" ? (isAdmin ? "Voice live" : "Join voice") : isAdmin ? "Live" : "Join live"}
             </button>
           ) : isAdmin ? (
             <button
@@ -1692,36 +1701,40 @@ function ClubChat() {
                   <div className="space-y-2.5 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] animate-in fade-in duration-200 sm:px-6">
                     {isAdmin ? (
                       <>
-                        {/* ── Go Live Card (Admin) ── */}
-                        <button
-                          onClick={() => {
-                            setShowLiveMenu(false);
-                            navigate({
-                              to: "/app/live/$classId",
-                              params: { classId: club?.id || "unknown" },
-                            });
-                          }}
-                          className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-foreground/12 p-4 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
-                        >
-                          <div className="relative shrink-0">
-                            {/* A video camera, not a lightning bolt. These are
-                                      live rooms — the icon should say what the tool
-                                      does rather than gesture at energy. */}
-                            <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#e0245e] text-white">
-                              <Radio className="h-[22px] w-[22px]" />
+                        {/* ── Go live: video or voice (Admin) ── */}
+                        {([
+                          { mode: "video" as const, title: "Video live", desc: "Start an instant video session with your community", Icon: Radio },
+                          { mode: "voice" as const, title: "Voice live", desc: "Talk with your community without the camera, like a radio room", Icon: Mic },
+                        ]).map(({ mode, title, desc, Icon }) => (
+                          <button
+                            key={mode}
+                            onClick={() => {
+                              setShowLiveMenu(false);
+                              navigate({
+                                to: "/app/live/$classId",
+                                params: { classId: club?.id || "unknown" },
+                                search: { mode },
+                              });
+                            }}
+                            className="flex w-full items-center gap-3.5 rounded-2xl border-[1.5px] border-foreground/12 p-4 text-left transition hover:bg-foreground/[0.03] active:scale-[0.99]"
+                          >
+                            <div className="relative shrink-0">
+                              <div className={`grid h-11 w-11 place-items-center rounded-xl text-white ${mode === "voice" ? "bg-[#c3217e]" : "bg-[#e0245e]"}`}>
+                                <Icon className="h-[22px] w-[22px]" />
+                              </div>
+                              <span className={`absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-background ${mode === "voice" ? "bg-[#c3217e]" : "bg-[#e0245e]"}`} />
                             </div>
-                            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full border-2 border-background bg-[#e0245e]" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-[15px] font-semibold text-foreground">
-                              Go live now
-                            </h3>
-                            <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
-                              Start an instant video session with your community
-                            </p>
-                          </div>
-                          <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                        </button>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-[15px] font-semibold text-foreground">
+                                {title}
+                              </h3>
+                              <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+                                {desc}
+                              </p>
+                            </div>
+                            <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                          </button>
+                        ))}
 
                         {/* ── Schedule Space Card (Admin) ── */}
                         <button
@@ -1806,6 +1819,21 @@ function ClubChat() {
                     </button>
 
                     <div className="space-y-4">
+                      {/* Voice or video */}
+                      <div role="radiogroup" aria-label="Live type" className="grid grid-cols-2 gap-1 rounded-full bg-foreground/[0.06] p-1">
+                        {([[false, "Video live", Video], [true, "Voice live", Mic]] as const).map(([voice, label, Icon]) => (
+                          <button
+                            key={label}
+                            type="button"
+                            role="radio"
+                            aria-checked={spaceVoice === voice}
+                            onClick={() => setSpaceVoice(voice)}
+                            className={`inline-flex h-10 items-center justify-center gap-2 rounded-full text-[13.5px] font-semibold transition ${spaceVoice === voice ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+                          >
+                            <Icon className="h-4 w-4" /> {label}
+                          </button>
+                        ))}
+                      </div>
                       {/* Title input */}
                       <div>
                         <label className="mb-1.5 block text-[13px] font-semibold text-muted-foreground">
@@ -5471,6 +5499,8 @@ function MessageBubble({
                 const topicMatch = message.content.match(/Topic:\s*"([^"]+)"/);
                 const dateMatch = message.content.match(/Date:\s*([^\s|]+)/);
                 const timeMatch = message.content.match(/Time:\s*([^\s|]+)/);
+                const isVoice = /Mode:\s*Voice/i.test(message.content);
+                const ModeIcon = isVoice ? Mic : Video;
 
                 const spaceTopic = topicMatch ? topicMatch[1] : "Live Space";
                 const spaceDateStr = dateMatch ? dateMatch[1] : "";
@@ -5480,10 +5510,10 @@ function MessageBubble({
                   <div className="mt-1 flex flex-col gap-3 bg-card border border-border/40 p-4 rounded-2xl max-w-sm w-full text-left shadow-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
-                        <Video className="w-5 h-5 text-red-500 animate-pulse" />
+                        <ModeIcon className="w-5 h-5 text-red-500 animate-pulse" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[9px] text-primary">Live Space Event</span>
+                        <span className="text-[9px] text-primary">{isVoice ? "Voice live event" : "Video live event"}</span>
                         <h4 className="font-semibold text-sm text-foreground tracking-tight truncate mt-0.5">
                           {spaceTopic}
                         </h4>
@@ -5506,9 +5536,10 @@ function MessageBubble({
                     <Link
                       to="/app/live/$classId"
                       params={{ classId: message.club_id || "unknown" }}
+                      search={{ mode: isVoice ? "voice" : "video" }}
                       className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold text-center rounded-xl transition active:scale-95 text-xs flex items-center justify-center gap-2 shadow-sm shadow-red-500/20"
                     >
-                      <Video className="w-4 h-4" />
+                      <ModeIcon className="w-4 h-4" />
                       Join Scheduled Space
                     </Link>
                   </div>
