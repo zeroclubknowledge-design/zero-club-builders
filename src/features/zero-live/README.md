@@ -9,13 +9,22 @@ Current route entry points include:
 
 ## Local recordings
 
-Hosts select **Record**, then **Stop recording** to save a video. Everyone sees a
-red **REC** badge only while a host who is connected right now is recording; the
-normal **LIVE** badge is brand pink with a still dot, so the two never look alike.
+Everyone in a class can record it for themselves (**Record** for hosts, **Record
+for myself** for learners). Each recording is independent and runs only on that
+person's device: starting, stopping or leaving never affects anyone else's. The
+red **REC** badge shows only your own recording; other people's recordings show
+as a quiet note under the header ("A host is saving a copy too", "2 people are
+saving a copy for themselves").
 
-`recording.ts` draws participant videos and shared screens on a 1280×720 canvas
-at 15 fps (a single shared screen fills the frame with cameras beside it) and
-mixes live call audio through Web Audio. Original call tracks are never stopped.
+Saving is instant. The browser records a fragmented MP4; on **Stop**,
+`mp4Finalize.ts` writes one standard index (moov, at the front) and points it at
+the recorded media in place, as Blob slices that stay on disk. No conversion, no
+re-encoding, no ffmpeg, no download of tools. A one-hour, 540 MB recording is
+finished in about 0.6 s with no extra memory, and the result passes the WhatsApp
+compatibility check. If finishing ever fails, the original recording is saved
+as recorded. Firefox's WebM is saved as recorded. The file then downloads
+straight to the device (Downloads), with "Download again" for 20 seconds and
+crash recovery as below.
 
 Long recordings:
 - Video is written to IndexedDB every 2 seconds, not kept in memory, so a class

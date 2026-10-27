@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { downloadMedia, prepareVideoDownload, saveMediaBlob } from "@/lib/downloadMedia";
+import { saveMediaBlob } from "@/lib/downloadMedia";
+import { finalizeMp4 } from "./mp4Finalize";
 import {
   LiveRecording,
   discardRecording,
@@ -8,6 +9,26 @@ import {
   recoverUnfinishedRecordings,
   type RecordingSources,
 } from "./recording";
+
+/*
+ * Straight to the device, no waiting.
+ *
+ * The browser records a "fragmented" MP4. finalizeMp4 writes one standard
+ * index for it in a second or two (nothing is converted or re-encoded, and
+ * the video is never loaded into memory), so it plays and shares everywhere,
+ * WhatsApp included. If that ever fails, the original recording is saved as
+ * it is, which still plays almost everywhere. WebM (Firefox) is saved as
+ * recorded. There is no slow conversion step any more.
+ */
+async function finishRecording(blob: Blob): Promise<Blob> {
+  if (!blob.type.includes("mp4")) return blob;
+  try {
+    return await finalizeMp4(blob);
+  } catch (error) {
+    console.warn("Saving the recording as recorded:", error);
+    return blob;
+  }
+}
 
 const fileName = (title: string, type: string, at = new Date()) =>
   `${title.replace(/[^a-z0-9_-]+/gi, "-").slice(0, 60) || "Zero-Live"}-${at.toISOString().slice(0, 16).replace(/[:T]/g, "-")}.${recordingExtension(type)}`;
@@ -51,14 +72,9 @@ export function useLiveRecording(sources: RecordingSources) {
         }
         exporting.current = true;
         if (mounted.current) setPhase("saving");
-        const id = toast.loading(
-          mode === "audio" ? "Saving recording…" : "Preparing MP4 recording…",
-        );
+        const id = toast.loading("Saving recording to your device…");
         try {
-          const output =
-            mode === "audio"
-              ? blob
-              : await prepareVideoDownload(blob, (status) => toast.loading(status, { id }));
+          const output = await finishRecording(blob);
           if (savedUrl.current) URL.revokeObjectURL(savedUrl.current);
           const url = URL.createObjectURL(output);
           savedUrl.current = url;
@@ -66,9 +82,9 @@ export function useLiveRecording(sources: RecordingSources) {
           const download = () => saveMediaBlob(output, filename);
           if (mounted.current) setSaved({ url, filename });
           download();
-          toast.success(reason || "Recording saved to your device.", {
+          toast.success(reason || "Recording saved to your device", {
             id,
-            description: filename,
+            description: `${filename} · in your Downloads`,
             duration: 20000,
             action: { label: "Download again", onClick: download },
           });
@@ -135,12 +151,11 @@ export function useLiveRecording(sources: RecordingSources) {
           action: {
             label: "Save recording",
             onClick: () => {
-              const url = URL.createObjectURL(item.blob);
-              // Use the same converter as normal downloads, including recovered WebM.
-              void downloadMedia(url, {
-                fileName: filename,
-                isVideo: !item.blob.type.startsWith("audio/"),
-              }).finally(() => setTimeout(() => URL.revokeObjectURL(url), 120000));
+              // Same instant finishing as a normal stop; saved straight to the device.
+              void finishRecording(item.blob).then((output) => {
+                saveMediaBlob(output, filename);
+                toast.success("Recording saved to your device", { description: "in your Downloads" });
+              });
             },
           },
           cancel: { label: "Discard", onClick: () => void discardRecording(item.id) },
