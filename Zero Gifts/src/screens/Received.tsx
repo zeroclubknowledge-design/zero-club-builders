@@ -11,6 +11,8 @@ import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { Frame, Head } from "./Sent";
+import { GiftClaimDeadline } from "@/components/GiftClaimDeadline";
+import { refreshGiftClaims } from "@/lib/giftClaimRefresh";
 
 /** Where each kind of credit gets spent on Zero Club. */
 const WHERE: Record<string, { path: string; action: string }> = {
@@ -35,10 +37,12 @@ export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
   const cards = useQuery({
     queryKey: ["available-restricted-zero-gifts", profile?.id],
     enabled: !!profile?.id,
+    refetchInterval: 10_000,
     queryFn: async () => {
+      await refreshGiftClaims();
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at, bootcamp_ids, club_ids, expires_at")
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at, bootcamp_ids, club_ids, expires_at,parent_gift_id")
         .eq("claimed_by", profile!.id)
         .eq("status", "claimed")
         .gt("remaining_amount", 0)
@@ -104,6 +108,7 @@ export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
                           {g.bootcamp_ids?.length ? ` · ${g.bootcamp_ids.length} bootcamp${g.bootcamp_ids.length === 1 ? "" : "s"} only` : ""}
                           {g.club_ids?.length ? ` · bootcamps in ${clubs.length ? clubs.join(", ") : `${g.club_ids.length} club${g.club_ids.length === 1 ? "" : "s"}`}` : ""}
                         </p>
+                        <GiftClaimDeadline expiresAt={g.parent_gift_id ? g.expires_at : null} className="mt-2 text-xs leading-relaxed text-muted-foreground" />
                       </div>
                       <a href={zc(where.path)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-foreground px-3.5 text-[12.5px] font-semibold text-background">
                         Use <ArrowUpRight className="h-3.5 w-3.5" />

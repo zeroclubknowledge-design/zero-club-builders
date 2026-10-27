@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { GiftClaimDeadline } from "@/components/GiftClaimDeadline";
+import { giftClaimDeadline, giftClaimExpired, giftClaimNotice, giftClaimRefreshInterval } from "@/lib/giftClaimExpiry";
 
 
 /**
@@ -45,7 +47,7 @@ export function ClaimGift({ code }: { code: string }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["gift-card", code, session?.user.id],
     enabled: !!session,
-    refetchInterval: query => query.state.data?.card?.expired ? false : Math.max(500, Math.min(10_000, query.state.data?.card?.expires_at ? Date.parse(query.state.data.card.expires_at) - Date.now() + 50 : 10_000)),
+    refetchInterval: query => query.state.data?.card?.expired ? false : giftClaimRefreshInterval(query.state.data?.card),
     queryFn: async () => {
       const { data: result, error } = await supabase.rpc("get_gift_card_v2", { gift_code: code });
       const card = Array.isArray(result) ? result[0] : result;
@@ -64,7 +66,8 @@ export function ClaimGift({ code }: { code: string }) {
     onSuccess: (card) => {
       setClaimedCard(card);
       for (const key of ["profile", "zero-gift-balance", "available-restricted-zero-gifts", "gift-card", "unclaimed-gifts", "unclaimed-gift-count"]) void client.invalidateQueries({ queryKey: [key] });
-      toast.success("Gift claimed successfully.");
+      if (giftClaimExpired(card)) toast.error("Your claim deadline has passed. Each account can claim this gift only once.");
+      else toast.success("Gift claimed successfully.", { description: giftClaimNotice(card), duration: 15000 });
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -96,6 +99,8 @@ export function ClaimGift({ code }: { code: string }) {
   const card = claimedCard || data.card;
   const service = giftServices.find((item) => item.id === card.service);
   const alreadyClaimed = !!data.card.my_claim_id;
+  const claimState = alreadyClaimed ? data.card : claimedCard;
+  const claimExpiresAt = giftClaimDeadline(claimState);
   const unavailable = !alreadyClaimed && (data.card.expired || data.card.status !== "active" || data.card.claims_remaining === 0);
   const senderName = data.creator?.full_name || data.creator?.username || "A Zero Club member";
   const walletBacked = !card.expires_at && (card.service === "support" || card.service === "custom");
@@ -120,7 +125,7 @@ export function ClaimGift({ code }: { code: string }) {
   );
 
   if (claimedCard || alreadyClaimed) {
-    if (data.card.expired) return shell(<><h1 className="mt-12 text-2xl font-semibold">Your gift credit has expired</h1><p className="mt-3 text-sm text-white/65">The deadline for using this gift has passed. Your own wallet money is unaffected.</p><Link to="/me" search={{ tab: "received" }} className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
+    if (data.card.expired || giftClaimExpired(claimState)) return shell(<><h1 className="mt-12 text-2xl font-semibold">Your gift claim has expired</h1><p className="mt-3 text-sm text-white/65">The deadline for using this claim has passed. Completely unused claims return to the available places for other members. Each account can claim once; your wallet money is unaffected.</p><Link to="/me" search={{ tab: "received" }} className="mt-6 rounded-full bg-white px-6 py-3 font-semibold text-black">Your gifts</Link></>);
     return shell(
       <>
         <span className="mt-6 grid h-12 w-12 place-items-center rounded-full bg-[#1a7f4b] text-white"><Check className="h-6 w-6" /></span>
@@ -132,7 +137,7 @@ export function ClaimGift({ code }: { code: string }) {
             ? "Spend it anywhere on Zero Club."
             : `Use your ${format(Number(card.amount))} at eligible checkouts. Gift credit pays first and your wallet covers any remainder.`}
         </p>
-        {card.expires_at && <p className="mt-3 text-xs text-white/65">Use before {new Date(card.expires_at).toLocaleString()}. Unused credit expires.</p>}
+        <GiftClaimDeadline expiresAt={claimExpiresAt} />
         {!walletBacked && <p className="mt-2 text-sm font-semibold text-white">{format(Number(data.card.my_claim_remaining ?? card.remaining_amount ?? card.amount))} remaining</p>}
         {scopeText(data.card) && <p className="mt-2 text-xs text-white/65">{scopeText(data.card)}</p>}
         <div className="mt-7 w-full">
@@ -169,6 +174,7 @@ export function ClaimGift({ code }: { code: string }) {
       </div>
       <p className="mt-3 text-xs text-white/65">{data.card.claims_remaining} of {data.card.quantity} claims left · one per account</p>
       {data.card.expires_at && <p className="mt-2 text-xs text-white/65">Claim and use before {new Date(data.card.expires_at).toLocaleString()}. Unused credit expires.</p>}
+      {data.card.expires_at && <p className="mt-2 text-sm font-semibold text-white">Once claimed, use within 6 hours or before the gift expires, whichever comes first. Completely unused claims return to the available places.</p>}
       {scopeText(data.card) && <p className="mt-3 text-sm text-white/70">{scopeText(data.card)}</p>}
       <p className="mt-4 flex items-start gap-2 text-left text-[13px] leading-relaxed text-white/55">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
@@ -225,6 +231,7 @@ function SignedOutClaim({ card, onAuthed }: { card: any; onAuthed: () => void })
                   <span className="flex h-7 items-center rounded-full bg-white/10 px-3">{card.claims_remaining} of {card.quantity} left</span>
                 </div>
                 {card.expires_at && <p className="mt-3 text-xs text-white/60">Claim and use before {new Date(card.expires_at).toLocaleString()}.</p>}
+                {card.expires_at && <p className="mt-2 text-sm text-white/75">After claiming, use within 6 hours or before this expiry, whichever is sooner. Completely unused claims return to the available places.</p>}
                 {scopeText(card) && <p className="mt-2 text-xs text-white/60">{scopeText(card)}</p>}
                 <div className="mt-auto w-full pt-8">
                   <button type="button" onClick={() => setStep("account")} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-[#17181b]">

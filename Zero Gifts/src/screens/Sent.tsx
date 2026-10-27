@@ -8,6 +8,7 @@ import { ArrowLeft, Check, Copy, Gift, Loader2, Minus, Plus } from "@/components
 import { supabase } from "@/lib/supabase";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
+import { refreshGiftClaims } from "@/lib/giftClaimRefresh";
 import { copyToClipboard, giftLinkUrl } from "@/lib/share";
 import { ShareMenu } from "@/components/ShareMenu";
 import { toast } from "sonner";
@@ -54,7 +55,9 @@ export function SentGifts({ embedded = false }: { embedded?: boolean }) {
 
   const { data: gifts, isLoading } = useQuery({
     queryKey: ["unclaimed-gifts"],
+    refetchInterval: 10_000,
     queryFn: async () => {
+      await refreshGiftClaims();
       const {
         data: { session },
       } = await supabase.auth.getSession();

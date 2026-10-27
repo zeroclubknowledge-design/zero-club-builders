@@ -18,6 +18,8 @@ import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
 import { GiftClubPicker, MAX_GIFT_CLUBS } from "@/features/membership/GiftClubPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
 import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
+import { GiftClaimDeadline } from "@/components/GiftClaimDeadline";
+import { refreshGiftClaims } from "@/lib/giftClaimRefresh";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { shareOrCopy, giftLinkUrl } from "@/lib/share";
 import { draftKey, storedDraftOwner, usePersistentDraft } from "@/lib/draftStorage";
@@ -97,10 +99,12 @@ function GiftCardsPage() {
   const { data: giftRows = [], refetch: refetchAvailableGifts } = useQuery({
     queryKey: ["available-restricted-zero-gifts", profile?.id],
     enabled: !!profile?.id,
+    refetchInterval: 10_000,
     queryFn: async () => {
+      await refreshGiftClaims();
       const { data, error } = await supabase
         .from("gift_cards")
-        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at,bootcamp_ids,club_ids,expires_at")
+        .select("id, code, amount, remaining_amount, service, template_id, message, claimed_at,bootcamp_ids,club_ids,expires_at,parent_gift_id")
         .eq("claimed_by", profile!.id)
         .eq("status", "claimed")
         .gt("remaining_amount", 0)
@@ -343,6 +347,7 @@ function GiftCardsPage() {
                     {!!gift.bootcamp_ids?.length && <p className="mt-1 text-xs text-muted-foreground">Only for {gift.bootcamp_ids.length} selected bootcamp{gift.bootcamp_ids.length === 1 ? "" : "s"}</p>}
                     {!!gift.club_ids?.length && <p className="mt-1 text-xs text-muted-foreground">Only for bootcamps in {gift.club_ids.length} club{gift.club_ids.length === 1 ? "" : "s"}</p>}
                     {gift.expires_at && <p className="mt-1 text-xs text-muted-foreground">Use before {new Date(gift.expires_at).toLocaleString()}</p>}
+                    <GiftClaimDeadline expiresAt={gift.parent_gift_id ? gift.expires_at : null} className="mt-2 text-xs leading-relaxed text-muted-foreground" />
                   </div>
                   {destination.href ? (
                     <a

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Check, ChevronDown, Gift, Loader2 } from "@/components/icons/glyphs";
 import { toast } from "sonner";
+import { giftClaimExpired, giftClaimNotice } from "@/lib/giftClaimExpiry";
 
 /**
  * Redeem a Zero Card by its code.
@@ -45,7 +46,7 @@ export function GiftCodeRedeemer({
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       for (const key of [
         "zero-gift-balance",
         "available-restricted-zero-gifts",
@@ -58,7 +59,9 @@ export function GiftCodeRedeemer({
       setCode("");
       setOpen(false);
       onClaim();
-      toast.success("Gift ready. Eligible credit is applied first; your wallet covers the rest.");
+      const card = (Array.isArray(result) ? result[0] : result) as any;
+      if (giftClaimExpired(card)) toast.error("Your claim deadline has passed. Each account can claim this gift only once.");
+      else toast.success("Gift ready.", { description: giftClaimNotice(card), duration: 15000 });
     },
   });
 
