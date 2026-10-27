@@ -45,7 +45,6 @@ export function SendGift() {
   const [clubIds, setClubIds] = usePersistentDraft<string[]>(giftKey("clubs"), []);
   const request = useRef<{ signature: string; id: string } | null>(null);
   const [message, setMessage] = usePersistentDraft(giftKey("message"), "");
-  const [listPublic, setListPublic] = usePersistentDraft(giftKey("public"), false);
   const [customPurpose, setCustomPurpose] = usePersistentDraft(giftKey("purpose"), "");
   const [createdCard, setCreatedCard] = usePersistentDraft<any>(giftKey("created"), null);
   const { details: currencyDetails, format, toBaseAmount, fromBaseAmount } = useWalletCurrency();
@@ -127,12 +126,11 @@ export function SendGift() {
       });
       if (error) throw error;
       const card = Array.isArray(data) ? data[0] : data;
-      // Listed on Browse so anyone can find and claim it (off by default: gifts are usually for people you choose).
-      if (listPublic && card?.id) await supabase.rpc("set_gift_public" as never, { p_gift: card.id, p_public: true } as never).then(() => undefined, () => undefined);
       return card;
     },
     onSuccess: (card) => {
       refetchUnclaimed();
+      void client.invalidateQueries({ queryKey: ["browse-gifts"] });
       void client.invalidateQueries({ queryKey: ["gift-card-profile"] });
       void client.invalidateQueries({ queryKey: ["profile", "current"] });
       void client.invalidateQueries({ queryKey: ["wallet-balance"] });
@@ -356,23 +354,9 @@ export function SendGift() {
             </span>
           </label>
 
-          <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border p-3.5">
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold">Show on Browse</span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                Anyone on Zero Gifts can find this gift and claim it until it runs out. Leave it off to share the link only with people you choose.
-              </span>
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={listPublic}
-              onClick={() => setListPublic(!listPublic)}
-              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors ${listPublic ? "bg-[#c3217e]" : "bg-foreground/15"}`}
-            >
-              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${listPublic ? "left-6" : "left-1"}`} />
-            </button>
-          </label>
+          <p className="rounded-xl border border-border p-3.5 text-xs leading-relaxed text-muted-foreground">
+            Your gift appears automatically on Zero Gifts for people to find and claim. Your chosen bootcamp and club restrictions still apply.
+          </p>
         </section>
 
         <section className="zg-box flex flex-col bg-card px-4 pb-4 pt-4">

@@ -29,9 +29,8 @@ function timeLeft(iso: string | null) {
 }
 
 /**
- * Browse: every gift on Zero Club that its creator listed publicly and that
- * still has claims left. Anyone can open one and claim it (one per account).
- * Gifts are link-only unless the creator switches on "Show on Browse".
+ * All open gift campaigns created across Zero Club and Zero Gifts are listed
+ * automatically. Personal claim receipts are never public listings.
  */
 export function BrowseGifts() {
   const { session } = useAuth();
@@ -49,6 +48,8 @@ export function BrowseGifts() {
       return (data || []) as unknown as BrowseGift[];
     },
     staleTime: 30_000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
     refetchInterval: 10_000,
   });
   const list = q.data || [];
@@ -59,7 +60,7 @@ export function BrowseGifts() {
       <PageHead
         eyebrow="Open to claim"
         title="Browse gifts"
-        sub="Zero Cards people have shared with everyone on Zero Club. Claim one before it runs out; each account can claim a gift once."
+        sub="Discover gifts created on Zero Club and Zero Gifts. Claim one before it runs out; each account can claim a gift once."
       />
 
       <label className="relative block max-w-[640px]">

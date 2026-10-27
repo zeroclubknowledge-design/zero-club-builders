@@ -47,7 +47,7 @@ const money = (value: number) => formatWalletAmount(Number(value) || 0);
 
 type Tab = "details" | "content" | "register";
 
-function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) {
+export function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -269,10 +269,10 @@ function ZeroFormVideoPlayer({ src, poster }: { src: string; poster?: string }) 
   );
 }
 
-export function ZeroFormPublicPage({ slug }: { slug: string }) {
+export function ZeroFormPublicPage({ slug, initialTab = "details" }: { slug: string; initialTab?: Tab }) {
   const queryClient = useQueryClient();
 
-  const [tab, setTab] = useState<Tab>("details");
+  const [tab, setTab] = useState<Tab>(initialTab);
   // Checkbox questions hold several values, so an answer is a string or an
   // array of strings. The answers column is jsonb, so both store as they are.
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
@@ -347,6 +347,12 @@ export function ZeroFormPublicPage({ slug }: { slug: string }) {
   const state = data?.state as string | undefined;
   const fields = (data?.fields || []) as any[];
   const curriculum = (data?.curriculum || []) as any[];
+
+  useEffect(() => {
+    if (initialTab !== "register" || !data?.found) return;
+    const frame = requestAnimationFrame(() => registerRef.current?.scrollIntoView({ block: "start" }));
+    return () => cancelAnimationFrame(frame);
+  }, [initialTab, data?.found]);
 
   // Pricing switched off: the form only collects details.
   const isWaitlist = form?.form_kind === "waitlist" || (!bootcamp?.id && !!form);

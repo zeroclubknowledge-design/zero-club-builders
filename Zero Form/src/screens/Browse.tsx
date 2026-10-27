@@ -170,7 +170,7 @@ function FormCard({ form }: { form: BrowseForm }) {
     // The share button sits over the card, not inside its link (a button
     // inside a link would open the form as well).
     <div className="relative flex min-w-0">
-    <Link to="/form/$slug" params={{ slug: form.slug }} className="group flex min-w-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
+    <Link to="/form/$slug/info" params={{ slug: form.slug }} className="group flex min-w-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
       <div className="relative aspect-[16/9] bg-cover bg-center" style={{ backgroundImage: form.banner_url ? `url(${form.banner_url})` : "linear-gradient(120deg,#e64aa4,#ae2b76 55%,#7c3aed)" }}>
         <span className="absolute left-3 top-3 flex items-center gap-1.5">
           <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold uppercase tracking-wide shadow-sm ${info.tone}`}>{info.label}</span>
@@ -203,7 +203,7 @@ function FormCard({ form }: { form: BrowseForm }) {
         </div>
         {form.registration_deadline && <p className="mt-1 text-[12px] text-muted-foreground">Register by {day(form.registration_deadline)}</p>}
         <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-[13.5px] font-semibold text-[#c3217e]">
-          {form.registered ? "View my registration" : info.action} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+          View details <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
         </span>
       </div>
     </Link>

@@ -27,6 +27,26 @@ test('gift claim deadlines, recycling and payment integrity',async t=>{
   const sweep=id=>value('select refresh_zero_gift_claims($1) as value',[id]);
   const legacy=await create();const legacyReceipt=await claim(legacy,alice);
   await db.exec(migration);
+  const visibilityMigration=read('20261027120000_publish_gift_campaigns.sql');
+  await db.exec("alter table gift_cards add column is_public boolean not null default false");
+  await db.exec(visibilityMigration);
+  await t.test('existing and new campaigns are public across apps while personal receipts stay private',async()=>{
+    assert.equal((await row(legacy.id)).is_public,true);
+    assert.equal((await row(legacyReceipt.id)).is_public,false);
+    const c=await create();assert.equal(c.is_public,true);
+    const receipt=await claim(c,bob);assert.equal(receipt.is_public,false);
+    // Older clients cannot accidentally hide campaigns with the former toggle.
+    await db.query('update gift_cards set is_public=false where id=$1',[c.id]);
+    assert.equal((await row(c.id)).is_public,true);
+    await db.query('update gift_cards set is_public=true where id=$1',[receipt.id]);
+    assert.equal((await row(receipt.id)).is_public,false);
+    await db.query("insert into gift_cards(code,creator_id,amount,service,status,claimed_by,expires_at,is_public) values('PERSONAL',$1,500,'universal','claimed',$2,now()+interval '1 day',true)",[maker,alice]);
+    assert.equal(await value("select is_public as value from gift_cards where code='PERSONAL'"),false);
+    await db.query("insert into gift_cards(code,creator_id,amount,service,is_public) values('LEGACY-LINK',$1,500,'universal',true)",[maker]);
+    assert.equal(await value("select is_public as value from gift_cards where code='LEGACY-LINK'"),false);
+    await db.exec(visibilityMigration);
+    assert.equal((await row(c.id)).is_public,true);
+  });
   await t.test('rollout grants existing credit a capped grace window; rerunning never extends it',async()=>{
     const first=await row(legacyReceipt.id);assert.ok(first.claim_deadline_at);
     assert.ok(Date.parse(first.expires_at)<=Date.now()+6*3600000+1000);

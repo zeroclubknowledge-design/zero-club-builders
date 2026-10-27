@@ -4,6 +4,7 @@ import { MyRegistrations } from "@/screens/MyRegistrations";
 import { AuthPage } from "@/screens/AuthPage";
 import { ZeroFormPublicPage } from "@/screens/PublicForm";
 import { BrowsePage } from "@/screens/BrowsePage";
+import { FormInfoPage } from "@/screens/FormInfo";
 
 /*
  * Zero Form: the stand-alone home of Zero Club's registration forms.
@@ -28,6 +29,22 @@ const formRoute = createRoute({
     return <ZeroFormPublicPage key={slug} slug={slug} />;
   },
 });
+const formInfoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/form/$slug/info",
+  component: function InfoPage() {
+    const { slug } = formInfoRoute.useParams();
+    return <FormInfoPage key={slug} slug={slug} />;
+  },
+});
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/form/$slug/register",
+  component: function RegisterPage() {
+    const { slug } = registerRoute.useParams();
+    return <ZeroFormPublicPage key={slug} slug={slug} initialTab="register" />;
+  },
+});
 const shortFormRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/f/$slug",
@@ -37,7 +54,7 @@ const shortFormRoute = createRoute({
   },
 });
 
-const routeTree = rootRoute.addChildren([homeRoute, myFormsRoute, browseRoute, meRoute, signInRoute, signUpRoute, formRoute, shortFormRoute]);
+const routeTree = rootRoute.addChildren([homeRoute, myFormsRoute, browseRoute, meRoute, signInRoute, signUpRoute, formRoute, formInfoRoute, registerRoute, shortFormRoute]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent", scrollRestoration: true });
 
