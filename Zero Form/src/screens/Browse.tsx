@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarDays, Check, Compass, Loader2, Search, Users, X } from "@/components/icons/glyphs";
+import { ArrowRight, CalendarDays, Check, Compass, Loader2, Search, Share2, Users, X } from "@/components/icons/glyphs";
+import { openShareSheet } from "@/components/ShareSheet";
+import { zeroFormUrl } from "@/features/zeroForm/templates";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
@@ -156,8 +158,19 @@ export function BrowseForms({ compact = false }: { compact?: boolean }) {
 function FormCard({ form }: { form: BrowseForm }) {
   const seatsLow = form.seats_left !== null && form.seats_left <= 10;
   const info = kindInfo(form.kind);
+  const from = form.club_name || form.owner_name;
+  const share = () =>
+    void openShareSheet({
+      url: zeroFormUrl(form.slug),
+      title: form.title,
+      text: `${info.label}: ${form.title}${from ? ` · ${from}` : ""}`,
+      heading: `Share this ${info.label.toLowerCase()}`,
+    });
   return (
-    <Link to="/form/$slug" params={{ slug: form.slug }} className="group flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
+    // The share button sits over the card, not inside its link (a button
+    // inside a link would open the form as well).
+    <div className="relative flex min-w-0">
+    <Link to="/form/$slug" params={{ slug: form.slug }} className="group flex min-w-0 flex-1 flex-col overflow-hidden rounded-[22px] border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
       <div className="relative aspect-[16/9] bg-cover bg-center" style={{ backgroundImage: form.banner_url ? `url(${form.banner_url})` : "linear-gradient(120deg,#e64aa4,#ae2b76 55%,#7c3aed)" }}>
         <span className="absolute left-3 top-3 flex items-center gap-1.5">
           <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold uppercase tracking-wide shadow-sm ${info.tone}`}>{info.label}</span>
@@ -194,6 +207,16 @@ function FormCard({ form }: { form: BrowseForm }) {
         </span>
       </div>
     </Link>
+    <button
+      type="button"
+      onClick={share}
+      aria-label={`Share ${form.title}`}
+      title="Share"
+      className="absolute bottom-4 right-4 grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition hover:text-foreground active:scale-95"
+    >
+      <Share2 className="h-4 w-4" />
+    </button>
+    </div>
   );
 }
 
