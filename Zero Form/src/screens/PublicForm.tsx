@@ -581,7 +581,7 @@ export function ZeroFormPublicPage({ slug, initialTab = "details" }: { slug: str
 
     return (
       <Shell>{authSheet}
-        <div className="zf-success mx-auto w-full max-w-[560px] px-4 pb-14 pt-5 sm:px-5 sm:pt-8">
+        <div className="zf-success mx-auto w-full max-w-[960px] px-3 pb-12 pt-4 sm:px-5 lg:px-6 sm:pt-6">
           <div className="zf-card relative overflow-hidden rounded-[30px] border border-border bg-card p-3 text-foreground shadow-[0_40px_90px_-40px_rgba(0,0,0,0.45)] sm:p-3.5">
 
             {/* ── Hero: the form's own banner ──────────────────────────── */}
@@ -819,7 +819,7 @@ export function ZeroFormPublicPage({ slug, initialTab = "details" }: { slug: str
 
   return (
     <Shell>{authSheet}
-      <div className="mx-auto max-w-[720px] px-5 pb-24 pt-6">
+      <div className="mx-auto w-full min-w-0 max-w-[1440px] px-3 pb-20 pt-4 sm:px-5 lg:px-6 sm:pt-6">
         {/* A chosen image takes precedence; otherwise the video loops inline. */}
         {flyer ? (
           <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
@@ -1386,7 +1386,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[62px] max-w-[720px] items-center justify-between px-5">
+        <div className="mx-auto flex h-[62px] w-full min-w-0 max-w-[1440px] items-center justify-between px-3 sm:px-5 lg:px-6">
           <div className="flex min-w-0 items-center gap-2.5">
             {/* A form opened from inside the app is a dead end without this.
                 /form/$slug sits outside the /app layout, so it has no bottom

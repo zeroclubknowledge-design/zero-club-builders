@@ -85,29 +85,29 @@ export function FormInfoPage({ slug }: { slug: string }) {
   return (
     <AppShell brand={<Brand />} nav={NAV}>
       {back}
-      <article className="mt-3 min-w-0 overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_24px_70px_-48px_rgba(195,33,126,0.4)] sm:rounded-[32px]">
+      <article className="mt-2 min-w-0 overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_24px_70px_-48px_rgba(195,33,126,0.4)] sm:rounded-[24px]">
         {flyer ? <img src={flyer} alt={`${title} cover`} className="max-h-[520px] w-full bg-foreground/[0.03] object-contain" decoding="async" />
           : bootcamp?.video_url ? <ZeroFormVideoPlayer src={bootcamp.video_url} />
           : <div aria-hidden="true" className="h-2 bg-gradient-to-r from-[#c3217e] via-[#e64aa4] to-violet-500" />}
-        <div className="p-5 sm:p-8 lg:p-10">
+        <div className="p-4 sm:p-5 lg:p-6">
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em]">
             <span className="rounded-full bg-[#c3217e]/10 px-3 py-1.5 text-[#c3217e]">{waitlist ? "Waitlist" : bootcamp?.category || "Bootcamp"}</span>
             <span className={`rounded-full px-3 py-1.5 ${open ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-foreground/[0.05] text-muted-foreground"}`}>{status}</span>
           </div>
-          <h1 className="mt-5 max-w-[820px] break-words font-display text-[28px] font-bold leading-[1.15] tracking-tight sm:text-[40px] lg:text-[46px]">{title}</h1>
-          <div className="mt-6 flex items-center gap-3">
+          <h1 className="mt-4 break-words font-display text-[28px] font-bold leading-[1.15] tracking-tight sm:text-[36px] lg:text-[42px]">{title}</h1>
+          <div className="mt-4 flex items-center gap-3">
             {owner?.avatar_url ? <img src={owner.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#c3217e]/10 font-bold text-[#c3217e]">{person.charAt(0)}</span>}
             <div className="min-w-0"><p className="text-xs text-muted-foreground">Organised by</p><p className="break-words text-sm font-semibold">{person}</p>{owner?.username && <p className="break-words text-xs text-muted-foreground">@{owner.username.replace(/^@/, "")}{owner.account_type ? ` · ${owner.account_type}` : ""}</p>}</div>
           </div>
-          <div className="mt-8 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
-            <div className="min-w-0 space-y-8">
+          <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="min-w-0 space-y-6">
               <section><SectionTitle eyebrow="The overview" title={waitlist ? "About this form" : "About this bootcamp"} />{description ? <RichText content={description} className="mt-4 break-words text-[15px] leading-[1.85] text-foreground/85 [&_a]:break-all" /> : <p className="mt-3 text-sm text-muted-foreground">The organiser hasn't added a description yet.</p>}
                 {extraNote && <div className="mt-6 border-t border-border pt-5"><h3 className="mb-3 text-sm font-semibold">A note from the organiser</h3><RichText content={form.description!} className="break-words text-sm leading-relaxed text-muted-foreground [&_a]:break-all" /></div>}
               </section>
               {!waitlist && <section><SectionTitle eyebrow="Your learning journey" title="Course content" />{modules.length ? <><p className="mb-4 mt-2 text-xs text-muted-foreground">{modules.length} {modules.length === 1 ? "module" : "modules"} · {lessons} {lessons === 1 ? "lesson" : "lessons"}</p><div className="divide-y divide-border overflow-hidden rounded-2xl border border-border">{modules.map((module, index) => <details key={module.id} open={index === 0} className="group p-4"><summary className="cursor-pointer break-words text-sm font-semibold">{String(index + 1).padStart(2, "0")} · {module.title}<span className="ml-2 text-xs font-normal text-muted-foreground">({module.lessons.length} {module.lessons.length === 1 ? "lesson" : "lessons"})</span></summary><ol className="mt-4 space-y-2 pl-5 text-sm text-muted-foreground">{module.lessons.map(lesson => <li key={lesson.id} className="list-disc break-words">{lesson.title}</li>)}</ol></details>)}</div></> : <p className="mt-3 text-sm text-muted-foreground">The organiser will share the curriculum when it is ready.</p>}</section>}
               {!!data.fields?.length && <section><SectionTitle eyebrow="Before you register" title="What you'll be asked" /><ul className="mt-4 flex flex-wrap gap-2">{data.fields.map(field => <li key={field.id} className="max-w-full break-words rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground">{field.label}{field.required ? " · Required" : " · Optional"}</li>)}</ul></section>}
             </div>
-            <aside className="min-w-0 self-start rounded-[22px] border border-border bg-foreground/[0.025] p-5 sm:p-6">
+            <aside className="min-w-0 self-start rounded-[18px] border border-border bg-foreground/[0.025] p-4 sm:p-5">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{dataOnly ? "Participation" : "Registration fee"}</p>
               <p className="mt-3 break-words text-3xl font-bold tracking-tight tabular-nums">{price > 0 ? formatWalletAmount(price) : "Free"}</p>
               {!dataOnly && price > 0 && regular > price && <p className="mt-2 text-sm text-muted-foreground"><span className="line-through">{formatWalletAmount(regular)}</span> <span className="ml-2 font-semibold text-[#c3217e]">Early-bird price</span></p>}
@@ -120,7 +120,7 @@ export function FormInfoPage({ slug }: { slug: string }) {
               </dl>
             </aside>
           </div>
-          <footer className="mt-10 border-t border-border pt-7 lg:flex lg:items-center lg:justify-between lg:gap-6">
+          <footer className="mt-6 border-t border-border pt-5 lg:flex lg:items-center lg:justify-between lg:gap-6">
             <div><h2 className="text-xl font-semibold tracking-tight">{registered ? "You're already on the list" : open ? waitlist ? "Be part of what's next" : "Ready to take the next step?" : "Registration is closed"}</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{registered ? "Open your registration to review your details and next steps." : open ? "Continue to the form to enter your details. Nothing is submitted until you confirm." : closedMessage[deadlinePassed ? "deadline_passed" : data.state] || "This form is not accepting registrations right now."}</p></div>
             <div className="mt-5 flex shrink-0 flex-wrap gap-3 lg:mt-0">
               <Link to="/" className="inline-flex h-11 items-center justify-center rounded-full border border-border px-6 text-sm font-semibold transition hover:bg-foreground/[0.05]">Ignore</Link>

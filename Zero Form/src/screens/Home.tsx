@@ -56,7 +56,7 @@ function Dashboard() {
           <Metric icon={Wallet} label="Revenue" value={formatWalletAmount(totals.revenue)} />
         </div>
       )}
-      <section className="rounded-[26px] border border-border bg-card p-4 sm:p-6">
+      <section className="min-w-0 rounded-[20px] border border-border bg-card p-3 sm:p-4">
         <ZeroFormWorkspace ownerLabel="Your workspace" />
       </section>
     </AppShell>

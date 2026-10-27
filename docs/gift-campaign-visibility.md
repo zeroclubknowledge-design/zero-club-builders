@@ -4,12 +4,22 @@ The standalone Browse page uses the shared `browse_gift_cards` RPC, which lists
 public campaigns. Zero Club never marked new campaigns public; the standalone
 creator also required an opt-in toggle and silently ignored publishing failures.
 
-Apply `supabase/migrations/20261027120000_publish_gift_campaigns.sql` in the shared
-Supabase project, then deploy Zero Gifts. The migration repairs existing campaign
-visibility and publishes future campaigns atomically inside their creation
-transaction, including campaigns created by older deployed clients. No extra
-publishing request or toggle is required. Both applications must use the same
-`VITE_SUPABASE_URL` project.
+Apply `supabase/migrations/20261027150000_gift_browse_campaigns.sql` in the shared
+Supabase project, then deploy Zero Gifts. This migration is self-contained for
+deployments that already support quantity-based, club-scoped gift campaigns;
+it does not require the earlier `20261027120000_publish_gift_campaigns.sql` fix.
+
+The new `browse_zero_gift_campaigns` RPC lists open parent campaigns directly,
+including existing campaigns with `is_public = false` and platform-sponsored
+admin campaigns created without a wallet debit. It never checks creator wallet
+balance or requires a matching wallet transaction. It optionally refreshes
+six-hour reservations when that migration is installed.
+
+The same migration updates the legacy `browse_gift_cards` RPC for existing
+clients while preserving its `jsonb`, `jsonb[]` or `SETOF jsonb` return type.
+An unusual legacy signature is left intact with a warning; deploying Zero Gifts
+switches to the new RPC directly. No extra publishing request or toggle is
+required. Both applications must use the same `VITE_SUPABASE_URL` project.
 
 Claim receipts and direct gifts assigned to a member remain private. Browse keeps
 its existing filters for active, unexpired campaigns with available claims and
@@ -29,3 +39,14 @@ Local regression checks:
 node --test scripts/gift-claim-window.test.mjs scripts/multi-claim-gifts.test.mjs
 node node_modules/typescript/bin/tsc --noEmit --pretty false -p 'Zero Gifts/tsconfig.json'
 ```
+
+Check the live deployment (read-only, prints no API keys or gift recipient data):
+
+```powershell
+node scripts/check-gift-browse-deployment.mjs
+```
+
+Live check during this fix: the deployed frontend still used `browse_gift_cards`,
+which returned HTTP 200 with zero campaigns; the new RPC returned `PGRST202`
+(not installed). The checkout has no Supabase management token or database
+connection, so a successful local test/build is not evidence of live activation.

@@ -7,7 +7,7 @@ test('gift claim deadlines, recycling and payment integrity',async t=>{
  try {
   await db.exec(`create role authenticated;create role anon;create role service_role;create schema auth;
    create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
-   create table profiles(id uuid primary key,coins integer default 0,full_name text,username text,is_admin boolean default false);
+   create table profiles(id uuid primary key,coins integer default 0,full_name text,username text,avatar_url text,is_admin boolean default false);
    create table bootcamps(id uuid primary key,title text);
    create table clubs(id uuid primary key,name text,bootcamp_id uuid,parent_club_id uuid);
    create table notifications(profile_id uuid,actor_id uuid,type text,content text);
@@ -26,6 +26,14 @@ test('gift claim deadlines, recycling and payment integrity',async t=>{
   const expire=id=>db.query("update gift_cards set expires_at=now()-interval '1 second' where id=$1",[id]);
   const sweep=id=>value('select refresh_zero_gift_claims($1) as value',[id]);
   const legacy=await create();const legacyReceipt=await claim(legacy,alice);
+  await t.test('Browse installs before the earlier publishing and six-hour claim-window updates',async()=>{
+    await db.exec(read('20261027150000_gift_browse_campaigns.sql'));
+    await user('');await db.exec('set role anon');
+    const gifts=await value('select browse_zero_gift_campaigns(null,null,100) as value');
+    assert.equal(gifts.find(g=>g.id===legacy.id).claims_remaining,19);
+    assert.ok(!gifts.some(g=>g.id===legacyReceipt.id));
+    await db.exec('reset role');
+  });
   await db.exec(migration);
   const visibilityMigration=read('20261027120000_publish_gift_campaigns.sql');
   await db.exec("alter table gift_cards add column is_public boolean not null default false");
@@ -114,6 +122,52 @@ test('gift claim deadlines, recycling and payment integrity',async t=>{
     await db.query('update profiles set is_admin=true where id=$1',[maker]);
     const sponsored=await create(48,1);assert.equal(sponsored.funding_source,'platform');
     assert.equal(Number(await value('select close_gift_campaign($1) as value',[sponsored.id])),0);
+  });
+  await t.test('Browse includes unfunded admin campaigns for guests and members without exposing personal credits',async()=>{
+    await db.query('update profiles set coins=0,is_admin=true where id=$1',[maker]);
+    const sponsored=await create(48,2);
+    assert.equal(sponsored.funding_source,'platform');
+    assert.equal(Number(await value('select coins as value from profiles where id=$1',[maker])),0);
+    // Reproduce campaigns created before the visibility fix was installed.
+    await db.exec('alter table gift_cards disable trigger publish_zero_gift_campaign');
+    await db.query("update gift_cards set is_public=false,message='A 100% sponsored gift' where id=$1",[sponsored.id]);
+    await db.exec('alter table gift_cards enable trigger publish_zero_gift_campaign');
+    await db.exec('drop function if exists browse_gift_cards(text,text,integer)');
+    await db.exec("create function public.browse_gift_cards(p_service text default null,p_search text default null,p_limit integer default 60) returns jsonb[] language sql as $$select array[]::jsonb[]$$");
+    const browseMigration=read('20261027150000_gift_browse_campaigns.sql');
+    await db.exec(browseMigration);await db.exec(browseMigration);
+    const browse=async(service=null,search=null,limit=100)=>value('select browse_zero_gift_campaigns($1,$2,$3) as value',[service,search,limit]);
+    await user('');await db.exec('set role anon');
+    const guest=await browse();assert.ok(guest.some(g=>g.id===sponsored.id));
+    assert.ok(guest.every(g=>!g.mine&&!g.claimed&&g.claims_remaining>0));
+    assert.ok(guest.every(g=>!('claimed_by' in g)&&!('remaining_amount' in g)&&!('funding_source' in g)));
+    assert.deepEqual((await value('select browse_gift_cards(null,null,100) as value')).map(g=>g.id),guest.map(g=>g.id));
+    assert.deepEqual((await browse('bootcamps','100%')).map(g=>g.id),[sponsored.id]);
+    assert.equal((await browse('membership','100%')).length,0);
+    assert.ok((await browse(null,'@org')).some(g=>g.id===sponsored.id));
+    assert.equal((await browse(null,null,1)).length,1);
+    await assert.rejects(db.query('select * from gift_cards'),/permission denied/);
+    await db.exec('reset role');
+    const receipt=await claim(sponsored,alice);
+    await db.exec('set role authenticated');
+    const member=await browse();assert.equal(member.find(g=>g.id===sponsored.id).claimed,true);
+    assert.equal(member.find(g=>g.id===sponsored.id).claims_remaining,1);
+    assert.ok(!member.some(g=>g.id===receipt.id));
+    await db.exec('reset role');await user(maker);
+    assert.equal((await browse()).find(g=>g.id===sponsored.id).mine,true);
+    await expire(receipt.id);assert.equal((await browse()).find(g=>g.id===sponsored.id).claims_remaining,2);
+    await expire(sponsored.id);assert.ok(!(await browse()).some(g=>g.id===sponsored.id));
+    const closed=await create();await value('select close_gift_campaign($1) as value',[closed.id]);
+    assert.ok(!(await browse()).some(g=>g.id===closed.id));
+    // Compatibility also supports deployments where the old RPC returned jsonb.
+    await db.exec('drop function browse_gift_cards(text,text,integer)');
+    await db.exec("create function browse_gift_cards(p_service text default null,p_search text default null,p_limit integer default 60) returns jsonb language sql as $$select '[]'::jsonb$$");
+    await db.exec(browseMigration);
+    assert.deepEqual(await value('select browse_gift_cards(null,null,100) as value'),await browse());
+    await db.exec('drop function browse_gift_cards(text,text,integer)');
+    await db.exec("create function browse_gift_cards(p_service text default null,p_search text default null,p_limit integer default 60) returns setof jsonb language sql as $$select value from jsonb_array_elements('[]'::jsonb)$$");
+    await db.exec(browseMigration);
+    assert.deepEqual(await value("select coalesce(jsonb_agg(value),'[]'::jsonb) as value from browse_gift_cards(null,null,100) value"),await browse());
   });
  }finally{await db.close();}
 });

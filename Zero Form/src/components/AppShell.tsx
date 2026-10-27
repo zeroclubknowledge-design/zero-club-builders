@@ -16,7 +16,7 @@ export function AppShell({ brand, nav, children }: { brand: ReactNode; nav: NavI
   return (
     <div className="min-h-dvh bg-canvas text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-[60px] max-w-[1080px] items-center gap-5 px-4 sm:px-6">
+        <div className="mx-auto flex h-[60px] w-full min-w-0 max-w-[1440px] items-center gap-5 px-3 sm:px-5 lg:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2.5">{brand}</Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {nav.map((item) => (
@@ -37,7 +37,7 @@ export function AppShell({ brand, nav, children }: { brand: ReactNode; nav: NavI
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[1080px] px-4 pb-[calc(104px+env(safe-area-inset-bottom))] pt-5 sm:px-6 md:pb-16">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-[1440px] px-3 pb-[calc(104px+env(safe-area-inset-bottom))] pt-4 sm:px-5 lg:px-6 md:pb-12">{children}</main>
       <nav className="fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-20px)] max-w-[480px] -translate-x-1/2 md:hidden">
         <div className="grid gap-1 rounded-[24px] border border-border bg-background/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
           {nav.map((item) => {

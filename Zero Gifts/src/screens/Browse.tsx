@@ -8,7 +8,6 @@ import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { NAV } from "./nav";
-import { refreshGiftClaims } from "@/lib/giftClaimRefresh";
 
 type BrowseGift = {
   id: string; code: string; amount: number; service: string; template_id: string;
@@ -42,8 +41,7 @@ export function BrowseGifts() {
   const q = useQuery({
     queryKey: ["browse-gifts", term, service, session?.user.id ?? null],
     queryFn: async () => {
-      await refreshGiftClaims();
-      const { data, error } = await supabase.rpc("browse_gift_cards" as never, { p_service: service, p_search: term || null } as never);
+      const { data, error } = await supabase.rpc("browse_zero_gift_campaigns" as never, { p_service: service, p_search: term || null } as never);
       if (error) throw error;
       return (data || []) as unknown as BrowseGift[];
     },
