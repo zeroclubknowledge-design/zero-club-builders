@@ -161,7 +161,7 @@ export function Profile() {
       {isAmb && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile label="Earned all time" value={money(total, currency, true)} />
-          <StatTile label="Commission rate" value={`${me.commission_rate ?? earn?.commission_rate ?? 0}%`} />
+          <StatTile label="Share of platform fee" value={`${me.commission_rate ?? earn?.commission_rate ?? 0}%`} />
           <StatTile label="Members brought in" value={String(earn?.referred_members ?? 0)} />
           <StatTile label="Tasks approved" value={String(me.tasks_approved ?? 0)} />
         </div>

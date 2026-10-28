@@ -94,7 +94,7 @@ export function Campaigns() {
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/15"><Rocket className="h-5 w-5" /></span>
           <h2 className="mt-4 text-[22px] font-bold leading-tight text-white">Start your first campaign</h2>
           <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-white/70">
-            Pick a goal and an end date. You get a personal link right away; you earn {me.commission_rate ?? 20}% of every payment made by
+            Pick a goal and an end date. You get a personal link right away; you earn {me.commission_rate ?? 20}% of Zero Club’s 10% platform fee on eligible payments made by
             people who join through it. When it ends, the Zero Club team checks it and pays you — plus a bonus for strong results.
           </p>
           <button

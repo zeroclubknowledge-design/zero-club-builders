@@ -411,11 +411,11 @@ function BootcampDetail() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <div className="zc-page-width relative h-[220px] w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl">
-        {bootcamp.banner_url ? (
+      <div className={`zc-page-width relative ${bootcamp.video_url ? "aspect-video" : "h-[220px]"} w-full shrink-0 overflow-hidden bg-[#221d22] md:mx-auto md:mt-2 md:max-w-[680px] md:rounded-t-xl`}>
+        {bootcamp.video_url ? (
+          <BootcampPreviewVideo key={bootcamp.video_url} src={bootcamp.video_url} poster={bootcamp.banner_url || undefined} label={`${bootcamp.title} video preview`} controls />
+        ) : bootcamp.banner_url ? (
           <img src={bootcamp.banner_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
-        ) : bootcamp.video_url ? (
-          <BootcampPreviewVideo key={bootcamp.video_url} src={bootcamp.video_url} />
         ) : (
           <div className="h-full w-full" style={{ background: "linear-gradient(135deg,#c3217e,#6b2a8f 55%,#1d1b3a)" }} />
         )}

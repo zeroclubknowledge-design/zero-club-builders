@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { supabase } from './supabase';
 import { getCachedSession } from './auth';
+import { assignedBootcampTutorIds } from '../features/bootcamps/tutors';
 
 // Fetch all active bootcamps
 export const getBootcamps = async () => {
@@ -49,7 +50,7 @@ export const getTutorBootcamps = async () => {
   const { data: bootcamps, error } = await supabase
     .from('bootcamps')
     .select('*')
-    .or(`creator_id.eq.${session.user.id},assigned_tutor_id.eq.${session.user.id}`)
+    .or(`creator_id.eq.${session.user.id},assigned_tutor_id.eq.${session.user.id},assigned_tutor_ids.cs.{${session.user.id}}`)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -75,15 +76,15 @@ export const getTutorBootcamps = async () => {
   const creatorMap = new Map((creators || []).map((creator: any) => [creator.id, creator]));
   const clubToBootcampMap = new Map((clubsData || []).map((c: any) => [c.id, c.bootcamp_id]));
   const bootcampCreatorMap = new Map((bootcamps || []).map((b: any) => [b.id, b.creator_id]));
-  const bootcampTutorMap = new Map((bootcamps || []).map((b: any) => [b.id, b.assigned_tutor_id]));
+  const bootcampTutorMap = new Map((bootcamps || []).map((b: any) => [b.id, assignedBootcampTutorIds(b)]));
 
   const learnerSets = new Map<string, Set<string>>();
   bootcampIds.forEach((id: string) => learnerSets.set(id, new Set<string>()));
 
   (enrollments || []).forEach((row: any) => {
     const creatorId = bootcampCreatorMap.get(row.bootcamp_id);
-    const tutorId = bootcampTutorMap.get(row.bootcamp_id);
-    if (row.profile_id && row.profile_id !== creatorId && row.profile_id !== tutorId && row.profile_id !== session.user.id) {
+    const tutorIds = bootcampTutorMap.get(row.bootcamp_id) || [];
+    if (row.profile_id && row.profile_id !== creatorId && !tutorIds.includes(row.profile_id) && row.profile_id !== session.user.id) {
       learnerSets.get(row.bootcamp_id)?.add(row.profile_id);
     }
   });
@@ -92,8 +93,8 @@ export const getTutorBootcamps = async () => {
     const bootcampId = clubToBootcampMap.get(row.club_id);
     if (bootcampId) {
       const creatorId = bootcampCreatorMap.get(bootcampId);
-      const tutorId = bootcampTutorMap.get(bootcampId);
-      if (row.profile_id && row.profile_id !== creatorId && row.profile_id !== tutorId && row.profile_id !== session.user.id) {
+      const tutorIds = bootcampTutorMap.get(bootcampId) || [];
+      if (row.profile_id && row.profile_id !== creatorId && !tutorIds.includes(row.profile_id) && row.profile_id !== session.user.id) {
         learnerSets.get(bootcampId)?.add(row.profile_id);
       }
     }
@@ -428,12 +429,12 @@ export const getBootcampLearners = async (bootcampId: string) => {
 
     const { data: bootcamp } = await supabase
       .from('bootcamps')
-      .select('creator_id, assigned_tutor_id')
+      .select('creator_id, assigned_tutor_id, assigned_tutor_ids')
       .eq('id', bootcampId)
       .maybeSingle();
 
     const creatorId = bootcamp?.creator_id;
-    const assignedTutorId = bootcamp?.assigned_tutor_id;
+    const assignedTutorIds = assignedBootcampTutorIds(bootcamp);
 
     const { data: enrollments } = await supabase
       .from('enrollments')
@@ -459,7 +460,7 @@ export const getBootcampLearners = async (bootcampId: string) => {
     const isOwnerOrTutor = (pid?: string) => {
       if (!pid) return true;
       if (pid === creatorId) return true;
-      if (pid === assignedTutorId) return true;
+      if (assignedTutorIds.includes(pid)) return true;
       if (currentUserId && pid === currentUserId) return true;
       return false;
     };

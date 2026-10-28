@@ -12,6 +12,7 @@
  * Living here, it is reached only through the two routes that use it.
  */
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronDown,
@@ -41,6 +42,7 @@ import { CategoryPicker } from "@/components/CategoryPicker";
 import { BootcampMediaInput } from "./BootcampMediaInput";
 import { CertificateSetup } from "@/features/certificates/CertificateSetup";
 import { certificateDesignError, type CertificateDesign } from "@/features/certificates/design";
+import { bootcampSchedulePayload, localBootcampDate, localBootcampStart } from "./schedule";
 
 export function BootcampForm({
   bootcampId,
@@ -52,6 +54,7 @@ export function BootcampForm({
   workspaceLabel?: string;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { details: currencyDetails, format, toBaseAmount } = useWalletCurrency();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -71,6 +74,8 @@ export function BootcampForm({
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState("10");
   const [endDate, setEndDate] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [originalStartsAt, setOriginalStartsAt] = useState<string | null>(null);
   const [certificateDesign, setCertificateDesign] = useState<CertificateDesign | null>(null);
   const [certificateUploading, setCertificateUploading] = useState(false);
 
@@ -177,7 +182,9 @@ export function BootcampForm({
       setCouponCode(bootcamp.coupon_code || "");
       setCouponDiscount(String(bootcamp.coupon_discount_percent || 10));
       setReferralPercent(String(bootcamp.referral_percent ?? 0));
-      setEndDate(bootcamp.ends_at ? String(bootcamp.ends_at).slice(0, 10) : "");
+      setStartsAt(localBootcampStart(bootcamp.starts_at));
+      setOriginalStartsAt(bootcamp.starts_at || null);
+      setEndDate(localBootcampDate(bootcamp.ends_at));
       setPrimaryCouponId(
         (fetchedCoupons || []).find(
           (coupon: any) =>
@@ -234,6 +241,7 @@ export function BootcampForm({
 
   const launchBootcamp = async () => {
     try {
+      const schedule = bootcampSchedulePayload(startsAt, endDate, originalStartsAt);
       if (!bootcampId || certificateDesign) {
         const error = certificateDesignError(certificateDesign);
         if (error) throw new Error(error);
@@ -285,7 +293,7 @@ export function BootcampForm({
         banner_url: bannerUrl || null,
         video_url: videoUrl || null,
         ...(!bootcampId || certificateDesign ? { certificate_design: certificateDesign } : {}),
-        ends_at: endDate ? new Date(`${endDate}T23:59:59.999`).toISOString() : null,
+        ...schedule,
         // Clamped here as well as by a database constraint. A free bootcamp
         // cannot pay commission on nothing, so it is forced to zero.
         referral_percent: isFree ? 0 : Math.min(50, Math.max(0, Number(referralPercent) || 0)),
@@ -471,6 +479,14 @@ export function BootcampForm({
         }
       }
 
+      // Returning to the studio or a cached bootcamp must show the new dates.
+      for (const queryKey of [
+        ["bootcamp", savedBootcampId], ["bootcamps"], ["tutor-bootcamps"],
+        ["institution-all-bootcamps"], ["my-bootcamps-for-zero-form"],
+        ["zero-form-for-bootcamp", savedBootcampId], ["zero-form-public"],
+        ["my-zero-form-registrations"],
+      ]) void queryClient.invalidateQueries({ queryKey });
+
       toast.success(
         bootcampId ? "Bootcamp updated successfully" : "Bootcamp launched successfully!",
       );
@@ -541,6 +557,7 @@ export function BootcampForm({
         couponEnabled,
         couponCode,
         couponDiscount,
+        startsAt,
         endDate,
         modules,
         savedAt: new Date().toISOString(),
@@ -911,12 +928,31 @@ export function BootcampForm({
               {/* Pricing Card */}
               <div className="space-y-6 rounded-lg border border-border bg-card p-5 sm:p-6">
                 <div className="space-y-2">
-                  <label className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  <label htmlFor="bootcamp-start" className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Bootcamp start date and time
+                  </label>
+                  <input
+                    id="bootcamp-start"
+                    type="datetime-local"
+                    value={startsAt}
+                    onChange={(e) => setStartsAt(e.target.value)}
+                    max={endDate ? `${endDate}T23:59` : undefined}
+                    disabled={loading || certificateUploading}
+                    className="h-12 w-full min-w-0 rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:opacity-50"
+                  />
+                  <p className="ml-1 text-[10.5px] leading-4 text-muted-foreground">
+                    Choose when the bootcamp starts, in your local time. Leave blank if the date is not decided.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="bootcamp-end" className="ml-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                     Bootcamp end date
                   </label>
                   <input
+                    id="bootcamp-end"
                     type="date"
                     value={endDate}
+                    min={startsAt ? startsAt.slice(0, 10) : undefined}
                     onChange={(e) => setEndDate(e.target.value)}
                     disabled={loading || certificateUploading}
                     className="h-12 w-full rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:opacity-50"

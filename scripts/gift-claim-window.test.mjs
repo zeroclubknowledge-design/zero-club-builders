@@ -169,5 +169,15 @@ test('gift claim deadlines, recycling and payment integrity',async t=>{
     await db.exec(browseMigration);
     assert.deepEqual(await value("select coalesce(jsonb_agg(value),'[]'::jsonb) as value from browse_gift_cards(null,null,100) value"),await browse());
   });
+  await t.test('real six-hour claim receipts receive three linked reminder notifications',async()=>{
+    await db.exec(read('20261028090000_gift_claim_reminders.sql'));
+    const campaign=await create();const receipt=await claim(campaign,alice);
+    for(const hours of [3,5,5.75]){
+      const at=new Date(Date.parse(receipt.claimed_at)+hours*3600000).toISOString();
+      await value('select send_zero_gift_claim_reminders($1) as value',[at]);
+    }
+    assert.equal(Number(await value('select count(*) as value from zero_gift_claim_reminders where gift_card_id=$1',[receipt.id])),3);
+    assert.equal(Number(await value('select count(*) as value from notifications where profile_id=$1 and link=$2',[alice,'/app/gifts/'+campaign.code])),3);
+  });
  }finally{await db.close();}
 });

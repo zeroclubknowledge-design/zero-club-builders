@@ -177,7 +177,7 @@ export function AmbassadorsAdmin() {
           <button onClick={saveDefault} disabled={String(savedRate) === defaultRate} className="h-11 rounded-full bg-white px-5 text-[13px] font-semibold text-[#16161b] disabled:opacity-50">Save</button>
         </div>
         <p className="mt-3 max-w-[52ch] text-[12.5px] leading-relaxed text-white/65">
-          Each ambassador keeps the rate they were approved at. Lower this (e.g. 20% → 15% → 10%) and only people approved afterwards get the new rate.
+          Each rate is a share of Zero Club’s 10% platform fee. Each ambassador keeps the rate they were approved at. Lower this (e.g. 20% → 15% → 10%) and only people approved afterwards get the new rate.
         </p>
       </section>
 

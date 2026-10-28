@@ -46,7 +46,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { BootcampTutorDrawer } from "@/features/bootcamps/BootcampTutorDrawer";
+import { assignedBootcampTutorIds, isAssignedBootcampTutor } from "@/features/bootcamps/tutors";
 import { ZeroLoader } from "@/components/ZeroLoader";
 import { CardSelect } from "@/components/CardSelect";
 import { CategoryPicker } from "@/components/CategoryPicker";
@@ -424,90 +425,27 @@ function InstitutionHub() {
     }
   };
 
-  const handleAssignTutor = async (bootcampId: string, tutorId: string) => {
-    if (
-      !profile?.id ||
-      allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id
-    ) {
-      toast.error("Only the bootcamp creator can edit this bootcamp.");
+  const handleAssignTutors = async (bootcampId: string, tutorIds: string[]) => {
+    if (!profile?.id || allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id) {
+      toast.error("Only the bootcamp creator can assign tutors.");
       return;
     }
     setAssigning(true);
     try {
-      // Update bootcamp's assigned_tutor_id
-      const { error } = await supabase
-        .from("bootcamps")
-        .update({ assigned_tutor_id: tutorId })
-        .eq("id", bootcampId)
-        .eq("creator_id", profile.id);
-
-      if (error) throw error;
-
-      // Also add tutor as admin to the club associated with this bootcamp
-      const bootcamp = allBootcamps.find((b: any) => b.id === bootcampId);
-      if (bootcamp) {
-        const { data: club } = await supabase
-          .from("clubs")
-          .select("id")
-          .eq("creator_id", profile.id)
-          .eq("name", bootcamp.title)
-          .maybeSingle();
-
-        if (club) {
-          // Check if tutor is already a member
-          const { data: existingMember } = await supabase
-            .from("club_members")
-            .select("id")
-            .eq("club_id", club.id)
-            .eq("profile_id", tutorId)
-            .maybeSingle();
-
-          if (!existingMember) {
-            await supabase.from("club_members").insert([
-              {
-                club_id: club.id,
-                profile_id: tutorId,
-                role: "Administrator",
-              },
-            ]);
-          } else {
-            await supabase
-              .from("club_members")
-              .update({ role: "Administrator" })
-              .eq("club_id", club.id)
-              .eq("profile_id", tutorId);
-          }
-        }
+      const { error } = await supabase.rpc("set_bootcamp_tutors" as never, { p_bootcamp: bootcampId, p_tutor_ids: tutorIds } as never);
+      if (error) {
+        if (["PGRST202", "42883"].includes(error.code)) throw new Error("Tutor assignment is not available yet. Please contact Zero Club support.");
+        throw error;
       }
-
-      toast.success("Tutor assigned to bootcamp!");
+      await Promise.all([
+        refetchBootcamps(),
+        ...["tutor-bootcamps", "bootcamp", "club", "clubs", "institution-tutors"].map(key => queryClient.invalidateQueries({ queryKey: [key] })),
+      ]);
+      toast.success(tutorIds.length ? "Bootcamp tutors updated." : "Tutor assignments removed.");
       setAssignDrawer(null);
-      refetchBootcamps();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to assign tutor");
-    } finally {
-      setAssigning(false);
-    }
-  };
-
-  const handleUnassignTutor = async (bootcampId: string) => {
-    if (
-      !profile?.id ||
-      allBootcamps.find((b: any) => b.id === bootcampId)?.creator_id !== profile.id
-    ) {
-      toast.error("Only the bootcamp creator can edit this bootcamp.");
-      return;
-    }
-    const { error } = await supabase
-      .from("bootcamps")
-      .update({ assigned_tutor_id: null })
-      .eq("id", bootcampId)
-      .eq("creator_id", profile.id);
-    if (error) toast.error("Failed to unassign.");
-    else {
-      toast.success("Tutor unassigned.");
-      refetchBootcamps();
-    }
+    } catch (error: any) {
+      toast.error(error.message || "Could not save tutor assignments.");
+    } finally { setAssigning(false); }
   };
 
   const handleDeleteBootcamp = async (bootcampId: string) => {
@@ -559,10 +497,10 @@ function InstitutionHub() {
   const tutorBootcampCounts = tutors
     .map((t: any) => {
       const count = allBootcamps.filter(
-        (b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id,
+        (b: any) => b.creator_id === t.tutor_id || isAssignedBootcampTutor(b, t.tutor_id),
       ).length;
       const learnerCount = allBootcamps
-        .filter((b: any) => b.creator_id === t.tutor_id || b.assigned_tutor_id === t.tutor_id)
+        .filter((b: any) => b.creator_id === t.tutor_id || isAssignedBootcampTutor(b, t.tutor_id))
         .reduce((acc: number, b: any) => acc + (b.enrollments?.[0]?.count || 0), 0);
       return { ...t, bootcampCount: count, learnerCount };
     })
@@ -1159,19 +1097,17 @@ function InstitutionHub() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredBootcamps.map((b: any) => {
-                    const assignedTutor = tutors.find(
-                      (t: any) => t.tutor_id === b.assigned_tutor_id,
-                    );
+                    const assignedIds = assignedBootcampTutorIds(b);
+                    const assignedTutor = tutors.find((t: any) => assignedIds.includes(t.tutor_id));
                     const isOwnBootcamp = b.creator_id === profile?.id;
 
                     return (
                       <div
                         key={b.id}
-                        onClick={() => navigate({ to: "/app/bootcamps/$id", params: { id: b.id } })}
-                        className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/25"
+                        className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/25"
                       >
                         {/* Banner */}
-                        <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                        <Link to="/app/bootcamps/$id" params={{ id: b.id }} aria-label={`View ${b.title}`} className="relative block aspect-[16/9] overflow-hidden bg-muted">
                           {b.banner_url ? (
                             <img
                               src={b.banner_url}
@@ -1206,7 +1142,7 @@ function InstitutionHub() {
                               {format(b.price)}
                             </div>
                           )}
-                        </div>
+                        </Link>
 
                         {/* Content */}
                         <div className="flex-1 p-4 flex flex-col">
@@ -1216,7 +1152,7 @@ function InstitutionHub() {
                             </span>
                           </div>
                           <h3 className="line-clamp-2 font-display text-[15px] font-semibold tracking-tight leading-snug">
-                            {b.title}
+                            <Link to="/app/bootcamps/$id" params={{ id: b.id }} className="hover:text-primary focus-visible:underline">{b.title}</Link>
                           </h3>
 
                           {/* Assigned Tutor */}
@@ -1236,7 +1172,7 @@ function InstitutionHub() {
                                   </div>
                                 )}
                                 <span className="text-[11px] font-medium text-muted-foreground truncate">
-                                  {assignedTutor.tutor?.full_name || assignedTutor.tutor?.username}
+                                  {assignedTutor.tutor?.full_name || assignedTutor.tutor?.username}{assignedIds.length > 1 ? " +" + (assignedIds.length - 1) + " more" : ""}
                                 </span>
                               </div>
                             ) : b.profiles && b.creator_id !== profile?.id ? (
@@ -1269,20 +1205,27 @@ function InstitutionHub() {
                         </div>
 
                         {/* Actions */}
-                        <div className="border-t hairline px-4 py-3 flex items-center justify-between gap-2">
+                        <div
+                          onClick={(event) => event.stopPropagation()}
+                          className="border-t hairline px-4 py-3 flex items-center justify-between gap-2"
+                        >
                           {isOwnBootcamp && (
                             <button
-                              onClick={() => setAssignDrawer(b.id)}
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setAssignDrawer(b.id);
+                              }}
                               className="flex items-center gap-1.5 text-[12px] font-semibold text-primary tap hover:underline"
                             >
                               <Users className="h-3.5 w-3.5" />
-                              {assignedTutor ? "Reassign" : "Assign Tutor"}
+                              {assignedIds.length ? "Manage tutors" : "Assign Tutor"}
                             </button>
                           )}
                           {!isOwnBootcamp && <div />}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <button className="grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.04] text-muted-foreground tap">
+                              <button type="button" aria-label={`Actions for ${b.title}`} className="grid h-7 w-7 place-items-center rounded-full hover:bg-foreground/[0.04] text-muted-foreground tap">
                                 <MoreHorizontal className="h-3.5 w-3.5" />
                               </button>
                             </DropdownMenuTrigger>
@@ -1305,12 +1248,12 @@ function InstitutionHub() {
                                   <Eye className="h-3.5 w-3.5 mr-2" /> View details
                                 </Link>
                               </DropdownMenuItem>
-                              {isOwnBootcamp && assignedTutor && (
+                              {isOwnBootcamp && (
                                 <DropdownMenuItem
-                                  onClick={() => handleUnassignTutor(b.id)}
+                                  onClick={() => setAssignDrawer(b.id)}
                                   className="text-[13px]"
                                 >
-                                  <X className="h-3.5 w-3.5 mr-2" /> Unassign tutor
+                                  <Users className="h-3.5 w-3.5 mr-2" /> Assign tutors
                                 </DropdownMenuItem>
                               )}
                               {isOwnBootcamp && (
@@ -1670,91 +1613,13 @@ function InstitutionHub() {
         </div>
       </div>
 
-      {/* ═══ ASSIGN TUTOR DRAWER ═══ */}
-      <Drawer
-        open={!!assignDrawer}
-        onOpenChange={(open) => {
-          if (!open) setAssignDrawer(null);
-        }}
-      >
-        <DrawerContent className="border-t border-border/40 bg-background/95 backdrop-blur-xl">
-          <DrawerHeader className="px-5 pb-3 pt-1 text-left">
-            <DrawerTitle className="font-display text-[20px] font-semibold leading-tight text-foreground">
-              Assign a tutor
-            </DrawerTitle>
-            <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
-              Select a tutor from your organization to teach this bootcamp.
-            </p>
-          </DrawerHeader>
-
-          <div className="max-h-[65vh] overflow-y-auto px-5 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            {tutors.length === 0 ? (
-              <div className="flex flex-col items-center px-4 py-10 text-center">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]">
-                  <Users className="h-[22px] w-[22px] text-muted-foreground" />
-                </div>
-                <p className="mt-3 text-[16px] font-semibold text-foreground">No tutors yet</p>
-                <p className="mt-1 text-[14px] text-muted-foreground">
-                  No tutors in your organization. Add tutors first.
-                </p>
-              </div>
-            ) : (
-              <div className="-mx-2">
-                {tutors.map((t: any) => {
-                  const bootcamp = allBootcamps.find((b: any) => b.id === assignDrawer);
-                  const isCurrentlyAssigned = bootcamp?.assigned_tutor_id === t.tutor_id;
-
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => {
-                        if (!isCurrentlyAssigned && assignDrawer) {
-                          handleAssignTutor(assignDrawer, t.tutor_id);
-                        }
-                      }}
-                      disabled={assigning || isCurrentlyAssigned}
-                      className={`flex w-full items-center gap-3 rounded-2xl px-2 py-3 text-left transition-colors tap ${
-                        isCurrentlyAssigned ? "bg-[#c3217e]/[0.06]" : "hover:bg-foreground/[0.04]"
-                      }`}
-                    >
-                      {t.tutor?.avatar_url ? (
-                        <img
-                          src={t.tutor.avatar_url}
-                          alt=""
-                          className="h-11 w-11 shrink-0 rounded-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06] font-display text-[16px] font-semibold text-muted-foreground">
-                          {(t.tutor?.username || "T")[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-semibold text-foreground">
-                          {t.tutor?.full_name || t.tutor?.username}
-                        </p>
-                        <p className="truncate text-[13px] text-muted-foreground">
-                          @{t.tutor?.username}
-                        </p>
-                      </div>
-                      {isCurrentlyAssigned ? (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#c3217e]/10 px-2.5 py-0.5 text-[12px] font-semibold text-[#9a1963]">
-                          <Check className="h-3.5 w-3.5" /> Assigned
-                        </span>
-                      ) : assigning ? (
-                        <Loader2 className="h-5 w-5 shrink-0 animate-spin text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <BootcampTutorDrawer
+        bootcamp={allBootcamps.find((b: any) => b.id === assignDrawer) || null}
+        tutors={tutors}
+        saving={assigning}
+        onClose={() => setAssignDrawer(null)}
+        onSave={ids => { if (assignDrawer) void handleAssignTutors(assignDrawer, ids); }}
+      />
     </div>
   );
 }

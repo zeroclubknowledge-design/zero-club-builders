@@ -81,7 +81,7 @@ export function Home() {
               {earn ? money(earn.this_week_commission, currency) : "—"}
             </p>
             <p className="mt-2 text-[12.5px] text-white/65">
-              {me.commission_rate ?? 0}% of {earn ? money(earn.this_week_sales, currency) : "—"} your referrals paid this week
+              {me.commission_rate ?? 0}% of Zero Club’s 10% fee · {earn ? money(earn.this_week_sales, currency) : "—"} in referral payments this week
             </p>
           </div>
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/15">

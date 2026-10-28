@@ -2,9 +2,9 @@ import { CalendarClock, ChevronRight, HandCoins as Handshake, Users, Wallet } fr
 import { money, type PayoutCurrency } from "@/lib/money";
 import { GOAL_LABEL, PHASE_CLASS, campaignPhase, daysLeft, type CampaignBase, type MyCampaign } from "@/types/campaign";
 
-/** What an ambassador earns: a share of everything their referrals pay. */
+/** What an ambassador earns: a share of Zero Club’s platform fee on referral payments. */
 export function rewardHeadline(rate: number | null | undefined) {
-  return rate != null ? `Earn ${rate}% of what your referrals pay` : "Earn commission on what your referrals pay";
+  return rate != null ? `Earn ${rate}% of Zero Club’s 10% fee` : "Earn a share of Zero Club’s 10% fee";
 }
 
 export function CampaignCover({ campaign, className = "" }: { campaign: Pick<CampaignBase, "cover_url" | "title" | "partner_name">; className?: string }) {

@@ -43,13 +43,13 @@ export function Earnings() {
   return (
     <div className="zs-rise">
       <h1 className="text-[26px] font-bold text-ink sm:text-[30px]">Earnings</h1>
-      <p className="mt-1 text-[13.5px] text-ink-muted">Commission on your referrals' payments, paid into your Zero Club wallet after each campaign is checked.</p>
+      <p className="mt-1 text-[13.5px] text-ink-muted">Your share of Zero Club’s 10% platform fee on eligible referral payments, available after each campaign is checked.</p>
 
       <section className="zs-hero mt-5 p-6 sm:p-7">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/55">Earned all time</p>
         <p className="mt-2 font-display text-[42px] font-bold leading-none tracking-tight">{money(total, currency)}</p>
         <p className="mt-2 text-[12.5px] text-white/65">
-          {money(data.this_week_commission, currency)} this week · {data.commission_rate}% of every payment your referrals make
+          {money(data.this_week_commission, currency)} this week · {data.commission_rate}% of Zero Club’s 10% platform fee
         </p>
 
         <div className="mt-6 grid grid-cols-3 gap-2">
@@ -80,7 +80,7 @@ export function Earnings() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13.5px] font-semibold capitalize text-ink">{c.description || c.source}</p>
                 <p className="text-[11.5px] text-ink-faint">
-                  {c.rate}% of {money(c.gross, currency)} · {new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  Payment: {money(c.gross, currency)} · {new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </p>
               </div>
               <div className="text-right">
@@ -135,7 +135,7 @@ export function Earnings() {
       <Card className="mt-8 flex gap-3 p-4">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint" />
         <p className="text-[12px] leading-relaxed text-ink-muted">
-          You earn {data.commission_rate}% of every payment made by members who joined through your campaign links — locked in for as long
+          You earn {data.commission_rate}% of Zero Club’s 10% platform fee on eligible payments made by members who joined through your campaign links — locked in for as long
           as you're an ambassador. When a campaign ends, the Zero Club team checks it and approves its commission, plus any bonus. Approved
           earnings wait in your Zero Wallet, and you withdraw them once per {data.payout_frequency === "monthly" ? "month" : "week"} into
           your Zero Club wallet — change the schedule any time in your profile settings.

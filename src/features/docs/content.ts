@@ -450,7 +450,7 @@ export const docPages: DocPage[] = [
       {
         title: "Earning",
         bullets: [
-          "You earn your locked-in commission rate on every payment — bootcamps, memberships, store purchases and club fees — made by members who joined through your link.",
+          "You earn your locked-in commission rate on Zero Club’s 10% platform fee for eligible bootcamp, membership, store and club payments made by members who joined through your link. A 20% ambassador rate means 2% of the payment, not 20% of the full payment.",
           "When a campaign ends, the Zero Club team checks it. Approved campaigns are paid into your wallet, sometimes with a bonus; campaigns taken down or rejected are not paid.",
           "Commission earned later from members of approved campaigns is paid out in regular payout runs.",
         ],

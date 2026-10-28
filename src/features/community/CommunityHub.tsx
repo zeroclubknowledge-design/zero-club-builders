@@ -1835,7 +1835,7 @@ function CohortSheet({
       const { data } = await supabase
         .from("bootcamps")
         .select("id, title")
-        .or(`creator_id.eq.${user!.id},assigned_tutor_id.eq.${user!.id}`)
+        .or(`creator_id.eq.${user!.id},assigned_tutor_id.eq.${user!.id},assigned_tutor_ids.cs.{${user!.id}}`)
         .order("created_at", { ascending: false });
       return (data || []) as { id: string; title: string }[];
     },

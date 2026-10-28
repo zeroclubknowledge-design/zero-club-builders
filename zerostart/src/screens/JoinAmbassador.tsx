@@ -223,7 +223,7 @@ export function JoinAmbassador() {
       <p className="mt-2 max-w-[54ch] text-[14px] leading-relaxed text-ink-muted">
         {isAmbassador
           ? "Where you represent and what you push. Keep it current so the team knows where you represent Zero Club."
-          : "Ambassadors are approved by the Zero Club team. Approved ambassadors earn commission on what the members they bring in pay, withdraw weekly or monthly, and wear the Zero Club Ambassador badge."}
+          : "Ambassadors are approved by the Zero Club team. Approved ambassadors earn a share of Zero Club’s 10% fee on eligible payments from members they bring in, withdraw weekly or monthly, and wear the Zero Club Ambassador badge."}
       </p>
 
       {rate !== null && (
@@ -232,11 +232,11 @@ export function JoinAmbassador() {
             <BadgeCheck className="h-6 w-6" />
           </span>
           <div className="min-w-0">
-            <p className="font-display text-[20px] font-bold text-ink">{rate}% commission</p>
+            <p className="font-display text-[20px] font-bold text-ink">{rate}% of Zero Club’s fee</p>
             <p className="text-[12.5px] text-ink-muted">
               {isAmbassador
-                ? "Your locked-in rate on every payment made by members who joined through your links."
-                : "The current rate for newly approved ambassadors, locked in when you're approved."}
+                ? "Your locked-in share of Zero Club’s 10% platform fee on eligible payments made by members who joined through your links."
+                : "The current rate for newly approved ambassadors, applied to Zero Club’s 10% platform fee and locked in when you're approved."}
             </p>
           </div>
         </Card>

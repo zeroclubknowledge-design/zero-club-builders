@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { assignedBootcampTutorIds } from "@/features/bootcamps/tutors";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -108,12 +109,12 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
     queryFn: async () => {
       const { data: bootcamp } = await supabase
         .from("bootcamps")
-        .select("creator_id, assigned_tutor_id")
+        .select("creator_id, assigned_tutor_id, assigned_tutor_ids")
         .eq("id", selectedCohort?.bootcamp_id)
         .maybeSingle();
 
       const creatorId = bootcamp?.creator_id;
-      const assignedTutorId = bootcamp?.assigned_tutor_id;
+      const assignedTutorIds = assignedBootcampTutorIds(bootcamp);
 
       const { data, error } = await supabase
         .from("learning_cohort_members")
@@ -123,7 +124,7 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
       if (error) throw error;
 
       return (data || []).filter(
-        (m: any) => m.profile_id !== creatorId && m.profile_id !== assignedTutorId && m.profile_id !== profileId
+        (m: any) => m.profile_id !== creatorId && !assignedTutorIds.includes(m.profile_id) && m.profile_id !== profileId
       );
     },
   });
@@ -136,17 +137,17 @@ export function LearningOperationsPanel({ mode, profileId, bootcamps, tutors = [
     queryFn: async () => {
       const { data: bootcamp } = await supabase
         .from("bootcamps")
-        .select("creator_id, assigned_tutor_id")
+        .select("creator_id, assigned_tutor_id, assigned_tutor_ids")
         .eq("id", selectedCohort.bootcamp_id)
         .maybeSingle();
 
       const creatorId = bootcamp?.creator_id;
-      const assignedTutorId = bootcamp?.assigned_tutor_id;
+      const assignedTutorIds = assignedBootcampTutorIds(bootcamp);
 
       const isOwnerOrTutor = (pid?: string) => {
         if (!pid) return true;
         if (pid === creatorId) return true;
-        if (pid === assignedTutorId) return true;
+        if (assignedTutorIds.includes(pid)) return true;
         if (pid === profileId) return true;
         return false;
       };

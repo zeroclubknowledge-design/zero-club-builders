@@ -85,8 +85,8 @@ async function getMetricsData() {
   if (profile.account_type === "Tutor") {
     const { data: bootcamps, error } = await supabase
       .from("bootcamps")
-      .select("id, title, category, price, status, creator_id, assigned_tutor_id, created_at")
-      .or(`creator_id.eq.${userId},assigned_tutor_id.eq.${userId}`)
+      .select("id, title, category, price, status, creator_id, assigned_tutor_id, assigned_tutor_ids, created_at")
+      .or(`creator_id.eq.${userId},assigned_tutor_id.eq.${userId},assigned_tutor_ids.cs.{${userId}}`)
       .order("created_at", { ascending: false });
     if (error) throw error;
     managedBootcamps = bootcamps || [];
@@ -115,7 +115,7 @@ async function getMetricsData() {
     const creatorIds = [userId, ...institutionTutors.map((link) => link.tutor_id)];
     const { data: bootcamps, error: bootcampError } = await supabase
       .from("bootcamps")
-      .select("id, title, category, price, status, creator_id, assigned_tutor_id, created_at")
+      .select("id, title, category, price, status, creator_id, assigned_tutor_id, assigned_tutor_ids, created_at")
       .in("creator_id", creatorIds)
       .order("created_at", { ascending: false });
     if (bootcampError) throw bootcampError;

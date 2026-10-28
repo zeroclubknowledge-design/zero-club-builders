@@ -109,7 +109,7 @@ export function AmbassadorsAdmin() {
       <div>
         <h2 className="text-[20px] font-semibold">Zero Ambassadors</h2>
         <p className="mt-1 text-[13px] text-muted-foreground">
-          People who applied on ZeroStart to represent Zero Club. Approving gives them the Ambassador badge, campaigns and commission.
+          People who applied on ZeroStart to represent Zero Club. Approving gives them the Ambassador badge, campaigns and a commission share of Zero Club’s 10% platform fee.
         </p>
       </div>
 
@@ -367,7 +367,7 @@ function Roster() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <RateEditor value={row.commission_rate} disabled={busyId === row.profile_id} onSave={(r) => update(row, { rate: r })} />
+              <RateEditor value={row.commission_rate} disabled={busyId === row.profile_id} onSave={(r) => update(row, { rate: r })} /><span className="text-[12px] text-muted-foreground">of Zero Club’s 10% fee</span>
               <span className="text-[12px] text-muted-foreground">{row.payout_frequency === "monthly" ? "Monthly" : "Weekly"} withdrawals</span>
               <div className="ml-auto flex gap-1.5">
                 {row.status !== "active" && (

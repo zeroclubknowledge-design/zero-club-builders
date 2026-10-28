@@ -128,7 +128,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
     >
       {!editing && (
         <p className="rounded-2xl bg-accent-soft px-4 py-3 text-[12.5px] leading-relaxed text-ink">
-          Your campaign goes live straight away with your own link. You earn commission on every payment made by people who join
+          Your campaign goes live straight away with your own link. You earn a share of Zero Club’s 10% platform fee on eligible payments made by people who join
           through it. When it ends, the Zero Club team checks the results and pays you — plus a bonus for strong campaigns.
         </p>
       )}
