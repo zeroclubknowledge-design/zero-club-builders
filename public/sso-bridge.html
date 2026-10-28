@@ -10,18 +10,18 @@
 /*
  * Zero Club single sign-on bridge.
  *
- * Zero Form (form.zeroclubs.xyz) and Zero Gifts (gifts.zeroclubs.xyz) load this
+ * Zero Form, Zero Gifts and ZeroStart load this
  * page in a hidden iframe when they have no session. It runs on
  * www.zeroclubs.xyz, so it sees the Zero Club sign-in in this browser (same
  * storage as the app; supabase-js shares its refresh lock with open Zero Club
  * tabs, so nothing is refreshed twice). If someone is signed in, it asks the
  * sso-handoff function for a one-time sign-in code and posts only that code
- * to the parent app, which exchanges it for its own session. Only the two
+ * to the parent app, which exchanges it for its own session. Only the trusted
  * apps below may receive it.
  */
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/+esm";
 
-const ALLOWED = ["https://form.zeroclubs.xyz", "https://gifts.zeroclubs.xyz"];
+const ALLOWED = ["https://form.zeroclubs.xyz", "https://gifts.zeroclubs.xyz", "https://start.zeroclubs.xyz", "https://zerostart.zeroclubs.xyz"];
 const SUPABASE_URL = "https://tiyifgfsuzhcvdvntjmp.supabase.co";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeWlmZ2ZzdXpoY3Zkdm50am1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MzMyMzYsImV4cCI6MjA5NDMwOTIzNn0.Gb2AcxgfArsdEOrnkHyfwRhJpyn44W0WrM3PW6TC69M";
 

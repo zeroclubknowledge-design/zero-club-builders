@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
-import { applyAccountTheme, resetTheme } from "./theme";
+import { applyAccountTheme, resetTheme, watchAccountTheme } from "./theme";
+import { sharedSignInOff, trySharedSignIn, turnSharedSignInOff, turnSharedSignInOn } from "./sso";
 import type { Profile } from "@/types";
 
 /**
@@ -34,25 +35,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-
-    supabase.auth.getSession().then(({ data }) => {
+    let current: Session | null = null;
+    let initializing = true;
+    let lastAttempt = 0;
+    const restore = async () => {
+      initializing = true;
+      lastAttempt = Date.now();
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!alive) return;
+        current = data.session;
+        setSession(current);
+        if (!current) await trySharedSignIn();
+      } finally {
+        initializing = false;
+        if (alive && !current) { resetTheme(); setLoading(false); }
+      }
+    };
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (!alive) return;
-      setSession(data.session);
-      if (!data.session) setLoading(false);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      if (!alive) return;
+      current = next;
+      if (event === "SIGNED_IN") turnSharedSignInOn();
       setSession(next);
       if (!next) {
-        resetTheme();
+        if (!initializing) resetTheme();
         setProfile(null);
         setIsAdmin(false);
-        setLoading(false);
+        if (!initializing) setLoading(false);
       }
     });
-
-    return () => { alive = false; sub.subscription.unsubscribe(); };
+    void restore().catch(() => { /* The normal sign-in remains available. */ });
+    const onReturn = () => {
+      if (!alive || initializing || current || sharedSignInOff() || document.visibilityState !== "visible" || Date.now() - lastAttempt < 15000) return;
+      void restore().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onReturn);
+    window.addEventListener("focus", onReturn);
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", onReturn);
+      window.removeEventListener("focus", onReturn);
+    };
   }, []);
 
   useEffect(() => {
@@ -60,6 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!uid) return;
 
     let alive = true;
+    setProfile(null);
+    setIsAdmin(false);
+    setLoading(true);
     supabase
       .from("profiles")
       .select("id, username, full_name, avatar_url, banner_url, is_admin, theme_mode, dark_theme")
@@ -72,20 +99,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(row);
         setIsAdmin(Boolean(row?.is_admin));
         setLoading(false);
-      });
+      }, () => { if (alive) setLoading(false); });
 
     /* Changed the theme in Zero Club in another tab? Pick it up on return. */
-    const refreshTheme = () => {
-      if (document.visibilityState !== "visible") return;
-      supabase.from("profiles").select("theme_mode, dark_theme").eq("id", uid).maybeSingle()
-        .then(({ data }) => { if (alive && data) applyAccountTheme(data.theme_mode, data.dark_theme); });
-    };
-    document.addEventListener("visibilitychange", refreshTheme);
+    const stopThemeWatch = watchAccountTheme(async () => {
+      const { data, error } = await supabase.from("profiles")
+        .select("theme_mode, dark_theme").eq("id", uid).maybeSingle();
+      return error ? null : data;
+    });
 
-    return () => { alive = false; document.removeEventListener("visibilitychange", refreshTheme); };
+    return () => { alive = false; stopThemeWatch(); };
   }, [session?.user?.id]);
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  const signOut = async () => {
+    turnSharedSignInOff();
+    const { error } = await supabase.auth.signOut();
+    if (error) { turnSharedSignInOn(); throw error; }
+  };
 
   return (
     <AuthContext.Provider value={{ session, profile, isAdmin, loading, signOut }}>

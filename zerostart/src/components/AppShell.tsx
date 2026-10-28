@@ -32,7 +32,7 @@ const NAV: readonly { to: string; label: string; icon: TabIcon; exact: boolean }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { session, profile, isAdmin } = useAuth();
+  const { session, profile, isAdmin, loading } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [zp, setZp] = useState<number | null>(null);
 
@@ -116,6 +116,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </span>
                 )}
               </Link>
+            ) : loading ? (
+              <span role="status" aria-label="Connecting your Zero account" className="h-9 w-20 animate-pulse rounded-full bg-ink/[0.06]" />
             ) : (
               <Link
                 to="/signin"

@@ -13,7 +13,10 @@
           var t = JSON.parse(localStorage.getItem("zs-theme") || "null");
           if (!t) return;
           var dark = t.mode === "on" || (t.mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-          if (dark) document.documentElement.classList.add("dark", t.theme || "lights-out");
+          var theme = t.theme === "rose-noir" ? "rose-noir" : "lights-out";
+          if (dark) document.documentElement.classList.add("dark", theme);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.content = dark ? (theme === "rose-noir" ? "#0a0409" : "#000000") : "#f8f7f5";
         } catch (e) {}
       })();
     </script>

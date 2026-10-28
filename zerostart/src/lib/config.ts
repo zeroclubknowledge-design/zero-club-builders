@@ -8,6 +8,7 @@
  */
 export const config = {
   appName: "ZeroStart",
+  productKey: "zerostart",
   tagline: "Rep Zero Club. Get paid weekly or monthly.",
 
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL as string,

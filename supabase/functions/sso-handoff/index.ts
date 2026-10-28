@@ -3,12 +3,12 @@
 // Called only by the bridge page on www.zeroclubs.xyz (public/sso-bridge.html)
 // with the signed-in Zero Club user's access token. Returns a one-time sign-in
 // code (a magic-link token hash; no email is sent) that the bridge passes to
-// Zero Form or Zero Gifts, which exchange it with verifyOtp for their own,
+// Zero Form, Zero Gifts or ZeroStart, which exchange it with verifyOtp for their own,
 // independent session. Refresh tokens are never shared between apps.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const BRIDGE_ORIGINS = ["https://www.zeroclubs.xyz", "https://zeroclubs.xyz"];
-const TARGETS = ["https://form.zeroclubs.xyz", "https://gifts.zeroclubs.xyz"];
+const TARGETS = ["https://form.zeroclubs.xyz", "https://gifts.zeroclubs.xyz", "https://start.zeroclubs.xyz", "https://zerostart.zeroclubs.xyz"];
 
 function cors(origin: string | null) {
   const allowed = origin && BRIDGE_ORIGINS.includes(origin) ? origin : BRIDGE_ORIGINS[0];

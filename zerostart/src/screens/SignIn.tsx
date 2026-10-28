@@ -22,7 +22,7 @@ import { Card } from "@/components/ui/primitives";
  */
 export function SignIn() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
 
   /*
    * Step and email survive a reload, because getting the code means leaving
@@ -107,6 +107,12 @@ export function SignIn() {
       setBusy(false);
     }
   };
+
+  if (loading || session) return (
+    <div role="status" className="mx-auto max-w-md py-16 text-center text-ink-muted">
+      Connecting your Zero account…
+    </div>
+  );
 
   return (
     <div className="mx-auto max-w-md pt-10">
