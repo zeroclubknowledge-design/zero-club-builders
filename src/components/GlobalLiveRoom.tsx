@@ -2,6 +2,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMicRecovery, useOngoingCallNotification } from "@/features/calls/backgroundCall";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { cameraQualityStep } from "@/features/calls/videoQuality";
+import { useRtcRecovery } from "@/features/calls/useRtcRecovery";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -264,6 +265,7 @@ export function GlobalLiveRoom() {
         }
         const { data, error } = await supabase.functions.invoke("agora-token", {
           body: { channelName: channelId, uid: 0 },
+          signal: AbortSignal.timeout(15000),
         });
         if (error || !data?.token) {
           console.error("Token fetch error:", error, data);
@@ -556,7 +558,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
   }, [activeTab, theater]);
 
   /* ── Agora hooks ── */
-  useJoin({ appid: APP_ID, channel, token }, true);
+  const { error: joinError } = useJoin({ appid: APP_ID, channel, token }, true);
   const client = useRTCClient();
   /*
    * Voice processing on, explicitly: echo cancellation (people on speaker),
@@ -784,7 +786,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * - The access token lasts 2 hours. It is renewed before it expires so a long
    *   class is not cut off at the two-hour mark.
    */
-  const [connectionState, setConnectionState] = useState<string>("CONNECTED");
   const [weakUplink, setWeakUplink] = useState(false);
   const autoQualityRef = useRef(false);
   const poorUplinkCount = useRef(0);
@@ -797,7 +798,6 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   useEffect(() => {
     if (!client) return;
-    const onState = (current: string) => setConnectionState(current);
     const onQuality = (quality: { uplinkNetworkQuality: number }) => {
       // 4 = poor, 5 = bad, 6 = down. 0 means "not measured yet".
       const poor = quality.uplinkNetworkQuality >= 4;
@@ -815,23 +815,9 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         setCameraQuality(next);
       }
     };
-    const renewToken = async () => {
-      try {
-        const { data } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid: 0 } });
-        if (data?.token) await client.renewToken(data.token);
-      } catch (error) {
-        console.warn("Could not renew the live class token", error);
-      }
-    };
-    client.on("connection-state-change", onState);
     client.on("network-quality", onQuality);
-    client.on("token-privilege-will-expire", renewToken);
-    client.on("token-privilege-did-expire", renewToken);
     return () => {
-      client.off("connection-state-change", onState);
       client.off("network-quality", onQuality);
-      client.off("token-privilege-will-expire", renewToken);
-      client.off("token-privilege-did-expire", renewToken);
     };
   }, [client, channel]);
 
@@ -851,6 +837,10 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
    * changes: camera to screen share and back.
    */
   const tracksToPublish = [localMicrophoneTrack, videoTrackToPublish].filter(Boolean);
+  const { state: connectionState, message: connectionMessage, retrying, reconnect } = useRtcRecovery({
+    client, appId: APP_ID, channel, joinError, tracks: tracksToPublish,
+    isLeaving: () => leaveStartedRef.current || !mounted.current,
+  });
 
   usePublish(tracksToPublish as any);
 
@@ -2381,10 +2371,11 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
         </div>
       )}
 
-      {connectionState === "RECONNECTING" ? (
+      {connectionState !== "CONNECTED" || connectionMessage ? (
         <div role="status" aria-live="polite" className="z-30 mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] text-amber-100 ring-1 ring-amber-400/30">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-300" />
-          Reconnecting… stay on this screen, you'll be back in a moment.
+          <span className="flex-1">{connectionMessage || (connectionState === "CONNECTING" ? "Connecting to the live classroom…" : "Connection interrupted. Trying to reconnect…")}</span>
+          {(connectionState === "DISCONNECTED" || connectionMessage) && <button type="button" disabled={retrying || isLeaving || connectionState === "CONNECTING"} onClick={() => void reconnect()} className="shrink-0 rounded-full bg-white/10 px-3 py-2 font-semibold disabled:opacity-50">{retrying ? "Retrying…" : "Reconnect"}</button>}
         </div>
       ) : null}
 

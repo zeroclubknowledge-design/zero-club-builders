@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, Gift } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
-import { GiftCodeRedeemer } from "./GiftCodeRedeemer";
+import { GiftClaimLink } from "./GiftClaimLink";
 import { useUser } from "@/hooks/useUser";
 
 export type RestrictedZeroGiftService =
@@ -24,16 +24,14 @@ export function useZeroGiftBalance(service: RestrictedZeroGiftService, enabled =
     queryKey: [...zeroGiftBalanceQueryKey(service, bootcampId), user?.id],
     enabled: enabled && !!user?.id,
     retry: false,
-    refetchInterval: query => Math.max(500, Math.min(60_000, query.state.data?.expiresAt ? Date.parse(query.state.data.expiresAt) - Date.now() + 50 : 60_000)),
+    refetchInterval: query => query.state.status === "error" ? 60_000 : Math.max(500, Math.min(60_000, query.state.data?.expiresAt ? Date.parse(query.state.data.expiresAt) - Date.now() + 50 : 60_000)),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_my_zero_gift_balance_v2", {
         p_service: service,
         p_bootcamp_id: bootcampId || null,
       });
 
-      // Before the migration reaches an environment there is simply no gift
-      // option. Checkout itself remains usable with the ordinary wallet.
-      if (error) return { available: 0, giftCount: 0, expiresAt: null as string | null };
+      if (error) throw error;
       const result = data as { available?: unknown; gift_count?: unknown; next_expiry?: string | null } | null;
       return {
         available: Math.max(0, Number(result?.available) || 0),
@@ -45,8 +43,8 @@ export function useZeroGiftBalance(service: RestrictedZeroGiftService, enabled =
 
   return {
     ...query,
-    available: query.data?.available || 0,
-    giftCount: query.data?.giftCount || 0,
+    available: query.isError ? 0 : query.data?.available || 0,
+    giftCount: query.isError ? 0 : query.data?.giftCount || 0,
   };
 }
 
@@ -69,7 +67,7 @@ export function ZeroGiftPaymentOption({
   enabled?: boolean;
   bootcampId?: string;
 }) {
-  const { available, giftCount } = useZeroGiftBalance(service, enabled, bootcampId);
+  const { available, giftCount, isPending, isError, refetch } = useZeroGiftBalance(service, enabled, bootcampId);
   if (!enabled) return null;
 
   const usable = amount > 0 ? Math.min(amount, available) : available;
@@ -98,7 +96,7 @@ export function ZeroGiftPaymentOption({
         <span
           className={`block text-[12.5px] font-semibold ${dark ? "text-white" : "text-foreground"}`}
         >
-          Apply Zero Gift
+          Use claimed Zero Cards
         </span>
         <span
           className={`mt-0.5 block text-[10.5px] ${dark ? "text-white/55" : "text-muted-foreground"}`}
@@ -107,7 +105,7 @@ export function ZeroGiftPaymentOption({
             ? amount > 0
               ? `${formatAmount(usable)} gift + ${formatAmount(Math.max(0, amount - usable))} from your wallet`
               : "Will be applied to your next matching payment"
-            : `${formatAmount(available)} available across ${giftCount} gift${giftCount === 1 ? "" : "s"}`}
+            : `${formatAmount(available)} eligible credit across ${giftCount} claimed card${giftCount === 1 ? "" : "s"}`}
         </span>
       </span>
       <span
@@ -115,6 +113,10 @@ export function ZeroGiftPaymentOption({
       >
         {applied && <Check className="h-3 w-3" strokeWidth={3} />}
       </span>
-    </button>}<GiftCodeRedeemer dark={dark} onClaim={() => onAppliedChange(true)} /></div>
+    </button>}
+      {isError ? <p role="status" className={`mt-2 text-xs ${dark?"text-white/65":"text-muted-foreground"}`}>Couldn’t check your claimed cards. <button type="button" onClick={()=>void refetch()} className="font-semibold underline">Try again</button></p>
+        : available <= 0 && !isPending ? <p className={`mt-2 text-xs ${dark?"text-white/55":"text-muted-foreground"}`}>No unexpired claimed Zero Cards match this payment.</p> : null}
+      <GiftClaimLink dark={dark}/>
+    </div>
   );
 }

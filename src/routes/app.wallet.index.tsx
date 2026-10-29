@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { describeVerifyFailure } from "@/lib/paystack";
 import { useUser } from "@/hooks/useUser";
-import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
+import { GiftClaimLink } from "@/components/GiftClaimLink";
 import { useZeroGiftBalance } from "@/components/ZeroGiftPaymentOption";
 import { ArrowUpRight, Store, HandCoins, TrendingUp, History, Plus, Gift, Loader2, ArrowDownLeft, EyeOff, Eye, Check, RefreshCw, ChevronDown, Landmark, X, ArrowLeft, SlidersHorizontal, Receipt } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
@@ -255,7 +255,7 @@ function WalletPage() {
               </Link>
             ))}
           </div>
-          <GiftCodeRedeemer walletOnly onClaim={() => { void refetch(); }} />
+          <GiftClaimLink />
           {giftCredit > 0 && <Link to="/app/gifts" className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm"><span>Gift credit · separate from wallet cash<span className="mt-1 block text-xs text-muted-foreground">Use at checkout before its expiry</span></span><strong className="shrink-0 tabular-nums">{format(giftCredit)}</strong></Link>}
           <div className="mt-4 flex gap-2">
             <Link to="/app/store" className="flex h-10 flex-1 items-center justify-center gap-2 rounded-full border border-foreground/20 text-[14px] font-semibold text-foreground tap hover:bg-foreground/[0.04]">

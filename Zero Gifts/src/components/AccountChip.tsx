@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { AccountMenu } from "./AccountMenu";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { AuthSheet } from "@/components/auth/AuthSheet";
@@ -52,9 +52,9 @@ export function AccountChip({ to = "/me" }: { to?: string }) {
     return (
       <div className="flex shrink-0 items-center gap-2">
         <WalletBalance userId={session.user.id} fallback={profile?.coins ?? null} />
-        <Link to={to} aria-label="Your account" className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] ring-2 ring-transparent transition hover:ring-border">
+        <AccountMenu to={to}>
           {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : <span className="text-[14px] font-bold">{letter}</span>}
-        </Link>
+        </AccountMenu>
       </div>
     );
   }

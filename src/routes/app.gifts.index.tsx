@@ -17,7 +17,7 @@ import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { GiftBootcampPicker } from "@/features/membership/GiftBootcampPicker";
 import { GiftClubPicker, MAX_GIFT_CLUBS } from "@/features/membership/GiftClubPicker";
 import { GiftCardVisual, giftServices, giftTemplates } from "@/components/GiftCardVisual";
-import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
+import { GiftClaimLink } from "@/components/GiftClaimLink";
 import { GiftClaimDeadline } from "@/components/GiftClaimDeadline";
 import { refreshGiftClaims } from "@/lib/giftClaimRefresh";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -274,10 +274,9 @@ function GiftCardsPage() {
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         <AdminGiftInbox userId={profile?.id} />
         <MembershipGiftInbox userId={profile?.id} />
-        {/* Someone holding a code comes here first, so the way in lives on this
-            page too — not only inside a checkout they have not reached yet. */}
+        {/* Claim from the gift's link or browse page; spend directly at checkout. */}
         <section className="bg-card px-4 py-3 md:rounded-xl md:border md:border-border">
-          <GiftCodeRedeemer onClaim={() => { void refetchAvailableGifts(); }} />
+          <GiftClaimLink />
         </section>
         <section className="bg-card p-4 md:rounded-xl md:border md:border-border">
           <div className="mx-auto w-full max-w-[420px]">

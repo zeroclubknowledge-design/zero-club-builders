@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { AccountMenu } from "./AccountMenu";
 import { useAuth } from "@/lib/auth";
 import { AuthSheet } from "@/components/auth/AuthSheet";
 
@@ -10,9 +10,9 @@ export function AccountChip({ to = "/me" }: { to?: string }) {
   if (session) {
     const letter = (profile?.full_name || profile?.username || "?").charAt(0).toUpperCase();
     return (
-      <Link to={to} aria-label="Your account" className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06] ring-2 ring-transparent transition hover:ring-border">
+      <AccountMenu to={to}>
         {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : <span className="text-[14px] font-bold">{letter}</span>}
-      </Link>
+      </AccountMenu>
     );
   }
   return (

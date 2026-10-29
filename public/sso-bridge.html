@@ -25,8 +25,18 @@ const ALLOWED = ["https://form.zeroclubs.xyz", "https://gifts.zeroclubs.xyz", "h
 const SUPABASE_URL = "https://tiyifgfsuzhcvdvntjmp.supabase.co";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeWlmZ2ZzdXpoY3Zkdm50am1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MzMyMzYsImV4cCI6MjA5NDMwOTIzNn0.Gb2AcxgfArsdEOrnkHyfwRhJpyn44W0WrM3PW6TC69M";
 
-const target = new URLSearchParams(location.search).get("origin") || "";
-const reply = (message) => { if (ALLOWED.includes(target)) window.parent.postMessage({ type: "zc-sso", ...message }, target); };
+const params = new URLSearchParams(location.search);
+const target = params.get("origin") || "";
+const action = params.get("action") || "signin";
+const requestId = params.get("request_id") || "";
+const messageType = action === "accounts" ? "zc-accounts" : action === "switch" ? "zc-account-switch" : "zc-sso";
+const reply = (message) => { if (ALLOWED.includes(target)) window.parent.postMessage({ type: messageType, request_id: requestId, ...message }, target); };
+const savedAccounts = () => {
+  try {
+    const rows = JSON.parse(localStorage.getItem("zero_club_multi_accounts") || "[]");
+    return Array.isArray(rows) ? rows.filter(row => /^[0-9a-f-]{36}$/i.test(row?.id)).slice(0,30) : [];
+  } catch { return []; }
+};
 
 (async () => {
   if (!ALLOWED.includes(target) || window.parent === window) return;
@@ -34,8 +44,39 @@ const reply = (message) => { if (ALLOWED.includes(target)) window.parent.postMes
     // Same defaults as the Zero Club app, so this reads (and if needed refreshes) the same session.
     const supabase = createClient(SUPABASE_URL, ANON_KEY);
     const { data } = await supabase.auth.getSession();
-    const session = data.session;
+    let session = data.session;
     if (!session) return reply({ status: "none" });
+    if (action === "accounts") {
+      const accounts = [...new Map([...savedAccounts(), {id:session.user.id}].map(row => [row.id,row])).values()];
+      const { data: profiles } = await supabase.from("profiles").select("id,username,full_name,avatar_url").in("id",accounts.map(row => row.id));
+      const byId = new Map((profiles || []).map(profile => [profile.id,profile]));
+      return reply({status:"ok",accounts:accounts.map(row => {
+        const profile = byId.get(row.id) || row;
+        // Explicit fields only: no email, access token or refresh token leaves this origin.
+        return {id:row.id,username:profile.username || "",full_name:profile.full_name || "",avatar_url:profile.avatar_url || null};
+      })});
+    }
+    if (action === "switch") {
+      const accountId = params.get("account_id") || "";
+      if (session.user.id !== accountId) {
+        const saved = savedAccounts().find(row => row.id === accountId);
+        if (!saved?.session?.access_token || !saved.session.refresh_token) return reply({status:"unavailable"});
+        const restore = async () => {
+          // An isolated auth client validates/refreshes this saved login without
+          // switching the account in an open Zero Club tab.
+          const auth = createClient(SUPABASE_URL, ANON_KEY, {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+          const latest = savedAccounts().find(row => row.id === accountId);
+          const {data,error} = await auth.auth.setSession({access_token:latest?.session?.access_token || saved.session.access_token,refresh_token:latest?.session?.refresh_token || saved.session.refresh_token});
+          if (error || data.session?.user.id !== accountId) return null;
+          const rows = savedAccounts();
+          const index = rows.findIndex(row => row.id === accountId);
+          if (index !== -1) { rows[index] = {...rows[index],session:data.session}; localStorage.setItem("zero_club_multi_accounts",JSON.stringify(rows)); }
+          return data.session;
+        };
+        session = navigator.locks ? await navigator.locks.request(`zc-saved-account:${accountId}`,restore) : await restore();
+        if (!session) return reply({status:"expired"});
+      }
+    }
     const res = await fetch(`${SUPABASE_URL}/functions/v1/sso-handoff`, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: ANON_KEY, Authorization: `Bearer ${session.access_token}` },
@@ -44,6 +85,7 @@ const reply = (message) => { if (ALLOWED.includes(target)) window.parent.postMes
     if (!res.ok) return reply({ status: "none" });
     const body = await res.json();
     if (!body.token_hash) return reply({ status: "none" });
+    if (action === "switch" && body.user_id !== params.get("account_id")) return reply({status:"unavailable"});
     reply({ status: "ok", token_hash: body.token_hash, email: body.email, user_id: body.user_id });
   } catch {
     reply({ status: "none" });

@@ -35,6 +35,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useGroupCall, type GroupCallSession } from "./GroupCallContext";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { CALL_CAMERA_CONFIG, CALL_LOW_STREAM, groupVideoStream } from "@/features/calls/videoQuality";
+import { useRtcRecovery } from "@/features/calls/useRtcRecovery";
 
 import { confirmCard } from "@/components/ConfirmCard";
 /*
@@ -116,7 +117,7 @@ export function GroupCallHost() {
         const { data: state, error: stateError } = await supabase.rpc("group_call_state_v2" as any, { p_group: session.groupId } as any);
         if (stateError) throw new Error("Call updates aren't available. Please try again after the call service has been updated.");
         if (!(state as any)?.active || !(state as any)?.started_at) throw new Error("This call has ended. Go back to the group to start a new one.");
-        const { data, error: tokenError } = await supabase.functions.invoke("agora-token", { body: { channelName: call.channel, uid } });
+        const { data, error: tokenError } = await supabase.functions.invoke("agora-token", { body: { channelName: call.channel, uid }, signal: AbortSignal.timeout(15000) });
         if (tokenError || !data?.token) throw new Error("We couldn't connect the call. Check your connection and try again.");
         const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         if (alive) setSetup({ key: session.key, profileId: me.id, uid, startedAt: (state as any).started_at, channel: call.channel, token: data.token, name: call.name, avatar: call.avatar_url || null, client });
@@ -247,7 +248,6 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   const [canEnd, setCanEnd] = useState(false);
   /* Who is recording this call (from the server), so everyone sees REC. */
   const [recordedBy, setRecordedBy] = useState<{ id: string; name: string } | null>(null);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [members, setMembers] = useState<Awaited<ReturnType<typeof getMembers>>>([]);
 
   /* Raised hands and live reactions (realtime, nothing stored). */
@@ -284,32 +284,14 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   onLeftRef.current = onLeft;
   const mounted = useRef(true);
   const connectedOnce = useRef(false);
-  const reconnectAttempts = useRef(0);
-  const recovery = useRef<Promise<void> | null>(null);
   const callConnection = useRef(crypto.randomUUID());
   const registered = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
-  const recover = async () => {
-    if (leavingRef.current || recovery.current) return recovery.current;
-    const run = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("agora-token", { body: { channelName: channel, uid } });
-        if (error || !data?.token) throw new Error("Couldn't refresh the call connection. Check your internet and retry.");
-        if (!mounted.current || leavingRef.current) return;
-        if (client.connectionState === "DISCONNECTED") await client.join(APP_ID, channel, data.token, uid);
-        else if (client.connectionState === "CONNECTED" || client.connectionState === "RECONNECTING") await client.renewToken(data.token);
-        if (!mounted.current || leavingRef.current) { await client.leave(); return; }
-        if (mounted.current) setConnectionError(null);
-      } catch (error) {
-        if (mounted.current) setConnectionError((error as Error).message);
-      }
-    };
-    recovery.current = run().finally(() => { recovery.current = null; });
-    return recovery.current;
-  };
-  useClientEvent(client, "token-privilege-will-expire", () => { void recover(); });
-  useClientEvent(client, "token-privilege-did-expire", () => { void recover(); });
+  const { message: connectionError, retrying, reconnect: recover } = useRtcRecovery({
+    client, appId: APP_ID, channel, uid, joinError, tracks: [localMicrophoneTrack, localCameraTrack],
+    isLeaving: () => leavingRef.current || !mounted.current,
+  });
 
   // Fetch profiles through the same separate member/profile reads as group chat;
   // an inferred foreign-key join can fail or return arrays instead of a profile.
@@ -354,7 +336,6 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
     };
     const foreground = () => {
       void sync(); // Hidden also grants a longer lease before mobile timers pause.
-      if (document.visibilityState === "visible") void recover();
     };
     void sync();
     const updates = supabase.channel(`group-call-${groupId}-${callConnection.current}`)
@@ -370,15 +351,8 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
   }, [groupId, myUid, startedAt, client, connected]);
 
   useEffect(() => {
-    if (connected) { connectedOnce.current = true; reconnectAttempts.current = 0; setConnectionError(null); }
+    if (connected) connectedOnce.current = true;
   }, [connected]);
-  useEffect(() => {
-    if (!connectedOnce.current || connectionState !== "DISCONNECTED" || leavingRef.current) return;
-    setConnectionError("Connection interrupted. Reconnecting…");
-    const delay = Math.min(30_000, 1500 * 2 ** reconnectAttempts.current++);
-    const timer = window.setTimeout(() => { void recover(); }, delay);
-    return () => window.clearTimeout(timer);
-  }, [connectionState]);
   // Elapsed time survives background timer throttling.
   useEffect(() => {
     const update = () => setSeconds(Math.max(0, Math.floor((Date.now() - Date.parse(startedAt)) / 1000)));
@@ -710,7 +684,7 @@ export function CallRoom({ session, uid, startedAt, channel, token, groupName, g
           })}
         </div>
 
-        {(connectionError || joinError) && <div role="status" className="mx-4 mt-3 rounded-xl bg-amber-500/10 p-3 text-center text-sm">{connectionError || "Couldn't connect to the call."} <button type="button" onClick={() => void recover()} className="font-semibold underline">Reconnect</button></div>}
+        {connectionError && <div role="status" className="mx-4 mt-3 rounded-xl bg-amber-500/10 p-3 text-center text-sm">{connectionError} <button type="button" disabled={retrying || leaving || connectionState === "CONNECTING"} onClick={() => void recover()} className="font-semibold underline disabled:opacity-50">{retrying ? "Retrying…" : "Reconnect"}</button></div>}
         {(micError || cameraError) && <p role="alert" className="px-4 pt-2 text-center text-xs text-amber-600">{micError ? <>Others can't hear you: your microphone is blocked or in use by another app. Allow microphone access, then <button type="button" onClick={retryMic} className="font-semibold underline">try again</button>.</> : "Camera unavailable. You can continue with audio or check camera permissions."}</p>}
         {people_.length === 0 && connected && (
           <p className="px-6 pt-3 text-center text-[13px] text-white/50">Waiting for others to join — everyone in the group got a notification.</p>

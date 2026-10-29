@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { zc } from "@/lib/config";
 import { GiftCardVisual, giftServices } from "@/components/GiftCardVisual";
-import { GiftCodeRedeemer } from "@/components/GiftCodeRedeemer";
+import { GiftClaimLink } from "@/components/GiftClaimLink";
 import { AdminGiftInbox } from "@/features/membership/AdminGiftInbox";
 import { MembershipGiftInbox } from "@/features/membership/MembershipGifts";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
@@ -26,10 +26,10 @@ const WHERE: Record<string, { path: string; action: string }> = {
 
 /**
  * Everything given to you: Zero Cards you can still spend, membership and
- * Zero Club gifts waiting to be claimed, and a box for a code someone sent you.
+ * Zero Club gifts waiting to be claimed, and a link to browse more gifts.
  */
 export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
-  const { session, profile, loading, refreshProfile } = useAuth();
+  const { session, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { format } = useWalletCurrency();
   useEffect(() => { if (!loading && !session) void navigate({ to: "/signin" }); }, [loading, session, navigate]);
@@ -122,10 +122,10 @@ export function ReceivedGifts({ embedded = false }: { embedded?: boolean }) {
         </div>
         <aside className="space-y-4">
           <section className="rounded-[22px] border border-border bg-card p-4">
-            <h2 className="text-[15px] font-bold">Have a gift code?</h2>
-            <p className="mt-1 text-[12.5px] text-muted-foreground">Enter it to add the credit to your account.</p>
+            <h2 className="text-[15px] font-bold">Find a Zero Card</h2>
+            <p className="mt-1 text-[12.5px] text-muted-foreground">Claim from a gift link or browse available gifts. Your claimed cards appear at matching checkouts.</p>
             <div className="mt-3">
-              <GiftCodeRedeemer onClaim={() => { void cards.refetch(); void refreshProfile(); }} />
+              <GiftClaimLink />
             </div>
           </section>
           <section className="rounded-[22px] bg-[linear-gradient(130deg,#1a0b17,#3b0f3a_60%,#24104a)] p-5 text-white">
