@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLearningReferral } from "@/lib/learningReferrals";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
@@ -39,6 +40,7 @@ const closedMessage: Record<string, string> = {
 /** Public information only: reuse the existing safe RPC, never query private responses. */
 export function FormInfoPage({ slug }: { slug: string }) {
   const { session } = useAuth();
+  useLearningReferral({formSlug:slug,userId:session?.user.id});
   const query = useQuery({
     queryKey: ["zero-form-info", slug, session?.user.id ?? null],
     queryFn: async () => {

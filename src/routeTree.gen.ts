@@ -62,6 +62,7 @@ import { Route as GCodeRouteImport } from './routes/g.$code'
 import { Route as GiftCodeRouteImport } from './routes/gift.$code'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
+import { Route as SCodeRouteImport } from './routes/s.$code'
 import { Route as ApiClubImageIdRouteImport } from './routes/api.club-image.$id'
 import { Route as ApiGameImageIdRouteImport } from './routes/api.game-image.$id'
 import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$code'
@@ -403,6 +404,11 @@ const NotesSlugRoute = NotesSlugRouteImport.update({
 const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SCodeRoute = SCodeRouteImport.update({
+  id: '/s/$code',
+  path: '/s/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiClubImageIdRoute = ApiClubImageIdRouteImport.update({
@@ -842,6 +848,7 @@ export interface FileRoutesByFullPath {
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
+  '/s/$code': typeof SCodeRoute
   '/app/': typeof AppIndexRoute
   '/business/': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -967,6 +974,7 @@ export interface FileRoutesByTo {
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
+  '/s/$code': typeof SCodeRoute
   '/app': typeof AppIndexRoute
   '/business': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -1099,6 +1107,7 @@ export interface FileRoutesById {
   '/gift/$code': typeof GiftCodeRoute
   '/notes/$slug': typeof NotesSlugRouteWithChildren
   '/product/$id': typeof ProductIdRouteWithChildren
+  '/s/$code': typeof SCodeRoute
   '/app/': typeof AppIndexRoute
   '/business/': typeof BusinessIndexRoute
   '/api/club-image/$id': typeof ApiClubImageIdRoute
@@ -1232,6 +1241,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
+    | '/s/$code'
     | '/app/'
     | '/business/'
     | '/api/club-image/$id'
@@ -1357,6 +1367,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
+    | '/s/$code'
     | '/app'
     | '/business'
     | '/api/club-image/$id'
@@ -1488,6 +1499,7 @@ export interface FileRouteTypes {
     | '/gift/$code'
     | '/notes/$slug'
     | '/product/$id'
+    | '/s/$code'
     | '/app/'
     | '/business/'
     | '/api/club-image/$id'
@@ -1595,6 +1607,7 @@ export interface RootRouteChildren {
   GiftCodeRoute: typeof GiftCodeRoute
   NotesSlugRoute: typeof NotesSlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRouteWithChildren
+  SCodeRoute: typeof SCodeRoute
   BusinessIndexRoute: typeof BusinessIndexRoute
   ApiClubImageIdRoute: typeof ApiClubImageIdRoute
   ApiGameImageIdRoute: typeof ApiGameImageIdRoute
@@ -1979,6 +1992,13 @@ declare module '@tanstack/react-router' {
       path: '/product/$id'
       fullPath: '/product/$id'
       preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$code': {
+      id: '/s/$code'
+      path: '/s/$code'
+      fullPath: '/s/$code'
+      preLoaderRoute: typeof SCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/club-image/$id': {
@@ -2823,6 +2843,7 @@ const rootRouteChildren: RootRouteChildren = {
   GiftCodeRoute: GiftCodeRoute,
   NotesSlugRoute: NotesSlugRouteWithChildren,
   ProductIdRoute: ProductIdRouteWithChildren,
+  SCodeRoute: SCodeRoute,
   BusinessIndexRoute: BusinessIndexRoute,
   ApiClubImageIdRoute: ApiClubImageIdRoute,
   ApiGameImageIdRoute: ApiGameImageIdRoute,

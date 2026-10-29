@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { prepareLearningReferral, useLearningReferral } from "@/lib/learningReferrals";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -377,6 +378,7 @@ function ZeroFormPublicPage() {
 
   const form = data?.form;
   const bootcamp = data?.bootcamp;
+  useLearningReferral({bootcampId:bootcamp?.id,formSlug:slug,userId:session?.user?.id});
   const owner = data?.owner;
   const state = data?.state as string | undefined;
   const fields = (data?.fields || []) as any[];
@@ -458,6 +460,7 @@ function ZeroFormPublicPage() {
 
   const submit = useMutation({
     mutationFn: async () => {
+      await prepareLearningReferral({bootcampId:bootcamp?.id,formSlug:slug});
       const { data: result, error } = await supabase.rpc("submit_zero_form_with_gift", {
         form_slug: slug,
         // Answers to follow-ups that ended up hidden are not sent.

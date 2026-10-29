@@ -1,4 +1,5 @@
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
+import { learningShareUrl, prepareLearningReferral, useLearningReferral } from "@/lib/learningReferrals";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -175,6 +176,7 @@ function BootcampDetail() {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [viewerId, setViewerId] = useState<string | null>(null);
+  useLearningReferral({bootcampId:id,userId:viewerId});
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(false);
@@ -281,6 +283,7 @@ function BootcampDetail() {
       // Enrols the caller, decided server-side from their session. The old
       // server function passed profileId from the browser and ran without a
       // session, which both failed RLS and would have let anyone enrol anyone.
+      await prepareLearningReferral({bootcampId:bootcamp.id});
       const { data: enrollmentResult, error: enrollError } = await supabase.rpc("enroll_in_bootcamp", {
         p_bootcamp_id: bootcamp.id,
         p_coupon_code: appliedCoupon ? couponInput.trim().toUpperCase() : null,
@@ -398,7 +401,8 @@ function BootcampDetail() {
   const creatorName = bootcamp.profiles?.full_name || bootcamp.profiles?.username || "Zero Club";
   const isInstitution = bootcamp.profiles?.account_type === "Institution";
   const shareBootcamp = async () => {
-    const url = `${window.location.origin}/app/bootcamps/${bootcamp.id}`;
+    try {
+    const url = await learningShareUrl({bootcampId:bootcamp.id});
     if (hasShareSheet()) {
       try {
         await openShareSheet({ title: bootcamp.title || "Zero Club bootcamp", url });
@@ -407,6 +411,7 @@ function BootcampDetail() {
     }
     await navigator.clipboard.writeText(url);
     toast.success("Bootcamp link copied");
+    } catch(error) {toast.error((error as Error).message);}
   };
 
   return (
@@ -768,11 +773,11 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
 
   const started = bootcamp?.starts_at ? new Date(bootcamp.starts_at) <= new Date() : true;
   const usesZeroForm = !!data?.slug && data.status === "published" && !started;
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const url = usesZeroForm ? `${origin}/form/${data!.slug}` : `${origin}/app/bootcamps/${bootcamp.id}`;
   const label = usesZeroForm ? "Share Zero Form" : "Share bootcamp";
 
   const handleShare = async () => {
+    try {
+    const url=await learningShareUrl(usesZeroForm?{formSlug:data!.slug}:{bootcampId:bootcamp.id});
     if (hasShareSheet()) {
       try {
         await openShareSheet({ title: bootcamp?.title || "Zero Club bootcamp", url });
@@ -781,6 +786,7 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
     }
     await navigator.clipboard.writeText(url);
     toast.success(usesZeroForm ? "Zero Form link copied" : "Bootcamp link copied");
+    } catch(error) {toast.error((error as Error).message);}
   };
 
   return (

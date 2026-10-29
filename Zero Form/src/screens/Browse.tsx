@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { learningShareUrl } from "@/lib/learningReferrals";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays, Check, Compass, Loader2, Search, Share2, Users, X } from "@/components/icons/glyphs";
@@ -159,13 +161,14 @@ function FormCard({ form }: { form: BrowseForm }) {
   const seatsLow = form.seats_left !== null && form.seats_left <= 10;
   const info = kindInfo(form.kind);
   const from = form.club_name || form.owner_name;
-  const share = () =>
-    void openShareSheet({
-      url: zeroFormUrl(form.slug),
+  const share = async () => {
+    try { await openShareSheet({
+      url: await learningShareUrl({formSlug:form.slug}),
       title: form.title,
       text: `${info.label}: ${form.title}${from ? ` · ${from}` : ""}`,
       heading: `Share this ${info.label.toLowerCase()}`,
-    });
+    }); } catch(error) {toast.error((error as Error).message);}
+  };
   return (
     // The share button sits over the card, not inside its link (a button
     // inside a link would open the form as well).

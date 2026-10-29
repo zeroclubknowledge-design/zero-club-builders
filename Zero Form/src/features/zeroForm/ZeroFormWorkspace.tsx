@@ -1,3 +1,4 @@
+import { learningShareUrl } from "@/lib/learningReferrals";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1491,26 +1492,18 @@ function ShareButtons({
   bootcampId?: string;
 }) {
   const live = state === "bootcamp_started";
-  const url = live
-    ? zc(`/app/bootcamps/${bootcampId}`)
-    : zeroFormUrl(slug || "");
   const shareLabel = live ? "Share bootcamp" : "Share Zero Form";
-
+  const getUrl = () => learningShareUrl(live ? {bootcampId} : {formSlug:slug});
   const copy = async () => {
-    await navigator.clipboard.writeText(url);
-    toast.success(live ? "Bootcamp link copied" : "Zero Form link copied");
+    try { await navigator.clipboard.writeText(await getUrl());toast.success("Referral link copied"); }
+    catch(error) {toast.error((error as Error).message);}
   };
-
   const share = async () => {
-    if (hasShareSheet()) {
-      try {
-        await openShareSheet({ title: shareLabel, url });
-        return;
-      } catch {
-        /* user dismissed */
-      }
-    }
-    copy();
+    try {
+      const url=await getUrl();
+      if (hasShareSheet()) { try {await openShareSheet({title:shareLabel,url});return;} catch {} }
+      await navigator.clipboard.writeText(url);toast.success("Referral link copied");
+    } catch(error) {toast.error((error as Error).message);}
   };
 
   if (status === "draft" && !live) {
