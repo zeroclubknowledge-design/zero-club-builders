@@ -31,7 +31,7 @@ wallet/gift screens and Zero Gifts received page. Gift links and browse-card
 claim buttons continue working; their existing internal code identifies the link
 and is never something a customer has to type at checkout.
 
-All three copies of `ZeroGiftPaymentOption` offer **Use claimed Zero Cards**.
+All three copies of `ZeroGiftPaymentOption` offer **Apply available Zero Cards**.
 The existing authenticated `get_my_zero_gift_balance_v2` quote determines which
 owned, claimed, unexpired cards match the service and optional bootcamp context.
 Selecting credit displays the eligible gift portion and the wallet remainder.
@@ -40,8 +40,10 @@ available funds and rollback. The UI never broadens a card's purpose or converts
 restricted credit to wallet cash. Gift lookup failures are shown, not silently
 presented as an empty balance; stale values are hidden while the quote fails.
 
-Browse Zero Gifts links open a new tab so a customer can claim a card and return
-to the existing checkout. Its account-scoped quote refetches on window focus.
+Checkout has no browse link or external navigation: applying eligible gift credit
+happens in place. Other main-app gift links lead to `/app/gifts` inside Zero Club.
+The standalone Gifts browse link also stays in its current app. The account-scoped
+quote refetches on window focus when gifts have been claimed elsewhere.
 
 ## Deployment
 

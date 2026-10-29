@@ -79,7 +79,11 @@ test('both standalone apps keep account-switch behavior identical',()=>{
 });
 test('all checkout copies offer owned gift credit without manual gift-code entry',()=>{
   const base=read('src/components/ZeroGiftPaymentOption.tsx');
-  assert.match(base,/Use claimed Zero Cards/);assert.match(base,/get_my_zero_gift_balance_v2/);assert.match(base,/p_bootcamp_id: bootcampId/);assert.match(base,/amount - usable/);
+  assert.match(base,/Apply available Zero Cards/);assert.match(base,/get_my_zero_gift_balance_v2/);assert.match(base,/p_bootcamp_id: bootcampId/);assert.match(base,/amount - usable/);
   assert.ok(!base.includes('GiftCodeRedeemer'));assert.ok(!base.includes('claim_gift_card'));
+  assert.ok(!base.includes('GiftClaimLink'));assert.ok(!base.includes('target="_blank"'));assert.ok(!base.includes('gifts.zeroclubs.xyz'));
   for(const app of ['Zero Form','Zero Gifts'])assert.equal(read(app+'/src/components/ZeroGiftPaymentOption.tsx'),base);
+});
+test('main app gifts navigation stays inside Zero Club',()=>{
+  const link=read('src/components/GiftClaimLink.tsx');assert.match(link,/<Link to="\/app\/gifts"/);assert.ok(!link.includes('target="_blank"'));assert.ok(!link.includes('https://gifts.zeroclubs.xyz'));
 });

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, Gift } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
-import { GiftClaimLink } from "./GiftClaimLink";
 import { useUser } from "@/hooks/useUser";
 
 export type RestrictedZeroGiftService =
@@ -96,7 +95,7 @@ export function ZeroGiftPaymentOption({
         <span
           className={`block text-[12.5px] font-semibold ${dark ? "text-white" : "text-foreground"}`}
         >
-          Use claimed Zero Cards
+          {applied ? "Zero Cards applied" : "Apply available Zero Cards"}
         </span>
         <span
           className={`mt-0.5 block text-[10.5px] ${dark ? "text-white/55" : "text-muted-foreground"}`}
@@ -116,7 +115,6 @@ export function ZeroGiftPaymentOption({
     </button>}
       {isError ? <p role="status" className={`mt-2 text-xs ${dark?"text-white/65":"text-muted-foreground"}`}>Couldn’t check your claimed cards. <button type="button" onClick={()=>void refetch()} className="font-semibold underline">Try again</button></p>
         : available <= 0 && !isPending ? <p className={`mt-2 text-xs ${dark?"text-white/55":"text-muted-foreground"}`}>No unexpired claimed Zero Cards match this payment.</p> : null}
-      <GiftClaimLink dark={dark}/>
     </div>
   );
 }
