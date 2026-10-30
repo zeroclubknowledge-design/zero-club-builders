@@ -1,3 +1,4 @@
+import { NoteHeadingPicker } from "@/features/notes/NoteHeadingPicker";
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { NoteAudiencePicker, saveNoteAudience, type NoteAudienceMode } from "@/features/notes/NoteAudiencePicker";
 import { ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Type, Minus, Loader2, X, StopCircle, Wand2, Crown, Check, Globe, Bold, Italic, List, Palette } from "@/components/icons/glyphs";
@@ -793,7 +794,7 @@ function NotesEditPage() {
           className={`formatting-toolbar fixed inset-x-0 z-50 border-t border-border bg-card animate-in fade-in duration-150 ${keyboardInset > 0 ? '' : showIdlePublish ? 'bottom-[calc(60px+env(safe-area-inset-bottom))]' : 'bottom-0 pb-[env(safe-area-inset-bottom)]'}`}
           style={keyboardInset > 0 ? { bottom: keyboardInset } : undefined}
         >
-          <div className="zc-page-width no-scrollbar mx-auto flex max-w-[760px] items-center gap-0.5 overflow-x-auto px-2 py-1.5 text-muted-foreground">
+          <div className="zc-page-width mx-auto flex w-full min-w-0 max-w-[760px] items-center gap-0.5 px-2 py-1.5 text-muted-foreground [&>button]:min-w-0 [&>button]:w-0 [&>button]:flex-1 [&>span]:hidden sm:[&>button]:w-10 sm:[&>button]:flex-none sm:[&>span]:block">
             <button 
               onMouseDown={(e) => { e.preventDefault(); insertFormatting('bold'); }}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
@@ -817,16 +818,7 @@ function NotesEditPage() {
               <List className="h-4 w-4" strokeWidth={2} />
             </button>
             <span className="mx-1 h-5 w-px shrink-0 bg-border" />
-            {([1, 2, 3] as const).map((level) => (
-              <button
-                key={level}
-                onMouseDown={(e) => { e.preventDefault(); applyHeading(level); }}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[13px] font-bold transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
-                title={`Heading ${level}`}
-              >
-                H{level}
-              </button>
-            ))}
+            <NoteHeadingPicker onSelect={applyHeading} />
             <button
               onMouseDown={(e) => { e.preventDefault(); insertSectionBreak(); }}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-90"
