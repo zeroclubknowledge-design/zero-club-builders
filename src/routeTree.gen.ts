@@ -20,6 +20,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
+import { Route as ApiLinkPreviewRouteImport } from './routes/api.link-preview'
 import { Route as ApiOgDefaultRouteImport } from './routes/api.og-default'
 import { Route as ApiUnfurlRouteImport } from './routes/api.unfurl'
 import { Route as ApiWelcomeEmailRouteImport } from './routes/api.welcome-email'
@@ -194,6 +195,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
 const ApiContactRoute = ApiContactRouteImport.update({
   id: '/api/contact',
   path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLinkPreviewRoute = ApiLinkPreviewRouteImport.update({
+  id: '/api/link-preview',
+  path: '/api/link-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOgDefaultRoute = ApiOgDefaultRouteImport.update({
@@ -808,6 +814,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/link-preview': typeof ApiLinkPreviewRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
   '/api/welcome-email': typeof ApiWelcomeEmailRoute
@@ -939,6 +946,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/link-preview': typeof ApiLinkPreviewRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
   '/api/welcome-email': typeof ApiWelcomeEmailRoute
@@ -1067,6 +1075,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/link-preview': typeof ApiLinkPreviewRoute
   '/api/og-default': typeof ApiOgDefaultRoute
   '/api/unfurl': typeof ApiUnfurlRoute
   '/api/welcome-email': typeof ApiWelcomeEmailRoute
@@ -1201,6 +1210,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/api/contact'
+    | '/api/link-preview'
     | '/api/og-default'
     | '/api/unfurl'
     | '/api/welcome-email'
@@ -1332,6 +1342,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/api/contact'
+    | '/api/link-preview'
     | '/api/og-default'
     | '/api/unfurl'
     | '/api/welcome-email'
@@ -1459,6 +1470,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/welcome'
     | '/api/contact'
+    | '/api/link-preview'
     | '/api/og-default'
     | '/api/unfurl'
     | '/api/welcome-email'
@@ -1592,6 +1604,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WelcomeRoute: typeof WelcomeRoute
   ApiContactRoute: typeof ApiContactRoute
+  ApiLinkPreviewRoute: typeof ApiLinkPreviewRoute
   ApiOgDefaultRoute: typeof ApiOgDefaultRoute
   ApiUnfurlRoute: typeof ApiUnfurlRoute
   ApiWelcomeEmailRoute: typeof ApiWelcomeEmailRoute
@@ -1698,6 +1711,13 @@ declare module '@tanstack/react-router' {
       path: '/api/contact'
       fullPath: '/api/contact'
       preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/link-preview': {
+      id: '/api/link-preview'
+      path: '/api/link-preview'
+      fullPath: '/api/link-preview'
+      preLoaderRoute: typeof ApiLinkPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/og-default': {
@@ -2828,6 +2848,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WelcomeRoute: WelcomeRoute,
   ApiContactRoute: ApiContactRoute,
+  ApiLinkPreviewRoute: ApiLinkPreviewRoute,
   ApiOgDefaultRoute: ApiOgDefaultRoute,
   ApiUnfurlRoute: ApiUnfurlRoute,
   ApiWelcomeEmailRoute: ApiWelcomeEmailRoute,

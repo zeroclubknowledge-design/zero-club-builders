@@ -9,6 +9,8 @@ import { OtpInput, ResendRow } from "@/components/auth/OtpInput";
 import { startGoogleAuthentication } from "@/lib/googleAuth";
 import { getDeviceId, ONE_ACCOUNT_MESSAGES, oneAccountErrorMessage } from "@/lib/device";
 import { isTrustedEmail, isUntrustedEmailError, suggestEmailFix, UNTRUSTED_EMAIL_MESSAGE } from "@/lib/trustedEmail";
+import { rpc as publicPreviewRpc } from "@/lib/og/core/db";
+import { plain } from "@/lib/og/core/text";
 
 export const Route = createFileRoute("/signup")({
   component: SignUpPage,
@@ -19,10 +21,28 @@ export const Route = createFileRoute("/signup")({
     // member's first signed-in visit, where it is credited to the ambassador.
     c: typeof search.c === "string" && /^[A-Za-z0-9]{4,12}$/.test(search.c) ? search.c.toUpperCase() : undefined,
   }),
-  head: () => ({
+  loaderDeps: ({ search }) => ({ code: search.c }),
+  loader: async ({ deps }) => {
+    if (!deps.code) return null;
+    const campaign = await publicPreviewRpc("zs_campaign_link_preview", { p_code: deps.code });
+    return campaign?.found ? { title: campaign.title, description: plain(campaign.summary || campaign.description).slice(0, 200), code: deps.code } : null;
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Join Zero Club - Start Building" },
-      { name: "description", content: "Join the builder ecosystem. Learn, ship, and earn rewards." },
+      { title: loaderData?.title || "Join Zero Club - Start Building" },
+      { name: "description", content: loaderData?.description || "Join the builder ecosystem. Learn, ship, and earn rewards." },
+      ...(loaderData ? [
+        { property: "og:title", content: loaderData.title },
+        { property: "og:description", content: loaderData.description },
+        { property: "og:url", content: `https://www.zeroclubs.xyz/signup?c=${encodeURIComponent(loaderData.code)}` },
+        { property: "og:image", content: `https://www.zeroclubs.xyz/api/og/campaign/${encodeURIComponent(loaderData.code)}?v=8` },
+        { property: "og:image:secure_url", content: `https://www.zeroclubs.xyz/api/og/campaign/${encodeURIComponent(loaderData.code)}?v=8` },
+        { property: "og:image:alt", content: loaderData.title },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: loaderData.title },
+        { name: "twitter:description", content: loaderData.description },
+        { name: "twitter:image", content: `https://www.zeroclubs.xyz/api/og/campaign/${encodeURIComponent(loaderData.code)}?v=8` },
+      ] : []),
     ],
   }),
 });

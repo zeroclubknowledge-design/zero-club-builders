@@ -29,6 +29,18 @@ function prizeLine(p: { reward_type?: string; prizes?: any[] }) {
 
 export async function buildPreviewSpec(kind: string, id: string, url: URL): Promise<PreviewSpec> {
   switch (kind) {
+    case "campaign": {
+      const campaign = await rpc("zs_campaign_link_preview", { p_code: id });
+      if (!campaign?.found) return { ...DEFAULT_SPEC, kicker: "Zero Start" };
+      return {
+        kicker: "Zero Start",
+        title: campaign.title,
+        subtitle: plain(campaign.summary || campaign.description) || "Join Zero Club through this campaign.",
+        image: campaign.cover_url,
+        variant: campaign.cover_url ? "photo" : "default",
+        cta: "Join Zero Club",
+      };
+    }
     case "club":
     case "live": {
       if (!isUuid(id)) return DEFAULT_SPEC;
@@ -43,6 +55,7 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
           chips: [plural(Number(club.member_count) || 0, "member")],
           cta: "Join the live class",
           image: club.logo_url || club.banner_url,
+          variant: club.logo_url || club.banner_url ? "photo" : "default",
           monogram: initial(club.name),
           accent: "#e0245e",
         };
@@ -54,6 +67,7 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
         chips: [plural(Number(club.member_count) || 0, "member"), club.is_private ? "Request to join" : "Open to join"],
         cta: "Join this club",
         image: club.logo_url || club.banner_url,
+        variant: club.logo_url || club.banner_url ? "photo" : "default",
         monogram: initial(club.name),
       };
     }
@@ -202,6 +216,7 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
         chips: [product.price_type === "free" || !price ? "Free" : product.price_type === "Coins" ? `${final.toLocaleString("en-NG")} coins` : naira(final), discount ? `${discount}% off` : null, product.category],
         cta: "Get it on Zero Store",
         image: product.cover_url,
+        variant: product.cover_url ? "photo" : "default",
         monogram: initial(product.name),
       };
     }
@@ -210,15 +225,14 @@ export async function buildPreviewSpec(kind: string, id: string, url: URL): Prom
       if (!isUuid(id)) return DEFAULT_SPEC;
       const bootcamp = await one("bootcamps", "title,description,banner_url,category,price,status,starts_at", { id: `eq.${id}` });
       if (!bootcamp || bootcamp.status !== "active") return DEFAULT_SPEC;
-      // The Zero Form is the page people actually register on, so the banner
-      // uploaded there is the right cover for the link. The bootcamp's own
-      // banner is only the fallback.
+      // Prefer the picture attached to this bootcamp. A published form can
+      // supply a fallback when the bootcamp has no cover of its own.
       const form = await one("zero_forms", "banner_url", {
         bootcamp_id: `eq.${id}`,
         status: "eq.published",
         order: "created_at.desc",
       });
-      const cover = form?.banner_url || bootcamp.banner_url;
+      const cover = bootcamp.banner_url || form?.banner_url;
       return {
         kicker: "Bootcamp",
         title: bootcamp.title || "A Zero Club bootcamp",

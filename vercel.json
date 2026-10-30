@@ -48,6 +48,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/link-preview",
+      "destination": "/api/link-preview"
+    },
+    {
       "source": "/_next/(.*)",
       "destination": "/_next/$1"
     },

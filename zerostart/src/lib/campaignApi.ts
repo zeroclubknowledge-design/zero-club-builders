@@ -9,7 +9,7 @@ import type {
 type Refusal = { ok: boolean; reason?: string; code?: string; id?: string };
 
 /** Where a campaign link sends people: straight into Zero Club sign-up. */
-export const campaignLink = (code: string) => `${config.zeroClubUrl}/signup?c=${encodeURIComponent(code)}`;
+export const campaignLink = (code: string) => `${config.zeroClubUrl}/signup?c=${encodeURIComponent(code)}&preview=8`;
 
 /* ── Ambassador: my campaigns ─────────────────────────────────────────── */
 

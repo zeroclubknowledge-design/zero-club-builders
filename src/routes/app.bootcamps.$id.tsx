@@ -82,8 +82,8 @@ export const Route = createFileRoute("/app/bootcamps/$id")({
       return {
         title: bootcamp.title || null,
         description: bootcamp.description || null,
-        // The Zero Form is where people register, so its banner leads.
-        image: form?.banner_url || bootcamp.banner_url || null,
+        // A bootcamp link uses its own artwork; form links use the form banner.
+        image: bootcamp.banner_url || form?.banner_url || null,
       };
     } catch {
       return null;

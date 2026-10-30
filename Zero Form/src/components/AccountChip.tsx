@@ -3,7 +3,7 @@ import { AccountMenu } from "./AccountMenu";
 import { useAuth } from "@/lib/auth";
 import { AuthSheet } from "@/components/auth/AuthSheet";
 
-/** Avatar when signed in (to your page), "Sign in" otherwise — opens the account sheet in place. */
+/** The header avatar opens the same account-switching drawer as Zero Gifts. */
 export function AccountChip({ to = "/me" }: { to?: string }) {
   const { session, profile } = useAuth();
   const [open, setOpen] = useState(false);

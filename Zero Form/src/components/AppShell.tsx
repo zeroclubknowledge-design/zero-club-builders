@@ -30,9 +30,9 @@ export function AppShell({ brand, nav, children }: { brand: ReactNode; nav: NavI
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <a href={zc("/app")} className="hidden h-9 items-center rounded-full border border-border px-3.5 text-[12.5px] font-semibold text-muted-foreground transition hover:text-foreground sm:inline-flex">
+            {path !== "/me" && <a href={zc("/app")} className="hidden h-9 items-center rounded-full border border-border px-3.5 text-[12.5px] font-semibold text-muted-foreground transition hover:text-foreground sm:inline-flex">
               Open Zero Club
-            </a>
+            </a>}
             <AccountChip />
           </div>
         </div>

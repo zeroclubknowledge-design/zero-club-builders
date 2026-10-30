@@ -8,7 +8,6 @@ import { zc } from "@/lib/config";
 import { formatWalletAmount } from "@/hooks/useWalletCurrency";
 import { AppShell, PageHead } from "@/components/AppShell";
 import { Brand } from "@/components/Brand";
-import { RegistrationAccount } from "@/components/RegistrationAccount";
 import { NAV } from "./nav";
 
 const STATUS: Record<string, { label: string; tone: string }> = {
@@ -24,7 +23,7 @@ const STATUS: Record<string, { label: string; tone: string }> = {
  * filled in as a guest before you had an account (linked by your verified email).
  */
 export function MyRegistrations() {
-  const { session, profile, loading, signOut } = useAuth();
+  const { session, loading } = useAuth();
   const navigate = useNavigate();
   useEffect(() => { if (!loading && !session) void navigate({ to: "/signin" }); }, [loading, session, navigate]);
 
@@ -43,8 +42,6 @@ export function MyRegistrations() {
   return (
     <AppShell brand={<Brand />} nav={NAV}>
       <PageHead eyebrow="Your account" title="My registrations" sub="Bootcamps, waitlists and sign-ups you've joined with Zero Form." />
-
-      <RegistrationAccount profile={profile} onSignOut={() => void signOut()} />
 
       {regs.isLoading ? (
         <div className="grid place-items-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>

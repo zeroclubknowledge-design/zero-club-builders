@@ -17,7 +17,7 @@ export async function previewResponse(kind: string, rawId: string, url: URL): Pr
     spec = DEFAULT_SPEC;
   }
   // Serve the actual photo in a predictable format for social crawlers.
-  if ((kind === "post" || kind === "form") && spec.variant === "photo" && spec.image) {
+  if (spec.variant === "photo" && spec.image) {
     try {
       const photo = await drawPostPhoto(spec.image);
       if (photo) return new Response(photo, { headers: {
@@ -44,7 +44,7 @@ export async function previewResponse(kind: string, rawId: string, url: URL): Pr
   const fresh = kind === "game" || kind === "live" ? 600 : 3600;
   // The picture didn't arrive in time: serve this card, but don't let the CDN
   // keep it, so the next request tries again instead of repeating it for days.
-  const missedImage = Boolean(spec.image) && (!visual || ((kind === "post" || kind === "form") && spec.variant === "photo"));
+  const missedImage = Boolean(spec.image) && (!visual || spec.variant === "photo");
   return new Response(png, {
     status: 200,
     headers: {

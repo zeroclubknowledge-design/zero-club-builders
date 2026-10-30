@@ -13,9 +13,15 @@ Allow: /favicon.ico
 Disallow: /app/
 # Shared posts have a public, signed-out view and social preview metadata.
 Allow: /app/post/
+# Public shared pages must remain available to social preview crawlers.
+Allow: /app/bootcamps/
+Allow: /app/notes/
+Allow: /app/profile/
+Disallow: /app/profile/edit
 # Link-preview images live under /api, and some chat apps check robots.txt
 # before fetching a preview image.
 Allow: /api/og/
+Allow: /api/link-preview
 Allow: /api/og-default
 Allow: /api/club-image/
 Allow: /api/game-image/
