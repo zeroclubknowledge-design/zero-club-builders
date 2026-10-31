@@ -15,7 +15,7 @@ import { isCohortSubgroup } from "@/features/membership/plans";
  *  - Discover is fetched alongside everything else rather than after.
  */
 export const CLUBS_DATA_KEY = ["clubs_data"] as const;
-const SNAPSHOT_KEY = "zc_clubs_snapshot_v1";
+const SNAPSHOT_KEY = "zc_clubs_snapshot_v2";
 
 export async function fetchClubsData(): Promise<any> {
   const {
@@ -28,8 +28,8 @@ export async function fetchClubsData(): Promise<any> {
 
   const [
     { data: profile },
-    { data: userCreatedClubs },
-    { data: joinedClubs },
+    { data: userCreatedClubs, error: ownedError },
+    { data: joinedClubs, error: joinedError },
     { data: featuredClubData },
     { data: sentRequests },
     { data: incomingRequestsData },
@@ -38,10 +38,10 @@ export async function fetchClubsData(): Promise<any> {
     { data: newestClubs },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", session.user.id).single(),
-    supabase.from("clubs").select("*, bootcamps(ends_at)").eq("creator_id", session.user.id),
+    supabase.from("clubs").select("*").eq("creator_id", session.user.id),
     supabase
       .from("club_members")
-      .select("club_id, clubs(*, bootcamps(ends_at))")
+      .select("club_id, clubs(*)")
       .eq("profile_id", session.user.id),
     supabase.from("clubs").select("*").eq("name", "Zero K Bootcamp").maybeSingle(),
     supabase
@@ -64,7 +64,19 @@ export async function fetchClubsData(): Promise<any> {
     supabase.from("clubs").select("*").order("created_at", { ascending: false }).limit(120),
   ]);
 
-  let joinedIds = joinedClubs?.map((jc) => jc.club_id) || [];
+  if (ownedError) throw ownedError;
+  if (joinedError) throw joinedError;
+
+  // Ownership grants access even when older clubs have no owner membership row.
+  const myCommunities = [...new Map(
+    [...(userCreatedClubs || []), ...(joinedClubs || []).map((jc) => jc.clubs)]
+      .filter((c: any) => c && !isCohortSubgroup(c))
+      .map((c: any) => [c.id, c]),
+  ).values()];
+  const joinedIds = [...new Set([
+    ...(joinedClubs || []).map((jc) => jc.club_id),
+    ...(userCreatedClubs || []).map((c) => c.id),
+  ])];
   // Fetched alongside everything else (see newestClubs above) and filtered
   // here, instead of waiting for the joined list before asking.
   const joinedSet = new Set(joinedIds);
@@ -137,7 +149,7 @@ export async function fetchClubsData(): Promise<any> {
   return {
     bootClubs: [],
     myClubs: enrich(
-      joinedClubs?.map((jc) => jc.clubs as any).filter((c) => c && !isCohortSubgroup(c)) || [],
+      myCommunities,
     ),
     discover: enrich(discoverClubsCombined.filter((c) => c && !isCohortSubgroup(c))),
     profile,

@@ -163,7 +163,7 @@ function Clubs() {
   const [clubsSnapshot] = useState(() => readClubsSnapshot(cachedMe?.id || storedSessionUserId()));
 
   // Move heavy data fetching to React Query to prevent route blocking
-  const { data: clubData, isLoading: isClubsLoading } = useQuery({
+  const { data: clubData, isLoading: isClubsLoading, isError: clubsLoadFailed, refetch: reloadClubs } = useQuery({
     queryKey: CLUBS_DATA_KEY,
     staleTime: 1000 * 60 * 3,
     gcTime: 1000 * 60 * 15,
@@ -701,12 +701,19 @@ function Clubs() {
               <h2 className="flex h-11 items-center gap-1.5 text-[14px] font-semibold text-foreground">
                 My clubs{" "}
                 <span className="text-[12px] font-medium text-muted-foreground">
-                  {filteredMyClubs.length}
+                  {isClubsLoading || clubsLoadFailed ? "—" : filteredMyClubs.length}
                 </span>
               </h2>
             </div>
 
-            {filteredMyClubs.length > 0 ? (
+            {clubsLoadFailed ? (
+              <div className="px-6 py-10 text-center">
+                <p>We couldn't load your clubs. Please try again.</p>
+                <button onClick={() => reloadClubs()} className="mt-4 underline">Retry</button>
+              </div>
+            ) : isClubsLoading ? (
+              <p className="px-6 py-10 text-center">Loading your clubs…</p>
+            ) : filteredMyClubs.length > 0 ? (
               <div className="md:grid md:grid-cols-2 md:gap-x-6 md:px-2">
                 {filteredMyClubs.map((c: any) => (
                   <Link
