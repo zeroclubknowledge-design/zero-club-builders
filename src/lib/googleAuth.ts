@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { resolveReferralCode } from "@/lib/referrals";
 
 const GOOGLE_SIGNUP_CONTEXT_KEY = "zero_club_google_signup_context";
 const CONTEXT_MAX_AGE_MS = 30 * 60 * 1000;
@@ -91,11 +92,7 @@ export async function completePendingGoogleSignup(user: User) {
 
   const referralCode = context.referralCode?.trim();
   if (referralCode) {
-    const { data: referrer } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("referral_code", referralCode)
-      .maybeSingle();
+    const referrer = await resolveReferralCode(referralCode);
 
     if (referrer?.id && referrer.id !== user.id) {
       await supabase

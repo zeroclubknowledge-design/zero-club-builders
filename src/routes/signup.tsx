@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter, useSearch } from "@tanstack/react-rou
 import { useEffect, useState, useRef } from "react";
 import { ArrowRight, ChevronLeft, Gift, Loader2, Mail, ShieldCheck, User } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
+import { resolveReferralCode } from "@/lib/referrals";
 import { toast } from "sonner";
 import { usePublicTheme } from "@/hooks/usePublicTheme";
 import { GoogleAuthButton } from "@/components/GoogleAuthButton";
@@ -177,19 +178,7 @@ function SignUpPage() {
         return;
       }
 
-      if (referralCode) {
-        const { data: existingRef } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("referral_code", referralCode)
-          .maybeSingle();
-
-        if (!existingRef) {
-          toast.error("That referral code is invalid.");
-          setLoading(false);
-          return;
-        }
-      }
+      const resolvedReferral = await resolveReferralCode(referralCode);
 
       const metadata: any = {
         username: cleanUsername,
@@ -197,8 +186,8 @@ function SignUpPage() {
         device_id: deviceId,
       };
 
-      if (referralCode) {
-        metadata.referral_code_used = referralCode;
+      if (resolvedReferral) {
+        metadata.referral_code_used = resolvedReferral.referral_code;
       }
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -264,19 +253,7 @@ function SignUpPage() {
 
     setGoogleLoading(true);
     try {
-      if (referralCode) {
-        const { data: existingRef } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("referral_code", referralCode)
-          .maybeSingle();
-
-        if (!existingRef) {
-          toast.error("That referral code is invalid.");
-          setGoogleLoading(false);
-          return;
-        }
-      }
+      const resolvedReferral = await resolveReferralCode(referralCode);
 
       const search = new URLSearchParams();
       if (club) search.set("club", club);
@@ -286,7 +263,7 @@ function SignUpPage() {
       const error = await startGoogleAuthentication({
         destination,
         signupContext: {
-          referralCode: referralCode || undefined,
+          referralCode: resolvedReferral?.referral_code,
         },
       });
       if (error) throw error;
@@ -458,7 +435,7 @@ function SignUpPage() {
                       onChange={(e) => setReferralCode(e.target.value)}
                       className={`h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10 ${referralCode ? "border-[#c3217e]/35" : "border-black/10 dark:border-white/12"}`}
                     />
-                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#94185f]">Applied</span>}
+                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#94185f]">Entered</span>}
                   </span>
                 </label>
 
