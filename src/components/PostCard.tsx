@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { postLinkUrl } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { AvatarAffiliation, SubscriptionBadge } from "@/components/AffiliationBadge";
@@ -469,7 +470,7 @@ function PostCardView({ post, currentUser, onCommentClick }: PostCardProps) {
         console.log("Error sharing:", err);
       }
     } else {
-      await navigator.clipboard.writeText(url);
+      await copySharedText(url);
       toast.success("Link with your referral code copied!");
     }
   };

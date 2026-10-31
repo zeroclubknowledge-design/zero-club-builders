@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { learningShareUrl, prepareLearningReferral, useLearningReferral } from "@/lib/learningReferrals";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -409,7 +410,7 @@ function BootcampDetail() {
         return;
       } catch { /* dismissed */ }
     }
-    await navigator.clipboard.writeText(url);
+    await copySharedText(url);
     toast.success("Bootcamp link copied");
     } catch(error) {toast.error((error as Error).message);}
   };
@@ -784,7 +785,7 @@ function BootcampShareAction({ bootcamp }: { bootcamp: any }) {
         return;
       } catch { /* dismissed */ }
     }
-    await navigator.clipboard.writeText(url);
+    await copySharedText(url);
     toast.success(usesZeroForm ? "Zero Form link copied" : "Bootcamp link copied");
     } catch(error) {toast.error((error as Error).message);}
   };

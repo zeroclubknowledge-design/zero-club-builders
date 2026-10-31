@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -138,13 +139,13 @@ export function ContributorsView({
   const ahead = meIndex > 0 ? people[meIndex - 1] : null;
 
   const invite = async () => {
-    const url = clubInviteLink(clubId, meId);
     try {
+      const url = await clubInviteLink(clubId, meId);
       if (hasShareSheet()) {
         await openShareSheet({ heading: `Invite to ${clubName}`, title: `Join ${clubName} on Zero Club`, text: `I'm learning in ${clubName}. Come join me.`, url });
         return;
       }
-      await navigator.clipboard.writeText(url);
+      await copySharedText(url);
       toast.success("Your invite link is copied. You get credit when they join.");
     } catch {
       toast.error("Couldn't share the link");

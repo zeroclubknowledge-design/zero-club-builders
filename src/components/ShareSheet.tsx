@@ -1,3 +1,4 @@
+import { readableShareUrl } from "@/lib/readableShare";
 import { useEffect, useState, type ReactNode } from "react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { Link2, Mail, MessageSquare, Share2 } from "@/components/icons/glyphs";
@@ -37,6 +38,7 @@ export function hasShareSheet() {
 
 /** Open the Zero Club share sheet. Resolves straight away. */
 export async function openShareSheet(request: ShareRequest): Promise<void> {
+  request = { ...request, url: await readableShareUrl(request.url, request.title) };
   if (listeners.size === 0) {
     // Not mounted (shouldn't happen): fall back to copying.
     await copyToClipboard(request.url);

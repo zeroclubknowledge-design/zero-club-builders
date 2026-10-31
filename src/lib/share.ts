@@ -1,3 +1,4 @@
+import { readableShareText } from "@/lib/readableShare";
 import { toast } from "sonner";
 
 // Bump this when the shape of product link metadata changes. Messaging apps
@@ -95,12 +96,23 @@ export function fundLinkUrl(slug: string): string {
   return `${appOrigin()}/fund/${slug}`;
 }
 
+/** Prepare URLs for direct clipboard callers that provide their own feedback. */
+export async function writeSharedText(text: string): Promise<void> {
+  await navigator.clipboard.writeText(await readableShareText(text));
+}
+
 /**
  * Copies text, with a fallback for the cases where the async clipboard is not
  * available: it needs a secure context and is blocked in some older Android
  * webviews, which is exactly where a lot of Zero Club traffic lives.
  */
 export async function copyToClipboard(text: string, message = "Link copied"): Promise<boolean> {
+  try {
+    text = await readableShareText(text);
+  } catch {
+    toast.error("Couldn't prepare the share link. Please try again.");
+    return false;
+  }
   try {
     await navigator.clipboard.writeText(text);
     toast.success(message);

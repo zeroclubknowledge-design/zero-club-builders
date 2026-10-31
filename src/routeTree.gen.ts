@@ -122,6 +122,7 @@ import { Route as AppWalletAddMoneyRouteImport } from './routes/app.wallet.add-m
 import { Route as AppWalletRequestRouteImport } from './routes/app.wallet.request'
 import { Route as AppWalletSettingsRouteImport } from './routes/app.wallet.settings'
 import { Route as AppWalletWithdrawRouteImport } from './routes/app.wallet.withdraw'
+import { Route as ClubIdUsernameRouteImport } from './routes/club.$id.$username'
 import { Route as NotesSlugPreviewV1RouteImport } from './routes/notes.$slug.preview-v1'
 import { Route as ProductIdPreviewV3RouteImport } from './routes/product.$id.preview-v3'
 import { Route as ApiOgKindIdRouteImport } from './routes/api.og.$kind.$id'
@@ -139,6 +140,7 @@ import { Route as AppNotesIdEditRouteImport } from './routes/app.notes_.$id.edit
 import { Route as AppProfileIdNetworkRouteImport } from './routes/app.profile_.$id.network'
 import { Route as AppSettingsPremiumFeaturesRouteImport } from './routes/app.settings.premium.features'
 import { Route as AppWalletTransactionIdRouteImport } from './routes/app.wallet.transaction.$id'
+import { Route as ShareKindNameUsernameRouteImport } from './routes/share.$kind.$name.$username'
 import { Route as AppChatGGroupIdCallRouteImport } from './routes/app.chat.g.$groupId_.call'
 
 const IndexRoute = IndexRouteImport.update({
@@ -710,6 +712,11 @@ const AppWalletWithdrawRoute = AppWalletWithdrawRouteImport.update({
   path: '/wallet/withdraw',
   getParentRoute: () => AppRoute,
 } as any)
+const ClubIdUsernameRoute = ClubIdUsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
+  getParentRoute: () => ClubIdRoute,
+} as any)
 const NotesSlugPreviewV1Route = NotesSlugPreviewV1RouteImport.update({
   id: '/preview-v1',
   path: '/preview-v1',
@@ -796,6 +803,11 @@ const AppWalletTransactionIdRoute = AppWalletTransactionIdRouteImport.update({
   path: '/wallet/transaction/$id',
   getParentRoute: () => AppRoute,
 } as any)
+const ShareKindNameUsernameRoute = ShareKindNameUsernameRouteImport.update({
+  id: '/share/$kind/$name/$username',
+  path: '/share/$kind/$name/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppChatGGroupIdCallRoute = AppChatGGroupIdCallRouteImport.update({
   id: '/chat/g/$groupId_/call',
   path: '/chat/g/$groupId/call',
@@ -847,7 +859,7 @@ export interface FileRoutesByFullPath {
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
   '/certificate/$code': typeof CertificateCodeRoute
-  '/club/$id': typeof ClubIdRoute
+  '/club/$id': typeof ClubIdRouteWithChildren
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
@@ -903,6 +915,7 @@ export interface FileRoutesByFullPath {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/club/$id/$username': typeof ClubIdUsernameRoute
   '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
@@ -933,6 +946,7 @@ export interface FileRoutesByFullPath {
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/share/$kind/$name/$username': typeof ShareKindNameUsernameRoute
   '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRoutesByTo {
@@ -974,7 +988,7 @@ export interface FileRoutesByTo {
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
   '/certificate/$code': typeof CertificateCodeRoute
-  '/club/$id': typeof ClubIdRoute
+  '/club/$id': typeof ClubIdRouteWithChildren
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
@@ -1030,6 +1044,7 @@ export interface FileRoutesByTo {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/club/$id/$username': typeof ClubIdUsernameRoute
   '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin': typeof AppAdminIndexRoute
@@ -1060,6 +1075,7 @@ export interface FileRoutesByTo {
   '/app/profile/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/share/$kind/$name/$username': typeof ShareKindNameUsernameRoute
   '/app/chat/g/$groupId/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRoutesById {
@@ -1108,7 +1124,7 @@ export interface FileRoutesById {
   '/business/signup': typeof BusinessSignupRoute
   '/business/welcome': typeof BusinessWelcomeRoute
   '/certificate/$code': typeof CertificateCodeRoute
-  '/club/$id': typeof ClubIdRoute
+  '/club/$id': typeof ClubIdRouteWithChildren
   '/explore/$slug': typeof ExploreSlugRoute
   '/form/$slug': typeof FormSlugRoute
   '/fund/$slug': typeof FundSlugRoute
@@ -1164,6 +1180,7 @@ export interface FileRoutesById {
   '/app/wallet/request': typeof AppWalletRequestRoute
   '/app/wallet/settings': typeof AppWalletSettingsRoute
   '/app/wallet/withdraw': typeof AppWalletWithdrawRoute
+  '/club/$id/$username': typeof ClubIdUsernameRoute
   '/notes/$slug/preview-v1': typeof NotesSlugPreviewV1Route
   '/product/$id/preview-v3': typeof ProductIdPreviewV3Route
   '/app/admin/': typeof AppAdminIndexRoute
@@ -1194,6 +1211,7 @@ export interface FileRoutesById {
   '/app/profile_/$id/network': typeof AppProfileIdNetworkRoute
   '/app/settings/premium/features': typeof AppSettingsPremiumFeaturesRoute
   '/app/wallet/transaction/$id': typeof AppWalletTransactionIdRoute
+  '/share/$kind/$name/$username': typeof ShareKindNameUsernameRoute
   '/app/chat/g/$groupId_/call': typeof AppChatGGroupIdCallRoute
 }
 export interface FileRouteTypes {
@@ -1299,6 +1317,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/club/$id/$username'
     | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin/'
@@ -1329,6 +1348,7 @@ export interface FileRouteTypes {
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/share/$kind/$name/$username'
     | '/app/chat/g/$groupId/call'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1426,6 +1446,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/club/$id/$username'
     | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin'
@@ -1456,6 +1477,7 @@ export interface FileRouteTypes {
     | '/app/profile/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/share/$kind/$name/$username'
     | '/app/chat/g/$groupId/call'
   id:
     | '__root__'
@@ -1559,6 +1581,7 @@ export interface FileRouteTypes {
     | '/app/wallet/request'
     | '/app/wallet/settings'
     | '/app/wallet/withdraw'
+    | '/club/$id/$username'
     | '/notes/$slug/preview-v1'
     | '/product/$id/preview-v3'
     | '/app/admin/'
@@ -1589,6 +1612,7 @@ export interface FileRouteTypes {
     | '/app/profile_/$id/network'
     | '/app/settings/premium/features'
     | '/app/wallet/transaction/$id'
+    | '/share/$kind/$name/$username'
     | '/app/chat/g/$groupId_/call'
   fileRoutesById: FileRoutesById
 }
@@ -1612,7 +1636,7 @@ export interface RootRouteChildren {
   BusinessSignupRoute: typeof BusinessSignupRoute
   BusinessWelcomeRoute: typeof BusinessWelcomeRoute
   CertificateCodeRoute: typeof CertificateCodeRoute
-  ClubIdRoute: typeof ClubIdRoute
+  ClubIdRoute: typeof ClubIdRouteWithChildren
   ExploreSlugRoute: typeof ExploreSlugRoute
   FormSlugRoute: typeof FormSlugRoute
   FundSlugRoute: typeof FundSlugRoute
@@ -1632,6 +1656,7 @@ export interface RootRouteChildren {
   ApiOgKindIdRoute: typeof ApiOgKindIdRoute
   ApiZeroAiVapiSessionRoute: typeof ApiZeroAiVapiSessionRoute
   ApiZeroAiVapiWebhookRoute: typeof ApiZeroAiVapiWebhookRoute
+  ShareKindNameUsernameRoute: typeof ShareKindNameUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2427,6 +2452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletWithdrawRouteImport
       parentRoute: typeof AppRoute
     }
+    '/club/$id/$username': {
+      id: '/club/$id/$username'
+      path: '/$username'
+      fullPath: '/club/$id/$username'
+      preLoaderRoute: typeof ClubIdUsernameRouteImport
+      parentRoute: typeof ClubIdRoute
+    }
     '/notes/$slug/preview-v1': {
       id: '/notes/$slug/preview-v1'
       path: '/preview-v1'
@@ -2545,6 +2577,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/wallet/transaction/$id'
       preLoaderRoute: typeof AppWalletTransactionIdRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/share/$kind/$name/$username': {
+      id: '/share/$kind/$name/$username'
+      path: '/share/$kind/$name/$username'
+      fullPath: '/share/$kind/$name/$username'
+      preLoaderRoute: typeof ShareKindNameUsernameRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/chat/g/$groupId_/call': {
       id: '/app/chat/g/$groupId_/call'
@@ -2798,6 +2837,17 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface ClubIdRouteChildren {
+  ClubIdUsernameRoute: typeof ClubIdUsernameRoute
+}
+
+const ClubIdRouteChildren: ClubIdRouteChildren = {
+  ClubIdUsernameRoute: ClubIdUsernameRoute,
+}
+
+const ClubIdRouteWithChildren =
+  ClubIdRoute._addFileChildren(ClubIdRouteChildren)
+
 interface NotesSlugRouteChildren {
   NotesSlugPreviewV1Route: typeof NotesSlugPreviewV1Route
 }
@@ -2856,7 +2906,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessSignupRoute: BusinessSignupRoute,
   BusinessWelcomeRoute: BusinessWelcomeRoute,
   CertificateCodeRoute: CertificateCodeRoute,
-  ClubIdRoute: ClubIdRoute,
+  ClubIdRoute: ClubIdRouteWithChildren,
   ExploreSlugRoute: ExploreSlugRoute,
   FormSlugRoute: FormSlugRoute,
   FundSlugRoute: FundSlugRoute,
@@ -2876,6 +2926,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOgKindIdRoute: ApiOgKindIdRoute,
   ApiZeroAiVapiSessionRoute: ApiZeroAiVapiSessionRoute,
   ApiZeroAiVapiWebhookRoute: ApiZeroAiVapiWebhookRoute,
+  ShareKindNameUsernameRoute: ShareKindNameUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

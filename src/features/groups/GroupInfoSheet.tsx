@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -62,7 +63,7 @@ export function GroupInfoSheet({
     try {
       if (navigator.share) await navigator.share({ title: group.name, text, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copySharedText(link);
         toast.success("Invite link copied");
       }
     } catch { /* cancelled */ }
@@ -148,7 +149,7 @@ export function GroupInfoSheet({
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#c3217e]/12 text-[#c3217e]"><Link2 className="h-5 w-5" /></span>
                   <span className="min-w-0 flex-1 truncate text-[13.5px] text-[#c3217e]">{link.replace(/^https?:\/\//, "")}</span>
-                  <button type="button" onClick={async () => { await navigator.clipboard.writeText(link); toast.success("Invite link copied"); }} aria-label="Copy link" className="grid h-9 w-9 place-items-center rounded-full hover:bg-foreground/[0.06]">
+                  <button type="button" onClick={async () => { await copySharedText(link); toast.success("Invite link copied"); }} aria-label="Copy link" className="grid h-9 w-9 place-items-center rounded-full hover:bg-foreground/[0.06]">
                     <Copy className="h-4 w-4" />
                   </button>
                 </div>

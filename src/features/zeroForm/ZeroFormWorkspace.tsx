@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { learningShareUrl } from "@/lib/learningReferrals";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { useEffect, useMemo, useState } from "react";
@@ -1494,14 +1495,14 @@ function ShareButtons({
   const shareLabel = live ? "Share bootcamp" : "Share Zero Form";
   const getUrl = () => learningShareUrl(live ? {bootcampId} : {formSlug:slug});
   const copy = async () => {
-    try { await navigator.clipboard.writeText(await getUrl());toast.success("Referral link copied"); }
+    try { await copySharedText(await getUrl());toast.success("Referral link copied"); }
     catch(error) {toast.error((error as Error).message);}
   };
   const share = async () => {
     try {
       const url=await getUrl();
       if (hasShareSheet()) { try {await openShareSheet({title:shareLabel,url});return;} catch {} }
-      await navigator.clipboard.writeText(url);toast.success("Referral link copied");
+      await copySharedText(url);toast.success("Referral link copied");
     } catch(error) {toast.error((error as Error).message);}
   };
 

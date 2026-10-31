@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { useState, useEffect, useRef } from "react";
 import { MentionField } from "@/components/MentionField";
 import {
@@ -709,7 +710,7 @@ export function CommentDrawer({ post: incomingPost, type = 'post', isOpen = fals
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56 rounded-lg border-border bg-background shadow-lg">
                               <DropdownMenuItem className="flex items-center gap-3 py-2.5 cursor-pointer" onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
+                                copySharedText(window.location.href);
                                 toast.success("Comment link copied!");
                               }}>
                                 <Send className="h-4 w-4" />

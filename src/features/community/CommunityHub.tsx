@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -462,7 +463,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
      that silently did nothing on browsers without it. */
   const share = async () => {
     // Carries who shared it, so they're credited on Contributors when someone joins.
-    const url = clubInviteLink(h.club.id, viewer?.id);
+    const url = await clubInviteLink(h.club.id, viewer?.id);
     if (hasShareSheet()) {
       await openShareSheet({
         heading: `Share ${h.club.name}`,
@@ -474,7 +475,7 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
       });
       return;
     }
-    await navigator.clipboard.writeText(url);
+    await copySharedText(url);
     toast.success("Club link copied");
   };
 

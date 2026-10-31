@@ -824,19 +824,19 @@ function ClubChat() {
   // Carries who shared it, so they are credited on the club's Contributors page when someone joins.
   const inviteLink = () => clubInviteLink(club?.id || "", currentUser?.id);
 
-  const handleCopyInvite = () => {
+  const handleCopyInvite = async () => {
     if (!club) return;
     // Goes through the shared helper for the older-webview fallback, rather
     // than calling navigator.clipboard directly and failing silently.
-    copyToClipboard(inviteLink(), "Invite link copied");
+    copyToClipboard(await inviteLink(), "Invite link copied");
   };
 
-  const handleShareInvite = () => {
+  const handleShareInvite = async () => {
     if (!club) return;
     shareOrCopy({
       title: club.name,
       text: `Join ${club.name} on Zero Club`,
-      url: inviteLink(),
+      url: await inviteLink(),
       copiedMessage: "Invite link copied",
     });
   };

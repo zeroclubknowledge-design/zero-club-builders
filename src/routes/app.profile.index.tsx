@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
 import { ProfileBanner } from "@/components/ProfileBanner";
@@ -223,7 +224,7 @@ function Profile() {
         console.log("Error sharing:", err);
       }
     } else {
-      await navigator.clipboard.writeText(`${text}\n\n${url}`);
+      await copySharedText(`${text}\n\n${url}`);
       toast.success("Invite link copied — you earn 100 ZP for every friend who joins");
     }
   };
@@ -308,7 +309,7 @@ function Profile() {
                   </button>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(
+                      copySharedText(
                         `${window.location.origin}/app/profile/${profile.id}?ref=${profile.referral_code}`,
                       );
                       toast.success("Profile link copied!");

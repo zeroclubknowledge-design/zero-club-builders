@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { SignalDots, SignalSummary, usePostSignal, recordPostView, SIGNAL_COPY } from "@/features/postSignal/signal";
 import { postPreviewHead } from "@/lib/og/core/post";
@@ -793,7 +794,7 @@ function PostDetail() {
         });
       } catch (err) {}
     } else {
-      await navigator.clipboard.writeText(url);
+      await copySharedText(url);
       toast.success("Link copied!");
     }
   };
@@ -916,7 +917,7 @@ function PostDetail() {
                 <DropdownMenuItem
                   className="flex items-center gap-3 py-2.5 cursor-pointer"
                   onClick={() => {
-                    navigator.clipboard.writeText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
+                    copySharedText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
                     toast.success("Link copied!");
                   }}
                 >
@@ -1447,7 +1448,7 @@ function PostDetail() {
                             <DropdownMenuItem
                               className="flex items-center gap-3 py-2.5 cursor-pointer"
                               onClick={() => {
-                                navigator.clipboard.writeText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
+                                copySharedText(postLinkUrl(id, new URL(window.location.href).searchParams.get("ref")));
                                 toast.success("Comment link copied!");
                               }}
                             >

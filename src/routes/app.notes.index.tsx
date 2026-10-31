@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Search, Edit3, Image as ImageIcon, MoreVertical, Trash2, Share2, X, PenLine } from "@/components/icons/glyphs";
@@ -97,7 +98,7 @@ function NotesIndexPage() {
         console.error('Error sharing:', err);
       }
     } else {
-      navigator.clipboard.writeText(url);
+      copySharedText(url);
       toast.success('Link copied to clipboard!');
     }
   };

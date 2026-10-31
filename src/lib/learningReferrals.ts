@@ -1,3 +1,4 @@
+import { readableShareUrl } from "@/lib/readableShare";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -21,7 +22,7 @@ export async function learningShareUrl({bootcampId,formSlug}:{bootcampId?:string
   if (!session) return formSlug ? `${ORIGIN}/form/${encodeURIComponent(formSlug)}` : `${ORIGIN}/app/bootcamps/${encodeURIComponent(bootcampId||"")}`;
   const {data,error} = await supabase.rpc("create_learning_share_link" as never,{p_bootcamp_id:bootcampId||null,p_form_slug:formSlug||null} as never);
   if (error || typeof data!=="string" || !/^[0-9a-f]{12}$/.test(data)) throw new Error("Could not create your referral link. Please try again.");
-  return `${ORIGIN}/s/${data}`;
+  return readableShareUrl(`${ORIGIN}/s/${data}`);
 }
 
 export async function claimLearningReferral(bootcampId?:string) {

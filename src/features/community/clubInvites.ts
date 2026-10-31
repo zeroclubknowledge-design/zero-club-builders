@@ -16,9 +16,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_AGE = 30 * 24 * 3600 * 1000;
 
 /** The link a member shares: the public club page, carrying who invited. */
-export function clubInviteLink(clubId: string, inviterId?: string | null) {
-  const base = `${window.location.origin}/club/${clubId}`;
-  return inviterId ? `${base}?ref=${inviterId}` : base;
+export async function clubInviteLink(clubId: string, _inviterId?: string | null) {
+  const { data, error } = await supabase.rpc("club_invite_path", { p_club: clubId });
+  if (error || !data) throw new Error("Couldn't create the invite link. Please try again.");
+  return `${window.location.origin}${data}`;
 }
 
 /** Called on the public club page: remember who sent this link. */

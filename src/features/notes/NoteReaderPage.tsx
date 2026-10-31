@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 /**
  * The note reader, lifted out of routes/app.notes.$id.tsx.
  *
@@ -173,7 +174,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
         console.log("Error sharing:", err);
       }
     } else {
-      await navigator.clipboard.writeText(url);
+      await copySharedText(url);
       toast.success("Link copied to clipboard!");
     }
   };

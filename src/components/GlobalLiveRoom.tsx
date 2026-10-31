@@ -1,3 +1,4 @@
+import { writeSharedText as copySharedText } from "@/lib/share";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMicRecovery, useOngoingCallNotification } from "@/features/calls/backgroundCall";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
@@ -1400,7 +1401,7 @@ function LiveRoomContent({ channel, token }: { channel: string; token: string })
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/app/live/${channel}`);
+      await copySharedText(`${window.location.origin}/app/live/${channel}`);
       toast.success("Live session link copied! Only club members can join.");
     } catch (err) {
       toast.error("Failed to copy link");
