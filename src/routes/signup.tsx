@@ -26,7 +26,7 @@ export const Route = createFileRoute("/signup")({
   loader: async ({ deps }) => {
     if (!deps.code) return null;
     const campaign = await publicPreviewRpc("zs_campaign_link_preview", { p_code: deps.code });
-    return campaign?.found ? { title: campaign.title, description: plain(campaign.summary || campaign.description).slice(0, 200), code: deps.code } : null;
+    return campaign?.found ? { title: campaign.title, description: plain(campaign.summary || campaign.description).slice(0, 200), code: deps.code, referralCode: typeof campaign.referral_code === "string" ? campaign.referral_code : undefined } : null;
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -59,6 +59,8 @@ function SignUpPage() {
   usePublicTheme();
   const router = useRouter();
   const { ref, club, c: campaignCode } = useSearch({ from: "/signup" });
+  const campaign = Route.useLoaderData();
+  const ambassadorReferral = campaign?.code === campaignCode ? campaign?.referralCode : undefined;
 
   useEffect(() => {
     if (!campaignCode) return;
@@ -70,8 +72,13 @@ function SignUpPage() {
   }, [campaignCode]);
   const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("signup_email") || "");
-  const [referralCode, setReferralCode] = useState(() => ref || localStorage.getItem("signup_ref") || "");
+  const [referralCode, setReferralCode] = useState(() => ambassadorReferral || ref || localStorage.getItem("signup_ref") || "");
   const [step, setStep] = useState<"info" | "code">(() => (localStorage.getItem("signup_step") as "info" | "code") || "info");
+  // A newly opened ambassador link takes precedence over an old saved draft.
+  useEffect(() => {
+    if (ambassadorReferral) setReferralCode(ambassadorReferral);
+    else if (ref) setReferralCode(ref);
+  }, [ambassadorReferral, ref, campaignCode]);
   const [code, setCode] = useState("");
   const codeFormRef = useRef<HTMLFormElement>(null);
 
@@ -435,7 +442,7 @@ function SignUpPage() {
                       onChange={(e) => setReferralCode(e.target.value)}
                       className={`h-12 w-full rounded-xl border border-black/10 bg-[#fbfaf7] px-4 pl-11 pr-20 dark:border-white/12 dark:bg-white/[0.04] text-[15px] font-normal text-[#171417] outline-none dark:text-white transition placeholder:text-[#9b9297] dark:placeholder:text-white/35 focus:border-[#c3217e]/45 focus:bg-white dark:focus:bg-white/[0.07] focus:ring-4 focus:ring-[#c3217e]/10 ${referralCode ? "border-[#c3217e]/35" : "border-black/10 dark:border-white/12"}`}
                     />
-                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#94185f]">Entered</span>}
+                    {referralCode && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-medium text-[#94185f]">{ambassadorReferral && referralCode === ambassadorReferral ? "Applied" : "Entered"}</span>}
                   </span>
                 </label>
 
