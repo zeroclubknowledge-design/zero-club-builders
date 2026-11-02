@@ -1,3 +1,4 @@
+import { normalizeNoteHtml } from "@/features/notes/noteHtml";
 import { NoteHeadingPicker } from "@/features/notes/NoteHeadingPicker";
 import { getFirstName } from "@/lib/utils";
 import { NoteAudiencePicker, saveNoteAudience, type NoteAudienceMode } from "@/features/notes/NoteAudiencePicker";
@@ -40,9 +41,7 @@ interface NoteBlock {
   preview?: string; 
 }
 
-const sanitizeEditableNoteHtml = (content = '') => content
-  .replace(/&lt;\s*\/?\s*p\s*&gt;/gi, '')
-  .replace(/&#0*60;\s*\/?\s*p\s*&#0*62;/gi, '');
+const sanitizeEditableNoteHtml = normalizeNoteHtml;
 
 const TipTapBlock = ({ 
   block, 

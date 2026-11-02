@@ -1,3 +1,4 @@
+import { normalizeNoteHtml } from "./noteHtml";
 import { writeSharedText as copySharedText } from "@/lib/share";
 /**
  * The note reader, lifted out of routes/app.notes.$id.tsx.
@@ -259,9 +260,7 @@ export function NoteReaderPage({ noteId, initialNote, slug }: { noteId: string; 
     switch (block.type) {
       case "text":
         if (!block.content || block.content.trim() === "") return null;
-        const cleanContent = block.content
-          .replace(/<p><\/p>|<p><br><\/p>|<p>&nbsp;<\/p>/g, "")
-          .trim();
+        const cleanContent = normalizeNoteHtml(block.content);
         if (!cleanContent) return null;
         return (
           /* zc-note-prose so a published article gets the same heading sizes,

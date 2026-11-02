@@ -1,3 +1,4 @@
+import { normalizeNoteHtml } from "@/features/notes/noteHtml";
 import { NoteHeadingPicker } from "@/features/notes/NoteHeadingPicker";
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { NoteAudiencePicker, saveNoteAudience, type NoteAudienceMode } from "@/features/notes/NoteAudiencePicker";
@@ -36,9 +37,7 @@ interface NoteBlock {
   preview?: string; 
 }
 
-const sanitizeEditableNoteHtml = (content = '') => content
-  .replace(/&lt;\s*\/?\s*p\s*&gt;/gi, '')
-  .replace(/&#0*60;\s*\/?\s*p\s*&#0*62;/gi, '');
+const sanitizeEditableNoteHtml = normalizeNoteHtml;
 
 const TipTapBlock = ({ 
   block, 
@@ -120,7 +119,7 @@ const TipTapBlock = ({
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getFirstName } from "@/lib/utils";
-import { draftKey, readDraft, writeDraft, removeDraft } from "@/lib/draftStorage";
+import { draftKey, removeDraft } from "@/lib/draftStorage";
 
 import { useEditorMentions } from "@/components/EditorMentions";
 function NotesEditPage() {
@@ -139,7 +138,7 @@ function NotesEditPage() {
   const [noteBootcampIds, setNoteBootcampIds] = useState<string[]>([]);
   // Start from the note's current audience, so saving an edit doesn't reset it.
   useEffect(() => {
-    if (!noteId || !editDraftKey || readDraft(editDraftKey, null)) return;
+    if (!noteId) return;
     void supabase.rpc("get_note_audience", { p_note: noteId }).then(({ data }) => {
       const current = data as { audience?: string; bootcamp_ids?: string[] } | null;
       if (current?.audience === "bootcamps") {
@@ -152,7 +151,7 @@ function NotesEditPage() {
   const [blocks, setBlocks] = useState<NoteBlock[]>([]);
   const [isNoteLoaded, setIsNoteLoaded] = useState(false);
 
-  const { data: noteData } = useQuery({
+  const { data: noteData, isFetching: isFetchingNote } = useQuery({
     queryKey: ['note', noteId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -163,6 +162,8 @@ function NotesEditPage() {
       if (error) throw new Error(error.message);
       return data;
     },
+    staleTime: 0,
+    refetchOnMount: 'always',
     enabled: !!noteId && !isNoteLoaded
   });
 
@@ -177,15 +178,11 @@ function NotesEditPage() {
 
   // Effect to load note data into state once
   useEffect(() => {
-    if (noteData && !isNoteLoaded && editDraftKey) {
-      const saved = readDraft<{ title: string; blocks: NoteBlock[]; noteMode: NoteAudienceMode; noteBootcampIds: string[] } | null>(editDraftKey, null);
-      setTitle(saved?.title ?? noteData.title ?? '');
+    if (noteData && !isFetchingNote && !isNoteLoaded && editDraftKey) {
+      removeDraft(editDraftKey);
+      setTitle(noteData.title ?? '');
       setCoverPreview(noteData.cover_url || null);
-      if (saved) {
-        setBlocks(saved.blocks);
-        setNoteMode(saved.noteMode);
-        setNoteBootcampIds(saved.noteBootcampIds);
-      } else if (noteData.blocks && noteData.blocks.length > 0) {
+      if (noteData.blocks && noteData.blocks.length > 0) {
         setBlocks(noteData.blocks.map((block: NoteBlock) => (
           block.type === 'text' || block.type === 'heading'
             ? { ...block, content: sanitizeEditableNoteHtml(block.content) }
@@ -196,7 +193,7 @@ function NotesEditPage() {
       }
       setIsNoteLoaded(true);
     }
-  }, [noteData, isNoteLoaded, editDraftKey]);
+  }, [noteData, isFetchingNote, isNoteLoaded, editDraftKey]);
   
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeMentionBlockId, setActiveMentionBlockId] = useState<string | null>(null);
@@ -209,17 +206,6 @@ function NotesEditPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const blockContentsRef = useRef<Record<string, string>>({});
-  const draftFinished = useRef(false);
-  useEffect(() => {
-    if (!isNoteLoaded || !editDraftKey || draftFinished.current) return;
-    writeDraft(editDraftKey, {
-      title, noteMode, noteBootcampIds,
-      blocks: blocks.filter(block => !block.file).map(block => ({
-        id: block.id, type: block.type,
-        content: blockContentsRef.current[block.id] ?? block.content,
-      })),
-    });
-  }, [editDraftKey, isNoteLoaded, title, blocks, contentRevision, noteMode, noteBootcampIds]);
 
   const hasDraftContent = title.trim().length > 0 || blocks.some((block) => {
     const content = blockContentsRef.current[block.id] ?? block.content ?? '';
@@ -534,7 +520,6 @@ function NotesEditPage() {
       }));
       await queryClient.invalidateQueries({ queryKey: ['notes'] });
 
-      draftFinished.current = true;
       removeDraft(editDraftKey);
       toast.success("Note updated successfully!");
       if (updatedNote.slug) navigate({ to: '/notes/$slug', params: { slug: updatedNote.slug } });
