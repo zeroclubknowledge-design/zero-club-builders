@@ -14,14 +14,19 @@ export const Route = createFileRoute("/app/settings/notifications")({
 function NotificationsSettings() {
   const [showSettingsHelp, setShowSettingsHelp] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("notification_help"));
   const returningFromSettings = useRef(false);
+  const [shortcutUnavailable, setShortcutUnavailable] = useState(false);
+  const shortcutTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(shortcutTimer.current), []);
   const android = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
-  const openDeviceSettings = () => {
+  const openDeviceSettings = (requestPermission = false) => {
     returningFromSettings.current = true;
     setShowSettingsHelp(true);
     if (android) {
-      const fallback = new URL(window.location.href);
-      fallback.searchParams.set("notification_help", "1");
-      window.location.assign(notificationSettingsIntent(fallback.toString()));
+      clearTimeout(shortcutTimer.current);
+      shortcutTimer.current = setTimeout(() => {
+        if (document.visibilityState === "visible") setShortcutUnavailable(true);
+      }, 1800);
+      window.location.assign(notificationSettingsIntent(requestPermission));
     }
   };
   const [pushOn, setPushOn] = useState(false);
@@ -74,7 +79,7 @@ function NotificationsSettings() {
     }
 
     if (!pushOn && Notification.permission === "denied") {
-      openDeviceSettings();
+      openDeviceSettings(true);
       return;
     }
 
@@ -120,7 +125,8 @@ function NotificationsSettings() {
               ? "In device Settings, open Apps → Zero Club → Notifications and turn on notifications. In a browser, open its site settings and allow notifications for Zero Club."
               : "Allow notifications for Zero Club in your browser or device settings, then return here. On iPhone, open Settings → Notifications → Zero Club."}</DialogDescription>
           </DialogHeader>
-          {android && <button onClick={openDeviceSettings} className="rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground">Open device settings</button>}
+          {shortcutUnavailable && <p className="text-sm text-muted-foreground">The notification shortcut couldn't open. Update the Zero Club Android app, or use the steps above to enable notifications manually.</p>}
+          {android && !shortcutUnavailable && <button onClick={() => openDeviceSettings()} className="rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground">Open device settings</button>}
         </DialogContent>
       </Dialog>
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">

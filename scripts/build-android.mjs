@@ -148,7 +148,7 @@ async function injectCallService() {
   xml = await readFile(androidManifest, "utf8");
   if (!xml.includes("NotificationSettingsActivity")) {
     const activity = `        <activity android:name=".NotificationSettingsActivity" android:exported="true"
-            android:excludeFromRecents="true" android:noHistory="true"
+            android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
