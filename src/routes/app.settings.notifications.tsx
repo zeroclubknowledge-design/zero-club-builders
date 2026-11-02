@@ -1,7 +1,9 @@
+import { notificationSettingsIntent } from "@/lib/notificationSettings";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Mail, Smartphone, Settings2, Loader2 } from "@/components/icons/glyphs";
 import { Switch } from "@/components/ui/switch";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { disablePush, enablePush, isPushEnabled, supportsWebPush } from "@/lib/pushSubscription";
 
@@ -10,6 +12,18 @@ export const Route = createFileRoute("/app/settings/notifications")({
 });
 
 function NotificationsSettings() {
+  const [showSettingsHelp, setShowSettingsHelp] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("notification_help"));
+  const returningFromSettings = useRef(false);
+  const android = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+  const openDeviceSettings = () => {
+    returningFromSettings.current = true;
+    setShowSettingsHelp(true);
+    if (android) {
+      const fallback = new URL(window.location.href);
+      fallback.searchParams.set("notification_help", "1");
+      window.location.assign(notificationSettingsIntent(fallback.toString()));
+    }
+  };
   const [pushOn, setPushOn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pushStatus, setPushStatus] = useState("Get instant alerts for messages and activity");
@@ -25,7 +39,7 @@ function NotificationsSettings() {
       .then((enabled) => {
         if (cancelled) return;
         setPushOn(enabled);
-        setPushStatus(enabled ? "Enabled on this device. Tap to turn off." : "Get instant alerts for messages and activity");
+        setPushStatus(enabled ? "Enabled on this device. Tap to turn off." : Notification.permission === "denied" ? "Tap to open notification settings" : "Get instant alerts for messages and activity");
       })
       .catch(() => {
         if (!cancelled) setPushStatus("Tap to finish setting up notifications");
@@ -34,9 +48,33 @@ function NotificationsSettings() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    const resume = async () => {
+      if (document.visibilityState !== "visible" || !returningFromSettings.current || !supportsWebPush()) return;
+      if (Notification.permission !== "granted") return;
+      returningFromSettings.current = false;
+      setLoading(true);
+      try {
+        const result = await enablePush();
+        setPushOn(result !== "denied");
+        setPushStatus(result !== "denied" ? "Enabled on this device. Tap to turn off." : "Tap to open notification settings");
+        if (result !== "denied") setShowSettingsHelp(false);
+      } catch { setPushStatus("Tap to finish setting up notifications"); }
+      finally { setLoading(false); }
+    };
+    window.addEventListener("focus", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("focus", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
+
   const handlePushToggle = async () => {
     if (!supportsWebPush()) {
       toast.error("Push notifications are not supported on this browser.");
+      return;
+    }
+
+    if (!pushOn && Notification.permission === "denied") {
+      openDeviceSettings();
       return;
     }
 
@@ -56,7 +94,8 @@ function NotificationsSettings() {
       const result = await enablePush();
       if (result === "denied") {
         setPushStatus("Permission is blocked in your phone settings");
-        toast.error("Notification permission is blocked. Allow it for Zero Club in your phone settings, then try again.");
+        setShowSettingsHelp(true);
+        returningFromSettings.current = true;
         return;
       }
       toast.success("Push notifications enabled on this device.");
@@ -73,6 +112,17 @@ function NotificationsSettings() {
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
+      <Dialog open={showSettingsHelp} onOpenChange={setShowSettingsHelp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Turn on notifications</DialogTitle>
+            <DialogDescription>{android
+              ? "In device Settings, open Apps → Zero Club → Notifications and turn on notifications. In a browser, open its site settings and allow notifications for Zero Club."
+              : "Allow notifications for Zero Club in your browser or device settings, then return here. On iPhone, open Settings → Notifications → Zero Club."}</DialogDescription>
+          </DialogHeader>
+          {android && <button onClick={openDeviceSettings} className="rounded-full bg-primary px-5 py-3 font-semibold text-primary-foreground">Open device settings</button>}
+        </DialogContent>
+      </Dialog>
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <Link to="/app/settings" aria-label="Back to settings" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">

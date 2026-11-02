@@ -103,7 +103,7 @@ async function injectCallService() {
   const manifest = JSON.parse(await readFile(TWA_MANIFEST, "utf8"));
   const packageId = String(manifest.packageId);
   const javaDir = path.join(WORK_DIR, "app", "src", "main", "java", ...packageId.split("."));
-  for (const name of ["CallForegroundService.java", "KeepMicActivity.java", "NotificationReplyReceiver.java"]) {
+  for (const name of ["CallForegroundService.java", "KeepMicActivity.java", "NotificationReplyReceiver.java", "NotificationSettingsActivity.java"]) {
     const source = await readFile(path.join(ROOT, "android", "native", name), "utf8");
     await writeFile(path.join(javaDir, name), source.replace(/__PACKAGE__/g, packageId), "utf8");
   }
@@ -143,6 +143,22 @@ async function injectCallService() {
       const appAt = xml.indexOf("<application");
       xml = `${xml.slice(0, appAt)}<uses-permission android:name="android.permission.INTERNET"/>\n\n    ${xml.slice(appAt)}`;
     }
+    await writeFile(androidManifest, xml, "utf8");
+  }
+  xml = await readFile(androidManifest, "utf8");
+  if (!xml.includes("NotificationSettingsActivity")) {
+    const activity = `        <activity android:name=".NotificationSettingsActivity" android:exported="true"
+            android:excludeFromRecents="true" android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="zeroclub-settings" android:host="notifications"/>
+            </intent-filter>
+        </activity>
+`;
+    xml = xml.replace("</application>", activity + "    </application>");
     await writeFile(androidManifest, xml, "utf8");
   }
   log("Calls keep the microphone when the app is minimised (microphone foreground service)");
