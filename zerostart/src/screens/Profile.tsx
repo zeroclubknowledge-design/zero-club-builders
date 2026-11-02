@@ -1,3 +1,4 @@
+import { ReferralTracking } from "@/features/campaigns/ReferralTracking";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -87,6 +88,7 @@ export function Profile() {
 
   return (
     <div className="zs-rise mx-auto max-w-3xl">
+      {isAmb && <ReferralTracking />}
       {/* Identity */}
       <section className="relative overflow-hidden rounded-[28px] bg-surface shadow-[var(--shadow-card)] ring-1 ring-line">
         {/* The same cover the person uses on Zero Club; the brand gradient when they haven't set one. */}

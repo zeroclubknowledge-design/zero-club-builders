@@ -1102,17 +1102,19 @@ function AppLayout() {
       return;
     }
     if (!code) return;
-    supabase
-      .rpc("zs_attribute_signup", { p_code: code })
-      .then(({ error }) => {
-        if (!error) {
-          try {
-            localStorage.removeItem("zs_campaign_code");
-          } catch {
-            /* nothing to clean up */
-          }
-        }
-      });
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const attribute = async () => {
+      const { data, error } = await supabase.rpc("zs_attribute_signup", { p_code: code });
+      if (cancelled) return;
+      if (error || !data || (data as { reason?: string }).reason === "not_authenticated") {
+        timer = setTimeout(attribute, 15_000);
+        return;
+      }
+      try { localStorage.removeItem("zs_campaign_code"); } catch { /* storage unavailable */ }
+    };
+    void attribute();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [profile?.id]);
 
   // One account per person: remember this device for this account. A brand-new

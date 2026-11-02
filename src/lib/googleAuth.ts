@@ -7,6 +7,7 @@ const CONTEXT_MAX_AGE_MS = 30 * 60 * 1000;
 
 type GoogleSignupContext = {
   referralCode?: string;
+  campaignCode?: string;
   startedAt: number;
 };
 
@@ -90,6 +91,12 @@ export async function completePendingGoogleSignup(user: User) {
     return;
   }
 
+  if (context.campaignCode) {
+    const { error } = await supabase.auth.updateUser({ data: { zs_campaign_code: context.campaignCode } });
+    if (error) throw error;
+    const { error: attributionError } = await supabase.rpc("zs_attribute_signup", { p_code: context.campaignCode });
+    if (attributionError) throw attributionError;
+  }
   const referralCode = context.referralCode?.trim();
   if (referralCode) {
     const referrer = await resolveReferralCode(referralCode);

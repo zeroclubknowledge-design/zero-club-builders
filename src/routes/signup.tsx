@@ -64,11 +64,25 @@ function SignUpPage() {
 
   useEffect(() => {
     if (!campaignCode) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       localStorage.setItem("zs_campaign_code", campaignCode);
+      let visitor = localStorage.getItem("zs_campaign_visitor");
+      if (!visitor) {
+        visitor = crypto.randomUUID();
+        localStorage.setItem("zs_campaign_visitor", visitor);
+      }
+      const visitorId = visitor;
+      const record = async (attempt = 0) => {
+        const { error } = await supabase.rpc("zs_record_campaign_visit", { p_code: campaignCode, p_visitor: visitorId });
+        if (error && !cancelled && attempt < 2) timer = setTimeout(() => void record(attempt + 1), 5000);
+      };
+      void record();
     } catch {
-      /* Without storage the signup simply isn't credited to a campaign. */
+      /* Signup metadata still carries the campaign when storage is unavailable. */
     }
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [campaignCode]);
   const [username, setUsername] = useState(() => localStorage.getItem("signup_username") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("signup_email") || "");
@@ -191,6 +205,7 @@ function SignUpPage() {
         username: cleanUsername,
         full_name: username,
         device_id: deviceId,
+        zs_campaign_code: campaignCode || localStorage.getItem("zs_campaign_code") || undefined,
       };
 
       if (resolvedReferral) {
@@ -271,6 +286,7 @@ function SignUpPage() {
         destination,
         signupContext: {
           referralCode: resolvedReferral?.referral_code,
+          campaignCode: campaignCode || localStorage.getItem("zs_campaign_code") || undefined,
         },
       });
       if (error) throw error;

@@ -1,3 +1,4 @@
+import { ReferralTracking } from "./ReferralTracking";
 import { useState } from "react";
 import { CalendarClock, Check, AlertCircle as CircleAlert, Copy, ExternalLink, Gift, Clock as Hourglass, MapPin, Pencil, Send, Share2, Square } from "../../components/icons/glyphs";
 import { Sheet } from "@/components/ui/Sheet";
@@ -188,6 +189,8 @@ export function CampaignSheet({
           </button>
         </section>
       )}
+
+      <ReferralTracking campaignId={campaign.id} />
 
       {/* ── Numbers ── */}
       <section className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
