@@ -280,7 +280,7 @@ function Panel({
       <div className="fixed inset-0 z-[10050]" style={{ pointerEvents: "auto" }} data-card-select="" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         {pos && (
           <div
-            className="absolute flex flex-col overflow-hidden rounded-2xl bg-surface text-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-ink/[0.08]"
+            className="absolute flex flex-col overflow-hidden rounded-2xl bg-surface text-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] "
             style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width, maxHeight: pos.maxHeight }}
           >
             {search}

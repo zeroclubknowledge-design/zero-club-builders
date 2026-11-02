@@ -88,9 +88,8 @@ export function Profile() {
 
   return (
     <div className="zs-rise mx-auto max-w-3xl">
-      {isAmb && <ReferralTracking />}
       {/* Identity */}
-      <section className="relative overflow-hidden rounded-[28px] bg-surface shadow-[var(--shadow-card)] ring-1 ring-line">
+      <section className="relative overflow-hidden rounded-[28px] bg-surface shadow-[var(--shadow-card)] ">
         {/* The same cover the person uses on Zero Club; the brand gradient when they haven't set one. */}
         <div className="zs-hero relative z-0 h-36 overflow-hidden rounded-none sm:h-48">
           {profile?.banner_url ? (
@@ -114,7 +113,7 @@ export function Profile() {
                 <span className="text-[34px] font-bold uppercase text-ink">{name.charAt(0)}</span>
               )}
             </div>
-            <Link to="/join" className="mb-1 inline-flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-[13px] font-semibold text-ink transition hover:bg-ink/[0.04]">
+            <Link to="/join" className="mb-1 inline-flex h-10 items-center gap-1.5 rounded-full bg-surface px-4 text-[13px] font-semibold text-ink transition hover:bg-ink/[0.04]">
               <Pencil className="h-4 w-4" /> {isAmb ? "Edit profile" : pending ? "Edit application" : "Apply"}
             </Link>
           </div>
@@ -151,7 +150,7 @@ export function Profile() {
             {focusLabels.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {focusLabels.map((f) => (
-                  <span key={f} className="rounded-full border border-line px-3 py-1 text-[12px] font-medium text-ink">{f}</span>
+                  <span key={f} className="rounded-full px-3 py-1 text-[12px] font-medium text-ink">{f}</span>
                 ))}
               </div>
             )}
@@ -170,6 +169,8 @@ export function Profile() {
       )}
 
       {isAmb && <RankLadder current={me.level} members={me.members_brought_in ?? 0} />}
+
+      {isAmb && <div className="mt-8"><ReferralTracking /></div>}
 
       {/* Payout settings */}
       <h2 id="payouts" className="mb-3 mt-8 scroll-mt-24 text-[12px] font-bold uppercase tracking-wider text-ink-faint">Payout settings</h2>
@@ -244,7 +245,7 @@ export function Profile() {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)] ring-1 ring-line">
+    <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-card)] ">
       <p className="truncate font-display text-[20px] font-bold tracking-tight text-ink">{value}</p>
       <p className="mt-0.5 text-[11.5px] font-medium text-ink-faint">{label}</p>
     </div>

@@ -1111,7 +1111,12 @@ function AppLayout() {
         timer = setTimeout(attribute, 15_000);
         return;
       }
-      try { localStorage.removeItem("zs_campaign_code"); } catch { /* storage unavailable */ }
+      try {
+        localStorage.removeItem("zs_campaign_code");
+        const partnerCode = localStorage.getItem("zs_campaign_bootcamp");
+        localStorage.removeItem("zs_campaign_bootcamp");
+        if (partnerCode && /^[0-9a-f]{12}$/.test(partnerCode)) window.location.assign(`/s/${partnerCode}`);
+      } catch { /* storage unavailable */ }
     };
     void attribute();
     return () => { cancelled = true; if (timer) clearTimeout(timer); };

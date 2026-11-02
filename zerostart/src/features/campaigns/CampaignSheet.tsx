@@ -169,7 +169,7 @@ export function CampaignSheet({
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">Your campaign link</p>
           <p className="mt-2 break-all font-display text-[15px] font-semibold text-white">{link.replace(/^https?:\/\//, "")}</p>
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <button onClick={() => copy("link")} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white/10 text-[12.5px] font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15">
+            <button onClick={() => copy("link")} className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-white/10 text-[12.5px] font-semibold text-white  transition hover:bg-white/15">
               {copied === "link" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied === "link" ? "Copied" : "Copy"}
             </button>
             <a

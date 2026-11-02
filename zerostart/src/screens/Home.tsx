@@ -84,7 +84,7 @@ export function Home() {
               {me.commission_rate ?? 0}% of Zero Club’s 10% fee · {earn ? money(earn.this_week_sales, currency) : "—"} in referral payments this week
             </p>
           </div>
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/15">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 ">
             <Wallet className="h-5 w-5" />
           </span>
         </div>
@@ -96,7 +96,7 @@ export function Home() {
         </div>
 
         {earn && Number(earn.ready_total) > 0 && (
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white/[0.08] px-4 py-3 ring-1 ring-white/10">
+          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white/[0.08] px-4 py-3 ">
             <Hourglass className="h-5 w-5 shrink-0 text-[#f089c4]" />
             <p className="text-[12.5px] leading-snug text-white/80">
               <span className="font-semibold text-white">{money(earn.ready_total, currency)}</span> approved — it's in the next payout.
@@ -151,7 +151,7 @@ export function Home() {
             );
           })}
           {canStart && (
-            <button onClick={() => setForm({})} className="flex h-12 w-full items-center justify-center gap-2 rounded-[20px] border border-dashed border-line text-[13px] font-semibold text-ink-muted transition hover:text-ink">
+            <button onClick={() => setForm({})} className="flex h-12 w-full items-center justify-center gap-2 rounded-[20px] text-[13px] font-semibold text-ink-muted transition hover:text-ink">
               <Plus className="h-4 w-4" /> Start another campaign
             </button>
           )}
@@ -200,7 +200,7 @@ export function Home() {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white/[0.07] px-3 py-3 ring-1 ring-white/10">
+    <div className="rounded-2xl bg-white/[0.07] px-3 py-3 ">
       <p className="truncate font-display text-[18px] font-bold leading-none">{value}</p>
       <p className="mt-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-white/50">{label}</p>
     </div>

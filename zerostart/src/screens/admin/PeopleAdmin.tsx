@@ -170,7 +170,7 @@ export function AmbassadorsAdmin() {
       <section className="zs-hero p-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/55">Commission for newly approved ambassadors</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <div className="flex h-12 items-center rounded-xl bg-white/10 px-4 ring-1 ring-white/15">
+          <div className="flex h-12 items-center rounded-xl bg-white/10 px-4 ">
             <input value={defaultRate} onChange={(e) => setDefaultRate(e.target.value.replace(/[^\d.]/g, ""))} inputMode="decimal" className="w-14 bg-transparent font-display text-[24px] font-bold text-white outline-none" />
             <span className="font-display text-[20px] font-bold text-white/70">%</span>
           </div>

@@ -82,16 +82,17 @@ test('short referral links bind accounts and forms to real bootcamp commission s
 });
 
 test('sharing and anonymous-to-signed-in attribution use short links and retain the original visit',async()=>{
+ for (const file of ['src/lib/learningReferrals.ts','Zero Form/src/lib/learningReferrals.ts']) {
  const api={},store=new Map(),calls=[];let session=null;
- const code='123abc456def';const exports=ts.transpileModule(read('src/lib/learningReferrals.ts').replace(/^import .*;\r?\n/gm,''),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(exports,{exports:api,useEffect:()=>{},Date,URLSearchParams,window:{location:{search:'?via='+code}},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},supabase:{auth:{getSession:async()=>({data:{session}})},rpc:async(name,args)=>{calls.push({name,args});return {data:name==='create_learning_share_link'?code:name==='resolve_learning_share_link'?{bootcamp_id:camp,form_slug:'design'}:true,error:null};}}});
+ const code='123abc456def';const exports=ts.transpileModule(read(file).replace(/^import .*;\r?\n/gm,''),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ vm.runInNewContext(exports,{exports:api,readableShareUrl:async url=>url,useEffect:()=>{},Date,URLSearchParams,window:{location:{search:'?via='+code}},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},supabase:{auth:{getSession:async()=>({data:{session}})},rpc:async(name,args)=>{calls.push({name,args});return {data:name==='create_learning_share_link'?code:name==='resolve_learning_share_link'?{bootcamp_id:camp,form_slug:'design'}:true,error:null};}}});
  await api.prepareLearningReferral({formSlug:'design'});assert.equal(calls.filter(x=>x.name==='record_learning_referral').length,0);
  session={user:{id:buyer}};await api.prepareLearningReferral({bootcampId:camp});
  assert.equal(calls.filter(x=>x.name==='record_learning_referral').length,1);
  const saved=JSON.parse(store.get('zero-learning-referrals-v1'))[camp];assert.equal(calls.find(x=>x.name==='record_learning_referral').args.p_seen_at,new Date(saved.seenAt).toISOString());
  assert.equal(await api.learningShareUrl({bootcampId:camp}),'https://www.zeroclubs.xyz/s/'+code);
  assert.equal(calls.at(-1).args.p_bootcamp_id,camp);
- assert.equal(read('src/lib/learningReferrals.ts'),read('Zero Form/src/lib/learningReferrals.ts'));
+ }
 });
 
 test('short redirect is server-side, fixed-origin and does not cache failures or tracking destinations',async()=>{

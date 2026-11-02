@@ -19,7 +19,7 @@ export function Landing({ signedIn = false, applicationStatus }: { signedIn?: bo
   return (
     <div className="zs-rise">
       <section className="zs-hero relative overflow-hidden px-6 pb-8 pt-10 sm:px-10 sm:pb-12 sm:pt-14">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[11.5px] font-semibold text-white/85 ring-1 ring-white/15">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[11.5px] font-semibold text-white/85 ">
           <img src="/logo.png" alt="" className="h-4 w-4" /> Zero Ambassadors
         </span>
         <h1 className="mt-5 max-w-[560px] font-display text-[34px] font-bold leading-[1.05] tracking-tight sm:text-[52px]">

@@ -26,7 +26,7 @@ export const Route = createFileRoute("/signup")({
   loader: async ({ deps }) => {
     if (!deps.code) return null;
     const campaign = await publicPreviewRpc("zs_campaign_link_preview", { p_code: deps.code });
-    return campaign?.found ? { title: campaign.title, description: plain(campaign.summary || campaign.description).slice(0, 200), code: deps.code, referralCode: typeof campaign.referral_code === "string" ? campaign.referral_code : undefined } : null;
+    return campaign?.found ? { title: campaign.title, description: plain(campaign.summary || campaign.description).slice(0, 200), code: deps.code, partnerShareCode: typeof campaign.partner_share_code === "string" ? campaign.partner_share_code : undefined, referralCode: typeof campaign.referral_code === "string" ? campaign.referral_code : undefined } : null;
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -60,6 +60,14 @@ function SignUpPage() {
   const router = useRouter();
   const { ref, club, c: campaignCode } = useSearch({ from: "/signup" });
   const campaign = Route.useLoaderData();
+  useEffect(() => {
+    if (!campaignCode) return;
+    try {
+      if (campaign?.partnerShareCode && /^[0-9a-f]{12}$/.test(campaign.partnerShareCode)) {
+        localStorage.setItem("zs_campaign_bootcamp", campaign.partnerShareCode);
+      } else localStorage.removeItem("zs_campaign_bootcamp");
+    } catch { /* The server still binds the affiliate to verified signups. */ }
+  }, [campaignCode, campaign?.partnerShareCode]);
   const ambassadorReferral = campaign?.code === campaignCode ? campaign?.referralCode : undefined;
 
   useEffect(() => {

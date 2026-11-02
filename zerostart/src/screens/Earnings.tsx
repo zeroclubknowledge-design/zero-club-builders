@@ -177,18 +177,18 @@ function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; curren
   };
 
   return (
-    <section className="relative mt-5 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#1a0f2e_0%,#3b1257_45%,#c3217e_100%)] p-6 text-white shadow-[0_24px_60px_-30px_rgba(195,33,126,0.6)] ring-1 ring-white/10 sm:p-7">
+    <section className="relative mt-5 overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#1a0f2e_0%,#3b1257_45%,#c3217e_100%)] p-6 text-white shadow-[0_24px_60px_-30px_rgba(195,33,126,0.6)]  sm:p-7">
       <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-[#fd74c3]/20 blur-2xl" />
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20"><Wallet className="h-5 w-5" /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 "><Wallet className="h-5 w-5" /></span>
           <div>
             <p className="text-[15px] font-bold leading-tight">Zero Wallet</p>
             <p className="text-[11.5px] text-white/60">Ambassador earnings</p>
           </div>
         </div>
-        <Link to="/profile" hash="payouts" className="rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-white/20 hover:bg-white/25">
+        <Link to="/profile" hash="payouts" className="rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider  hover:bg-white/25">
           {monthly ? "Monthly" : "Weekly"} · Change
         </Link>
       </div>
@@ -209,7 +209,7 @@ function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; curren
           <Wallet className="h-4 w-4" />
           {busy ? "Withdrawing…" : paidThisCycle ? "Withdrawn this " + (monthly ? "month" : "week") : "Withdraw to Zero Club wallet"}
         </button>
-        <a href={`${config.zeroClubUrl}/app/wallet`} className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-3 text-[13px] font-semibold text-white/85 ring-1 ring-white/25 hover:bg-white/10">
+        <a href={`${config.zeroClubUrl}/app/wallet`} className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-3 text-[13px] font-semibold text-white/85  hover:bg-white/10">
           Open Zero Club wallet
         </a>
       </div>
@@ -221,7 +221,7 @@ function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; curren
           : `You can withdraw once per ${monthly ? "month (from the 1st)" : "week (from Monday)"}${ready > 0 ? "" : " — approved earnings appear here"}`}
       </p>
       {note && (
-        <p className={`relative mt-3 rounded-2xl px-3.5 py-2.5 text-[12.5px] font-medium ring-1 ${note.tone === "ok" ? "bg-emerald-400/15 text-emerald-100 ring-emerald-300/30" : "bg-white/10 text-white ring-white/20"}`}>
+        <p className={`relative mt-3 rounded-2xl px-3.5 py-2.5 text-[12.5px] font-medium ${note.tone === "ok" ? "bg-emerald-400/15 text-emerald-100 ring-emerald-300/30" : "bg-white/10 text-white ring-white/20"}`}>
           {note.text}
         </p>
       )}
@@ -231,7 +231,7 @@ function ZeroWalletCard({ data, currency, onDone }: { data: EarningsData; curren
 
 function Stage({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint: string }) {
   return (
-    <div className="rounded-2xl bg-white/[0.07] p-3 ring-1 ring-white/10" title={hint}>
+    <div className="rounded-2xl bg-white/[0.07] p-3 " title={hint}>
       <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/50">{icon}{label}</p>
       <p className="mt-1.5 truncate font-display text-[17px] font-bold">{value}</p>
     </div>

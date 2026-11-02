@@ -251,7 +251,7 @@ export function JoinAmbassador() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Yaba, Lagos"
-              className="h-12 w-full rounded-xl border border-line bg-surface pl-10 pr-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+              className="h-12 w-full rounded-xl bg-surface pl-10 pr-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
             />
           </span>
           <span className="mt-1.5 block text-[11.5px] text-ink-faint">
@@ -265,7 +265,7 @@ export function JoinAmbassador() {
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             placeholder="Nigeria"
-            className="mt-2 h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2 h-12 w-full rounded-xl bg-surface px-3.5 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
         </label>
 
@@ -276,7 +276,7 @@ export function JoinAmbassador() {
             onChange={(e) => setBio(e.target.value)}
             rows={3}
             placeholder="Who you can reach, and why they'd listen to you."
-            className="mt-2 w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2 w-full resize-y rounded-xl bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
         </label>
 
@@ -289,7 +289,7 @@ export function JoinAmbassador() {
                 onChange={(e) => setMotivation(e.target.value)}
                 rows={4}
                 placeholder="Who can you reach, what have you organised before, and how would you grow Zero Club where you are?"
-                className="mt-2 w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 w-full resize-y rounded-xl bg-surface px-3.5 py-3 text-[13.5px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
               <span className="mt-1.5 block text-[11.5px] text-ink-faint">A few sentences — at least 20 characters.</span>
             </label>
@@ -297,7 +297,7 @@ export function JoinAmbassador() {
             <div className="mt-5">
               <span className="text-[13px] font-medium text-ink">Your socials</span>
               <span className="mt-0.5 block text-[11.5px] text-ink-faint">Add the ones you use — leave the rest empty.</span>
-              <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+              <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl bg-surface">
                 {SOCIALS.map((name) => {
                   const meta = SOCIAL_META[name];
                   const Icon = meta.icon;
@@ -326,7 +326,7 @@ export function JoinAmbassador() {
               <span className="mt-5 block text-[13px] font-medium text-ink">Other links</span>
               <span className="mt-0.5 block text-[11.5px] text-ink-faint">Communities you run, your portfolio, a website…</span>
               {others.length > 0 && (
-                <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+                <div className="mt-2.5 divide-y divide-line overflow-hidden rounded-2xl bg-surface">
                   {others.map((entry, i) => (
                     <div key={i} className="flex items-center gap-2 px-3.5 py-2">
                       <span className="relative w-[108px] shrink-0">

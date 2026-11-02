@@ -207,3 +207,16 @@ export async function adminAddBonus(profileId: string, amount: number, reason: s
   if (error) throw error;
   return data as Refusal;
 }
+
+export async function listPartnerBootcamps(): Promise<{ id: string; title: string; referral_percent: number }[]> {
+  const { data, error } = await supabase.rpc("zs_partner_bootcamps");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function partnerAffiliateLink(bootcampId: string) {
+  const { data, error } = await supabase.rpc("create_learning_share_link", { p_bootcamp_id: bootcampId });
+  if (error) throw error;
+  if (typeof data !== "string" || !/^[0-9a-f]{12}$/.test(data)) throw new Error("Could not create your affiliate link. Please try again.");
+  return `${config.zeroClubUrl.replace(/\/$/, "")}/s/${data}`;
+}

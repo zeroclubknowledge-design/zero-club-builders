@@ -219,7 +219,7 @@ export const MentionField = forwardRef<HTMLTextAreaElement, MentionFieldProps>(f
         <div
           role="listbox"
           aria-label="People to tag"
-          className={`absolute left-0 z-[80] w-full min-w-[240px] max-w-[360px] overflow-hidden rounded-xl bg-surface shadow-[0_18px_44px_-18px_rgba(0,0,0,0.5)] ring-1 ring-line ${
+          className={`absolute left-0 z-[80] w-full min-w-[240px] max-w-[360px] overflow-hidden rounded-xl bg-surface shadow-[0_18px_44px_-18px_rgba(0,0,0,0.5)]  ${
             menuPlacement === "top" ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >
@@ -235,7 +235,7 @@ export const MentionField = forwardRef<HTMLTextAreaElement, MentionFieldProps>(f
                 onMouseEnter={() => setActive(i)}
                 className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${i === active ? "bg-accent-soft" : ""}`}
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2 text-[12px] font-semibold text-ink-muted ring-1 ring-line">
+                <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-surface-2 text-[12px] font-semibold text-ink-muted ">
                   {person.avatar_url ? (
                     <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (

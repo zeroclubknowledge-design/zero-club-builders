@@ -135,7 +135,7 @@ export function SignIn() {
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && email.includes("@")) sendCode(); }}
                 placeholder="you@example.com"
-                className="mt-2 w-full rounded-xl border border-line bg-bg px-3.5 py-3 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                className="mt-2 w-full rounded-xl bg-bg px-3.5 py-3 text-[13.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
               />
             </label>
 
@@ -188,7 +188,7 @@ export function SignIn() {
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 onKeyDown={(e) => { if (e.key === "Enter" && code.length === 6) verify(); }}
                 placeholder="000000"
-                className="mt-2 w-full rounded-xl border border-line bg-bg px-3.5 py-3.5 text-center font-display text-[24px] font-bold tracking-[0.4em] text-ink outline-none transition placeholder:text-ink-faint/40 focus:border-accent/50"
+                className="mt-2 w-full rounded-xl bg-bg px-3.5 py-3.5 text-center font-display text-[24px] font-bold tracking-[0.4em] text-ink outline-none transition placeholder:text-ink-faint/40 focus:border-accent/50"
               />
             </label>
 

@@ -304,13 +304,13 @@ function TaskCard({ task, onDone }: { task: AmbassadorTask; onDone: () => void }
             onChange={(e) => setEvidence(e.target.value)}
             rows={3}
             placeholder="What did you do? Numbers help — how many people, where, when."
-            className="w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="w-full resize-y rounded-xl bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Link to a post, photo, or screenshot (optional)"
-            className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2.5 h-11 w-full rounded-xl bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
 
           {error && (
@@ -469,7 +469,7 @@ function InitiativeCard({
             onChange={(e) => setSummary(e.target.value)}
             rows={3}
             placeholder="What happened? Numbers help — how many, where, when."
-            className="w-full resize-y rounded-xl border border-line bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="w-full resize-y rounded-xl bg-surface px-3.5 py-3 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
           {item.target_count && (
             <input
@@ -478,14 +478,14 @@ function InitiativeCard({
               value={count}
               onChange={(e) => setCount(e.target.value)}
               placeholder={`How many ${item.target_label || "in the end"}?`}
-              className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+              className="mt-2.5 h-11 w-full rounded-xl bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
             />
           )}
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Link to proof — a post, photos, a signup list (optional)"
-            className="mt-2.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+            className="mt-2.5 h-11 w-full rounded-xl bg-surface px-3.5 text-[13px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
           />
 
           {error && (

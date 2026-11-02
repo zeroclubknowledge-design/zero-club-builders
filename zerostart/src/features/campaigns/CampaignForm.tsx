@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image as ImagePlus, LoaderCircle, X } from "../../components/icons/glyphs";
 import { Sheet } from "@/components/ui/Sheet";
 import { useAuth } from "@/lib/auth";
-import { createCampaign, updateMyCampaign, uploadCampaignCover, type CampaignInput } from "@/lib/campaignApi";
+import { listPartnerBootcamps, partnerAffiliateLink, createCampaign, updateMyCampaign, uploadCampaignCover, type CampaignInput } from "@/lib/campaignApi";
 import { GOAL_LABEL, type CampaignGoal, type MyCampaign } from "@/types/campaign";
 import { CardSelect } from "@/components/ui/CardSelect";
 
@@ -47,6 +47,18 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
     partner_url: initial?.partner_url || "",
     ends: initial?.ends_at ? dayInput(new Date(initial.ends_at)) : dayInput(plusDays(14)),
   });
+  const [bootcamps, setBootcamps] = useState<{ id: string; title: string; referral_percent: number }[]>([]);
+  const [bootcampsError, setBootcampsError] = useState(false);
+  const loadBootcamps = () => { setBootcampsError(false); void listPartnerBootcamps().then(setBootcamps).catch(() => setBootcampsError(true)); };
+  useEffect(loadBootcamps, []);
+  const selectedBootcamp = bootcamps.find(b => b.title === f.partner_name);
+  const generateLink = async () => {
+    if (!selectedBootcamp) return;
+    setSaving(true);
+    try { const link = await partnerAffiliateLink(selectedBootcamp.id); setF(current => current.partner_name === selectedBootcamp.title ? ({ ...current, partner_url: link }) : current); }
+    catch (e) { setError((e as Error).message); }
+    finally { setSaving(false); }
+  };
   const [cover, setCover] = useState(initial?.cover_url || "");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -77,6 +89,8 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
       description: f.description.trim(),
       cover_url: cover,
       locations: f.locations.trim(),
+      partner_name: f.partner_name.trim(),
+      partner_url: f.partner_url.trim(),
       ends_at: endOfDay(f.ends),
     };
     try {
@@ -101,7 +115,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
     d.setDate(d.getDate() + MAX_DAYS - 1);
     return d;
   })();
-  const valid = f.title.trim().length >= 4 && Boolean(f.ends);
+  const valid = f.title.trim().length >= 4 && Boolean(f.ends) && (!f.partner_name || Boolean(f.partner_url.trim()));
 
   return (
     <Sheet
@@ -120,7 +134,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
         </button>
         {!valid && (
           <p className="mt-2 text-center text-[11.5px] text-ink-muted">
-            {f.title.trim().length < 4 ? "Add a title (at least 4 characters)" : "Pick an end date"} to {editing ? "save" : "launch"}.
+            {f.title.trim().length < 4 ? "Add a title (at least 4 characters)" : f.partner_name && !f.partner_url.trim() ? "Add or generate your Bootcamp Link" : "Pick an end date"} to {editing ? "save" : "launch"}.
           </p>
         )}
         </>
@@ -150,7 +164,7 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="zs-inset flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-line text-ink-muted transition hover:text-ink"
+              className="zs-inset flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-2xl text-ink-muted transition hover:text-ink"
             >
               {uploading ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
               <span className="text-[12.5px] font-semibold">{uploading ? "Uploading…" : "Add a cover (optional)"}</span>
@@ -191,15 +205,27 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
           </Field>
         </div>
 
-        {!editing && (
-          <details className="zs-inset rounded-2xl px-4 py-3">
-            <summary className="cursor-pointer text-[13px] font-semibold text-ink">Promoting a Zero Club partner?</summary>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <Field label="Partner name"><input className="zs-input" value={f.partner_name} onChange={set("partner_name")} /></Field>
-              <Field label="Partner website"><input className="zs-input" value={f.partner_url} onChange={set("partner_url")} placeholder="https://" /></Field>
-            </div>
-          </details>
-        )}
+        <details open={editing || undefined} className="zs-inset rounded-2xl px-4 py-3">
+          <summary className="cursor-pointer text-[13px] font-semibold text-ink">Promoting a Zero Club partner?</summary>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <Field label="Partner Bootcamp">
+              <select className="zs-input" value={selectedBootcamp?.id || ""} onChange={e => {
+                const bootcamp = bootcamps.find(b => b.id === e.target.value);
+                setF(current => ({ ...current, partner_name: bootcamp?.title || "", partner_url: "" }));
+              }}>
+                <option value="">Choose a bootcamp (optional)</option>
+                {bootcamps.map(b => <option key={b.id} value={b.id}>{b.title} · {b.referral_percent}% affiliate commission</option>)}
+              </select>
+              {bootcampsError && <button type="button" onClick={loadBootcamps} className="text-sm underline">Couldn't load bootcamps. Retry</button>}
+              {f.partner_name && !selectedBootcamp && <p className="text-xs">Saved partner: {f.partner_name}</p>}
+            </Field>
+            <Field label="Bootcamp Link">
+              <input className="zs-input" value={f.partner_url} onChange={set("partner_url")} placeholder="Paste your Zero Club affiliate share link" />
+              <button type="button" disabled={!selectedBootcamp || saving} onClick={() => void generateLink()} className="mt-2 text-xs underline disabled:opacity-40">Generate my affiliate link</button>
+            </Field>
+          </div>
+          <p className="mt-3 text-xs text-ink-muted">Use your own affiliate link. Eligible bootcamp sales can earn the bootcamp's affiliate commission alongside your Zero Club ambassador earnings. Commission rates and payment eligibility still apply.</p>
+        </details>
 
         {error && <p className="rounded-xl bg-bad/10 px-3.5 py-2.5 text-[12.5px] font-medium text-bad">{error}</p>}
       </div>

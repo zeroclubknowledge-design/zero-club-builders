@@ -1,0 +1,40 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {PGlite} from '@electric-sql/pglite';
+const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const owner='10000000-0000-0000-0000-000000000001',other='10000000-0000-0000-0000-000000000002',buyer='10000000-0000-0000-0000-000000000003',camp='20000000-0000-0000-0000-000000000001',campaign='30000000-0000-0000-0000-000000000001';
+test('campaign editing validates affiliate ownership and binds recent and new referrals',async()=>{
+ const db=new PGlite();try{
+ await db.exec(`create role anon;create role authenticated;create schema auth;
+ create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
+ create table profiles(id uuid,referral_code text);
+ create table zs_ambassadors(profile_id uuid,status text);
+ create table bootcamps(id uuid primary key,title text,referral_percent numeric,status text);
+ create table learning_share_links(code text primary key,referrer_id uuid,bootcamp_id uuid,form_id uuid);
+ create table named_share_links(path text,destination text);
+ create table zs_amb_campaigns(id uuid primary key,owner_id uuid,title text,summary text,description text,cover_url text,locations text,partner_name text,partner_url text,status text,starts_at timestamptz default now(),ends_at timestamptz,updated_at timestamptz);
+ create table zs_campaign_members(campaign_id uuid,profile_id uuid,code text);
+ create table zs_campaign_results(campaign_id uuid,ambassador_id uuid,kind text,status text,referred_profile_id uuid,created_at timestamptz default now());
+ create table bootcamp_referral_clicks(bootcamp_id uuid,referrer_id uuid,visitor_id uuid,share_link_code text,created_at timestamptz default now(),expires_at timestamptz default now()+interval '30 days');
+ create unique index clicks_once on bootcamp_referral_clicks(share_link_code,visitor_id) where share_link_code is not null;
+ insert into zs_ambassadors values('${owner}','active');
+ insert into bootcamps values('${camp}','Partner course',15,'active');
+ insert into learning_share_links values('abcdef123456','${owner}','${camp}',null),('ffffff123456','${other}','${camp}',null);
+ insert into zs_amb_campaigns(id,owner_id,title,status,ends_at) values('${campaign}','${owner}','Campaign','live',now()+interval '10 days');
+ insert into zs_campaign_results values('${campaign}','${owner}','signup','verified','${buyer}',now()-interval '2 days');`);
+ const original=read('zerostart/supabase/migrations/20260928140000_ambassador_owned_campaigns.sql');
+ const start=original.indexOf('create or replace function public.zs_update_my_campaign(');const end=original.indexOf('grant execute on function public.zs_update_my_campaign',start);
+ await db.exec(original.slice(start,end));
+ const migration=read('supabase/migrations/20261102130000_campaign_bootcamp_affiliates.sql');await db.exec(migration);await db.exec(migration);
+ const uid=async id=>db.query("select set_config('test.uid',$1,false)",[id]);await uid(owner);
+ const edit=async url=>(await db.query('select zs_update_my_campaign($1,$2) as result',[campaign,{partner_name:'Partner course',partner_url:url}])).rows[0].result;
+ await assert.rejects(edit('https://www.zeroclubs.xyz/s/ffffff123456'),/belong/);
+ await assert.rejects(edit('https://evil.example/s/abcdef123456'),/Zero Club/);
+ await db.exec("insert into named_share_links values('/share/learning/partner/amb','/s/abcdef123456')");
+ assert.equal((await edit('https://www.zeroclubs.xyz/share/learning/partner/amb')).ok,true);
+ let rows=(await db.query('select * from bootcamp_referral_clicks')).rows;assert.equal(rows.length,1);assert.equal(rows[0].referrer_id,owner);assert.equal(rows[0].bootcamp_id,camp);
+ assert.ok(new Date(rows[0].expires_at)-new Date(rows[0].created_at)===30*86400000);
+ await edit('https://www.zeroclubs.xyz/s/abcdef123456');assert.equal((await db.query('select * from bootcamp_referral_clicks')).rows.length,1);
+ await db.exec(`insert into zs_campaign_results(campaign_id,ambassador_id,kind,status,referred_profile_id) values('${campaign}','${owner}','signup','verified','${other}');`);
+ assert.equal((await db.query('select * from bootcamp_referral_clicks')).rows.length,2);
+ await uid(other);assert.equal((await edit('https://www.zeroclubs.xyz/s/abcdef123456')).reason,'not_yours');
+ }finally{await db.close();}
+});

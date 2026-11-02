@@ -156,7 +156,7 @@ export function AdminReview() {
                     value={notes[row.log_id] || ""}
                     onChange={(e) => setNotes((n) => ({ ...n, [row.log_id]: e.target.value }))}
                     placeholder="A note for the ambassador (optional)"
-                    className="h-10 w-full rounded-xl border border-line bg-surface px-3.5 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
+                    className="h-10 w-full rounded-xl bg-surface px-3.5 text-[12.5px] text-ink outline-none transition placeholder:text-ink-faint focus:border-accent/50"
                   />
                   <div className="mt-3 flex gap-3">
                     <button
@@ -334,14 +334,14 @@ function InitiativeQueue({
                   value={amounts[row.id] ?? "100"}
                   onChange={(e) => setAmounts((a) => ({ ...a, [row.id]: e.target.value }))}
                   aria-label="ZP to award"
-                  className="h-10 w-24 rounded-xl border border-line bg-surface px-3 text-[12.5px] text-ink outline-none focus:border-accent/50"
+                  className="h-10 w-24 rounded-xl bg-surface px-3 text-[12.5px] text-ink outline-none focus:border-accent/50"
                 />
                 <span className="text-[11.5px] text-ink-faint">ZP</span>
                 <input
                   value={notes[row.id] || ""}
                   onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
                   placeholder="A note for the ambassador (optional)"
-                  className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3.5 text-[12.5px] text-ink outline-none focus:border-accent/50"
+                  className="h-10 min-w-0 flex-1 rounded-xl bg-surface px-3.5 text-[12.5px] text-ink outline-none focus:border-accent/50"
                 />
               </div>
               <div className="mt-3 flex gap-3">
