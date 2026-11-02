@@ -209,13 +209,13 @@ export function CampaignForm({ initial, onClose, onSaved }: { initial?: MyCampai
           <summary className="cursor-pointer text-[13px] font-semibold text-ink">Promoting a Zero Club partner?</summary>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <Field label="Partner Bootcamp">
-              <select className="zs-input" value={selectedBootcamp?.id || ""} onChange={e => {
+              <CardSelect label="Partner Bootcamp" className="zs-input" value={selectedBootcamp?.id || ""} onChange={e => {
                 const bootcamp = bootcamps.find(b => b.id === e.target.value);
                 setF(current => ({ ...current, partner_name: bootcamp?.title || "", partner_url: "" }));
               }}>
                 <option value="">Choose a bootcamp (optional)</option>
                 {bootcamps.map(b => <option key={b.id} value={b.id}>{b.title} · {b.referral_percent}% affiliate commission</option>)}
-              </select>
+              </CardSelect>
               {bootcampsError && <button type="button" onClick={loadBootcamps} className="text-sm underline">Couldn't load bootcamps. Retry</button>}
               {f.partner_name && !selectedBootcamp && <p className="text-xs">Saved partner: {f.partner_name}</p>}
             </Field>
