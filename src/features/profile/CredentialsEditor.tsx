@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Award, BriefcaseBusiness, Loader2, Pencil, Plus, Trash2 } from "@/components/icons/glyphs";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/lib/supabase";
+import { uploadFile } from "@/lib/storage";
 import {
   EMPLOYMENT_TYPES,
   SOCIAL_NETWORKS,
@@ -95,6 +96,7 @@ export function SocialLinksEditor({
 const emptyExperience = {
   title: "",
   company: "",
+  image_url: null as string | null,
   employment_type: "",
   location: "",
   start: "",
@@ -110,8 +112,18 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
   const [editing, setEditing] = useState<Experience | "new" | null>(null);
   const [form, setForm] = useState(emptyExperience);
   const [busy, setBusy] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!imageFile) { setImagePreview(null); return; }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
 
   const open = (exp: Experience | "new") => {
+    setImageFile(null);
     setEditing(exp);
     setForm(
       exp === "new"
@@ -119,6 +131,7 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
         : {
             title: exp.title,
             company: exp.company,
+            image_url: exp.image_url ?? null,
             employment_type: exp.employment_type || "",
             location: exp.location || "",
             start: toMonth(exp.start_date),
@@ -130,36 +143,50 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
   };
 
   const save = async () => {
+    if (!editing || busy) return;
     if (!form.title.trim() || !form.company.trim())
       return toast.error("Add your role and the company");
     if (!form.start) return toast.error("Add when you started");
     if (!form.is_current && form.end && form.end < form.start)
       return toast.error("The end date is before the start date");
     setBusy(true);
-    const row = {
-      profile_id: profileId,
-      title: form.title.trim(),
-      company: form.company.trim(),
-      employment_type: form.employment_type || null,
-      location: form.location.trim() || null,
-      start_date: fromMonth(form.start),
-      end_date: form.is_current ? null : fromMonth(form.end),
-      is_current: form.is_current,
-      description: form.description.trim() || null,
-      updated_at: new Date().toISOString(),
-    };
-    const { error } =
-      editing === "new"
-        ? await supabase.from("profile_experiences").insert(row)
-        : await supabase
-            .from("profile_experiences")
-            .update(row)
-            .eq("id", (editing as Experience).id);
-    setBusy(false);
-    if (error) return toast.error(error.message || "Could not save");
-    toast.success(editing === "new" ? "Experience added" : "Experience updated");
-    setEditing(null);
-    void queryClient.invalidateQueries({ queryKey: ["profile-credentials", profileId] });
+    try {
+      let imageUrl = form.image_url;
+      if (imageFile) {
+        const extension = imageFile.type === "image/jpeg" ? "jpg" : imageFile.type.split("/")[1];
+        imageUrl = await uploadFile("profiles", imageFile, `${profileId}/experience-${crypto.randomUUID()}.${extension}`);
+        setForm(current => ({ ...current, image_url: imageUrl }));
+        setImageFile(null);
+      }
+      const row = {
+        profile_id: profileId,
+        title: form.title.trim(),
+        company: form.company.trim(),
+        image_url: imageUrl,
+        employment_type: form.employment_type || null,
+        location: form.location.trim() || null,
+        start_date: fromMonth(form.start),
+        end_date: form.is_current ? null : fromMonth(form.end),
+        is_current: form.is_current,
+        description: form.description.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } =
+        editing === "new"
+          ? await supabase.from("profile_experiences").insert(row)
+          : await supabase
+              .from("profile_experiences")
+              .update(row)
+              .eq("id", (editing as Experience).id);
+      if (error) throw error;
+      toast.success(editing === "new" ? "Experience added" : "Experience updated");
+      setEditing(null);
+      void queryClient.invalidateQueries({ queryKey: ["profile-credentials", profileId] });
+    } catch (error) {
+      toast.error((error as Error).message || "Could not save experience");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const remove = async () => {
@@ -196,8 +223,8 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
         <ul className="mt-2 divide-y divide-border/70">
           {experiences.map((exp) => (
             <li key={exp.id} className="flex items-start gap-3 py-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground/[0.06]">
-                <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />
+              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-foreground/[0.06]">
+                {exp.image_url ? <img src={exp.image_url} alt="" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] font-semibold">{exp.title}</p>
@@ -217,7 +244,7 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
         </ul>
       )}
 
-      <Drawer open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
+      <Drawer open={editing !== null} onOpenChange={(o) => { if (!o && !busy) { setEditing(null); setImageFile(null); } }}>
         <DrawerContent
           desktopVariant="dialog"
           className="max-h-[92dvh] overflow-hidden border-border bg-background p-0"
@@ -232,6 +259,28 @@ export function ExperienceEditor({ profileId }: { profileId: string }) {
               </DrawerDescription>
             </div>
             <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-5 pb-4 pt-2">
+              <div>
+                <span className={LABEL}>Product image (optional)</span>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-foreground/[0.06]">
+                    {imagePreview || form.image_url ? <img src={imagePreview || form.image_url || undefined} alt="Product preview" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-5 w-5 text-muted-foreground" />}
+                  </span>
+                  <label className="cursor-pointer rounded-full bg-foreground/[0.06] px-3 py-2 text-sm font-semibold focus-within:ring-2 focus-within:ring-ring">
+                    {imageFile || form.image_url ? "Change image" : "Upload image"}
+                    <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={busy} onChange={event => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (!file) return;
+                      if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) return toast.error("Choose a JPG, PNG, WebP or GIF image");
+                      setImageFile(file);
+                    }} />
+                  </label>
+                  {(imageFile || form.image_url) && <button type="button" disabled={busy} className="text-sm text-muted-foreground" onClick={() => {
+                    setImageFile(null);
+                    setForm(current => ({ ...current, image_url: null }));
+                  }}>Remove</button>}
+                </div>
+              </div>
               <label className="block">
                 <span className={LABEL}>Role *</span>
                 <input

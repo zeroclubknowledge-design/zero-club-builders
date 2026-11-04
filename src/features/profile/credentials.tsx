@@ -15,6 +15,7 @@ export type Experience = {
   profile_id: string;
   title: string;
   company: string;
+  image_url?: string | null;
   employment_type: string | null;
   location: string | null;
   start_date: string;

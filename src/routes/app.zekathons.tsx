@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/hooks/useUser";
+import { navigationAudience } from "@/lib/accountNavigation";
 import { supabase } from "@/lib/supabase";
 
 const uuid = (value: unknown) => typeof value === "string" && /^[a-f0-9-]{36}$/i.test(value) ? value : undefined;
@@ -108,7 +109,7 @@ function Zekathons() {
         {event && <p role="status">This event is unavailable.</p>}
         {!events.data?.length && <p className="text-sm text-muted-foreground">No Zekathons have been announced yet.</p>}
         {events.data?.map(item => <Link key={item.id} to="/app/zekathons" search={{ event: item.id, product: undefined }} className="block"><Card><CardHeader><CardTitle>{item.title}</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{Date.parse(item.deadline) > Date.now() ? `Entries close ${new Date(item.deadline).toLocaleDateString()}` : "Submissions closed"}</CardContent></Card></Link>)}
-        {profile?.is_admin && <Card><CardHeader><CardTitle>Create a Zekathon</CardTitle></CardHeader><CardContent>
+        {(["administrator", "tutor"] as const).some(audience => audience === navigationAudience(profile)) && <Card><CardHeader><CardTitle>Create a Zekathon</CardTitle></CardHeader><CardContent>
           <ActionForm label="Publish event" busy={action.isPending} onSave={data => action.mutate({ action: "event", data: { ...data, deadline: new Date(data.deadline).toISOString() } }, { onSuccess: id => void navigate({ to: "/app/zekathons", search: { event: id, product: undefined } }) })}>
             <Field label="Event name"><Input name="title" required maxLength={120} /></Field>
             <Field label="Theme and brief"><Textarea name="description" required maxLength={4000} /></Field>
