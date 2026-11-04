@@ -1075,6 +1075,15 @@ function AppLayout() {
 
   const { data: profile, isLoading: profileLoading } = useUser();
   useAppResume(profile?.id);
+  useEffect(() => {
+    if (!profile?.id) return;
+    try {
+      const room = sessionStorage.getItem("zc-space-team-invite");
+      sessionStorage.removeItem("zc-space-team-invite");
+      if (room && /^[a-f0-9]{32}$/.test(room)) void navigate({ to: "/app/games/space-team", search: { room } });
+    } catch { /* storage unavailable */ }
+  }, [profile?.id, navigate]);
+
   // Someone opened a group invite before signing in: take them back to it.
   useEffect(() => {
     if (!profile?.id) return;

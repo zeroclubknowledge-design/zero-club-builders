@@ -32,10 +32,23 @@ const PINK = "#fd49b0";
 const POWER_COLORS = { shield: "#5cc8ff", focus: "#b38cff", magnet: "#ffb547" } as const;
 const POWER_LABEL = { shield: "Shield", focus: "Focus", magnet: "Magnet" } as const;
 
-export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOver: (r: ZeroSpaceResult) => void; topInset?: number; controls?: RefObject<ZeroSpaceControls | null> }) {
+export type SpaceFlightFrame = { score: number; fuel: number; x: number; y: number };
+
+export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, teammate, reserveReceived }: {
+  onGameOver: (r: ZeroSpaceResult) => void;
+  topInset?: number;
+  controls?: RefObject<ZeroSpaceControls | null>;
+  onFrame?: (frame: SpaceFlightFrame) => void;
+  reserveReceived?: boolean;
+  teammate?: RefObject<(SpaceFlightFrame & { name: string; finished: boolean }) | null>;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const doneRef = useRef(onGameOver);
   doneRef.current = onGameOver;
+  const frameRef = useRef(onFrame);
+  frameRef.current = onFrame;
+  const reserveRef = useRef(reserveReceived);
+  reserveRef.current = reserveReceived;
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -60,6 +73,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
     const craft = { x: W / 2, y: H / 2, vx: 0, vy: 0, angle: -Math.PI / 2 };
     const target = { x: W / 2, y: H / 2 };
     let fuel = FUEL_MAX;
+    let usedTeamReserve = false;
     let score = 0;
     let survival = 0;
     let orbsTaken = 0;
@@ -241,6 +255,13 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       trail.push({ x: craft.x, y: craft.y }); if (trail.length > 18) trail.shift();
       if (sp > 60 && Math.random() < 0.6) {
         parts.push({ x: craft.x - Math.cos(craft.angle) * 14, y: craft.y - Math.sin(craft.angle) * 14, vx: -craft.vx * 0.2 + rand(-20, 20), vy: -craft.vy * 0.2 + rand(-20, 20), life: 0.35, max: 0.35, color: PINK, size: 2 });
+      }
+
+      if (reserveRef.current && !usedTeamReserve) {
+        usedTeamReserve = true;
+        fuel = Math.min(FUEL_MAX, fuel + FUEL_MAX / 2);
+        float(craft.x, craft.y - 28, "Wingmate reserve +50%", "#61dbff");
+        burst(craft.x, craft.y, "#61dbff", 18);
       }
 
       /* fuel */
@@ -568,6 +589,9 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         ctx.restore();
         ctx.textAlign = "center"; ctx.fillStyle = "#fff";
         ctx.fillText(label, W / 2, top + 75.5);
+        const comboTime = Math.max(0, 1 - (time - lastOrbAt) / COMBO_WINDOW);
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.fillRect(W / 2 - (cw - 16) / 2, top + 81, (cw - 16) * comboTime, 2);
       }
       // active power timers, in a small glass stack bottom-left
       const active = ([["shield", shield, 10], ["focus", focus, 5], ["magnet", magnet, 6]] as const).filter(([, v]) => v > 0);
@@ -592,10 +616,11 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
         ctx.fillText(String(n), W / 2, H / 2 - 40);
         ctx.globalAlpha = 1;
         ctx.font = "600 14px Montserrat, system-ui, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.75)";
-        ctx.fillText("Drag anywhere to steer", W / 2, H / 2 + 20);
+        ctx.fillText("Drag to steer · WASD or arrow keys", W / 2, H / 2 + 20);
+        ctx.fillText("Collect orbs to refuel and chain combos", W / 2, H / 2 + 44);
         ctx.textBaseline = "alphabetic";
       }
-      if (dead) {
+      if (dead && (!teammate || !reported)) {
         const msg = dead.cause === "fuel" ? "Out of fuel" : "Caught by doubt";
         ctx.font = "800 20px Montserrat, system-ui, sans-serif";
         const mw = ctx.measureText(msg).width + 48;
@@ -609,6 +634,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       }
     };
 
+    let teammatePosition: Vec | undefined;
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       if (hidden || paused) { last = now; return; }
@@ -616,6 +642,25 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       last = now;
       step(dt);
       draw();
+      if (!W || !H) return;
+      frameRef.current?.({ score: Math.round(score + survival), fuel: fuel / FUEL_MAX, x: craft.x / W, y: craft.y / H });
+      const wingmate = teammate?.current;
+      if (!wingmate || wingmate.finished) return;
+      const target = { x: wingmate.x * W, y: wingmate.y * H };
+      teammatePosition ??= target;
+      teammatePosition.x += (target.x - teammatePosition.x) * Math.min(1, dt * 7);
+      teammatePosition.y += (target.y - teammatePosition.y) * Math.min(1, dt * 7);
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.translate(teammatePosition.x, teammatePosition.y);
+      ctx.beginPath();
+      ctx.moveTo(0, -14); ctx.lineTo(11, 10); ctx.lineTo(0, 5); ctx.lineTo(-11, 10); ctx.closePath();
+      ctx.fillStyle = "#61dbff";
+      ctx.fill();
+      ctx.font = "600 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(wingmate.name.slice(0, 24), 0, -21);
+      ctx.restore();
     };
     raf = requestAnimationFrame(loop);
 
@@ -631,7 +676,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls }: { onGameOv
       window.removeEventListener("keyup", ku);
       document.removeEventListener("visibilitychange", vis);
     };
-  }, [topInset, controls]);
+  }, [topInset, controls, teammate]);
 
   return <canvas ref={canvasRef} className="block h-full w-full touch-none select-none" style={{ touchAction: "none" }} />;
 }

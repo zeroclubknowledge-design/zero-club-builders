@@ -64,8 +64,9 @@ function ZeroGamesHub() {
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {/* Featured: Zero Space */}
         <section className="bg-card p-3 md:rounded-xl md:border md:border-border">
-          <Link to="/app/games/quest" search={{ room: undefined, code: undefined }} className="mb-3 flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-white/10 p-5 text-white" style={{ background: "radial-gradient(ellipse at 100% 0%,#583058,#160d24 75%)" }}>
-            <div className="min-w-0 flex-1"><span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold"><Users className="h-3.5 w-3.5" />New · 2–6 players</span><p className="mt-3 font-display text-[26px] font-bold">Zero Quest</p><p className="mt-1 text-sm text-white/65">Build a city with your squad. Turn skills into progress.</p><span className="mt-4 inline-flex min-h-10 items-center rounded-full bg-[#fd49b0] px-4 text-sm font-bold text-[#190c20]">Build together · earn XP</span></div><span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[#fd49b0]/15"><Users className="h-8 w-8 text-[#fe94d1]" /></span>
+          <Link to="/app/games/space-team" search={{ room: undefined }} className="mb-3 flex w-full items-center gap-4 rounded-2xl bg-[#2b153d] p-5 text-white">
+            <Users className="h-7 w-7 shrink-0 text-[#ff8ccc]" />
+            <div><p className="font-display text-lg font-bold">Zero Space Co-op</p><p className="text-sm text-white/70">Two pilots. One team score.</p></div>
           </Link>
           <button
             onClick={() => navigate({ to: "/app/games/play/$game", params: { game: "space" }, search: { t: undefined, code: undefined } })}

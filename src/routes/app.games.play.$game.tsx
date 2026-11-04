@@ -226,6 +226,7 @@ function PlayGame() {
               <p className="font-semibold text-white/90">{featured.title}</p>
               <p>{previewPrizeLine(featured)} · {featured.players.toLocaleString()} {featured.players === 1 ? "player" : "players"} · ends in {countdown(new Date(featured.ends_at).getTime() - now)}</p>
               <p className="text-white/55">Only tournament runs count on the leaderboard.</p>
+              <Link to="/app/games/space-team" search={{ room: undefined }} className="inline-flex rounded-full bg-white/10 px-4 py-2 font-semibold text-white">Play with a friend</Link>
             </div>
           }
         />
@@ -241,6 +242,7 @@ function PlayGame() {
         secondary={{ label: `${info.name} tournaments`, onClick: () => navigate({ to: "/app/games", search: { game } }) }}
         footer={
           <div className="space-y-3">
+            <Link to="/app/games/space-team" search={{ room: undefined }} className="inline-flex rounded-full bg-white/10 px-4 py-2 font-semibold text-white">Play with a friend</Link>
             <p>{best > 0 ? `Your best: ${best.toLocaleString()} pts` : "Practice runs don't affect tournaments"}</p>
           </div>
         }

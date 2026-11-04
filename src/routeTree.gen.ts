@@ -90,6 +90,7 @@ import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
 import { Route as AppGamesDraughtRouteImport } from './routes/app.games.draught'
 import { Route as AppGamesQuestRouteImport } from './routes/app.games.quest'
 import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
+import { Route as AppGamesSpaceTeamRouteImport } from './routes/app.games.space-team'
 import { Route as AppGiftsIndexRouteImport } from './routes/app.gifts.index'
 import { Route as AppGiftsCodeRouteImport } from './routes/app.gifts.$code'
 import { Route as AppGiftsUnclaimedRouteImport } from './routes/app.gifts.unclaimed'
@@ -549,6 +550,11 @@ const AppGamesSoloRoute = AppGamesSoloRouteImport.update({
   path: '/games/solo',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesSpaceTeamRoute = AppGamesSpaceTeamRouteImport.update({
+  id: '/games/space-team',
+  path: '/games/space-team',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGiftsIndexRoute = AppGiftsIndexRouteImport.update({
   id: '/gifts/',
   path: '/gifts/',
@@ -891,6 +897,7 @@ export interface FileRoutesByFullPath {
   '/app/games/draught': typeof AppGamesDraughtRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
+  '/app/games/space-team': typeof AppGamesSpaceTeamRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
@@ -1020,6 +1027,7 @@ export interface FileRoutesByTo {
   '/app/games/draught': typeof AppGamesDraughtRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
+  '/app/games/space-team': typeof AppGamesSpaceTeamRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
@@ -1156,6 +1164,7 @@ export interface FileRoutesById {
   '/app/games/draught': typeof AppGamesDraughtRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
+  '/app/games/space-team': typeof AppGamesSpaceTeamRoute
   '/app/gifts/$code': typeof AppGiftsCodeRoute
   '/app/gifts/unclaimed': typeof AppGiftsUnclaimedRoute
   '/app/institution/$id': typeof AppInstitutionIdRoute
@@ -1293,6 +1302,7 @@ export interface FileRouteTypes {
     | '/app/games/draught'
     | '/app/games/quest'
     | '/app/games/solo'
+    | '/app/games/space-team'
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
@@ -1422,6 +1432,7 @@ export interface FileRouteTypes {
     | '/app/games/draught'
     | '/app/games/quest'
     | '/app/games/solo'
+    | '/app/games/space-team'
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
@@ -1557,6 +1568,7 @@ export interface FileRouteTypes {
     | '/app/games/draught'
     | '/app/games/quest'
     | '/app/games/solo'
+    | '/app/games/space-team'
     | '/app/gifts/$code'
     | '/app/gifts/unclaimed'
     | '/app/institution/$id'
@@ -2228,6 +2240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGamesSoloRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/space-team': {
+      id: '/app/games/space-team'
+      path: '/games/space-team'
+      fullPath: '/app/games/space-team'
+      preLoaderRoute: typeof AppGamesSpaceTeamRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/gifts/': {
       id: '/app/gifts/'
       path: '/gifts'
@@ -2728,6 +2747,7 @@ interface AppRouteChildren {
   AppGamesDraughtRoute: typeof AppGamesDraughtRoute
   AppGamesQuestRoute: typeof AppGamesQuestRoute
   AppGamesSoloRoute: typeof AppGamesSoloRoute
+  AppGamesSpaceTeamRoute: typeof AppGamesSpaceTeamRoute
   AppGiftsCodeRoute: typeof AppGiftsCodeRoute
   AppGiftsUnclaimedRoute: typeof AppGiftsUnclaimedRoute
   AppInstitutionIdRoute: typeof AppInstitutionIdRoute
@@ -2802,6 +2822,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGamesDraughtRoute: AppGamesDraughtRoute,
   AppGamesQuestRoute: AppGamesQuestRoute,
   AppGamesSoloRoute: AppGamesSoloRoute,
+  AppGamesSpaceTeamRoute: AppGamesSpaceTeamRoute,
   AppGiftsCodeRoute: AppGiftsCodeRoute,
   AppGiftsUnclaimedRoute: AppGiftsUnclaimedRoute,
   AppInstitutionIdRoute: AppInstitutionIdRoute,
