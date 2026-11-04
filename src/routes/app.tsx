@@ -126,6 +126,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/app/store": "Zero Store",
   "/app/zero-ai": "Zero AI",
   "/app/zerohub": "Zero Proofs",
+  "/app/zekathons": "Zekathons",
   "/app/portfolio": "Portfolio",
   "/app/challenge": "Challenge",
   "/app/admin": "Admin Control Center",
@@ -225,16 +226,22 @@ function SidebarContent({
     { Icon: IconClubs, label: "Clubs", to: "/app/clubs", desktopOnly: true },
     { Icon: IconBell, label: "Notifications", to: "/app/notifications", desktopOnly: true, badge: unreadNotificationsCount },
     { Icon: IconMessages, label: "Messages", to: "/app/chat", desktopOnly: true, badge: unreadMessagesCount },
+    { Icon: IconRocket, label: "Gigs", to: "/app/quests" },
+    { Icon: IconStore, label: "Store", to: "/app/store" },
+  ]);
+  const buildLinks = accountNavigation(profile, [
+    { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },
+    { Icon: IconNotes, label: "Zero Notes", to: "/app/notes" },
+    { Icon: IconCompass, label: "Zero Proofs", to: "/app/zerohub" },
+    { Icon: IconRocket, label: "Zekathons", to: "/app/zekathons" },
+  ]);
+  const moreLinks = accountNavigation(profile, [
     { Icon: IconShield, label: "Tasks", to: "/app/tasks" },
     { Icon: IconWallet, label: "Wallet", to: "/app/wallet" },
-    { Icon: IconRocket, label: "Opportunities", to: "/app/quests" },
-    { Icon: IconStore, label: "Zero Store", to: "/app/store" },
-    { Icon: IconCompass, label: "Zero Proofs", to: "/app/zerohub" },
     { Icon: IconPortfolio, label: "Portfolio", to: "/app/portfolio" },
-    { Icon: IconNotes, label: "ZeroNotes", to: "/app/notes" },
     { Icon: IconGames, label: "Games", to: "/app/games" },
-    { Icon: IconZeroAI, label: "Zero AI", to: "/app/zero-ai" },
     { Icon: IconBookmark, label: "Bookmarks", to: "/app/bookmarks" },
+    { Icon: IconNotes, label: "Help", to: "/docs" },
   ]);
   const workspaceLinks: any[] = accountNavigation(profile, [
     { Icon: Users, label: "Teams", to: "/app/teams" },
@@ -273,6 +280,19 @@ function SidebarContent({
       )}
     </Link>
   );
+
+  const sidebarPath = useRouterState({ select: (state) => state.location.pathname });
+  const renderGroup = (label: string, Icon: typeof IconCompass, items: typeof buildLinks) => {
+    const active = items.some(item => sidebarPath === item.to || sidebarPath.startsWith(item.to + "/"));
+    return <details key={label + sidebarPath} open={active || undefined} className="group/sidebar">
+      <summary data-rail-row aria-label={label} title={collapsed ? label : undefined} className="flex h-12 cursor-pointer list-none items-center gap-3.5 rounded-[10px] px-3 text-[16px] font-medium text-foreground/85 tap transition-colors hover:bg-foreground/[0.04] hover:text-foreground md:h-11 md:text-[15px] [&::-webkit-details-marker]:hidden">
+        <Icon active={active} className="h-[22px] w-[22px] shrink-0 md:h-5 md:w-5" />
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {!collapsed && <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open/sidebar:rotate-90" />}
+      </summary>
+      <div className={collapsed ? undefined : "pl-4"}>{items.map(renderLink)}</div>
+    </details>;
+  };
 
   return (
     <div
@@ -511,7 +531,10 @@ function SidebarContent({
           />
         ) : (
           <nav className="flex flex-col">
-            {primaryLinks.map(renderLink)}
+            {primaryLinks.filter(item => item.desktopOnly).map(renderLink)}
+            {renderGroup("Build", IconCompass, buildLinks)}
+            {primaryLinks.filter(item => !item.desktopOnly).map(renderLink)}
+            {renderGroup("More", IconGames, moreLinks)}
             <div className="mx-3 my-2 h-px bg-border" />
             {workspaceLinks.map(renderLink)}
             <Link
@@ -583,11 +606,11 @@ function BusinessSidebarNav({
     { to: "/app", label: "Home", Icon: IconHome, exact: true },
     ...(mode === "institutional"
       ? [{ to: "/app/bootcamps", label: "Bootcamps", Icon: IconLearn }, { to: "/app/certifications", label: "Certifications", Icon: plain(Award) }]
-      : [{ to: "/app/quests", label: "Opportunities", Icon: IconRocket }]),
+      : [{ to: "/app/quests", label: "Gigs", Icon: IconRocket }]),
     { to: "/app/chat", label: "Messages", Icon: IconMessages, badge: unreadMessagesCount, desktopOnly: true },
     { to: "/app/notifications", label: "Notifications", Icon: IconBell, badge: unreadNotificationsCount, desktopOnly: true },
     { to: "/app/teams", label: "Teams", Icon: plain(Users) },
-    { to: "/app/clubs", label: "Clubs", Icon: IconClubs },
+    { to: "/app/clubs", label: "Clubs", Icon: IconClubs, desktopOnly: true },
     { to: "/app/wallet", label: "Wallet", Icon: IconWallet },
     { to: "/app/zero-ai", label: "Zero AI", Icon: IconZeroAI },
     { to: "/app/bookmarks", label: "Bookmarks", Icon: IconBookmark },

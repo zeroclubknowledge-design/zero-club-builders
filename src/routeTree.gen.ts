@@ -48,6 +48,7 @@ import { Route as AppStoreRouteImport } from './routes/app.store'
 import { Route as AppTasksRouteImport } from './routes/app.tasks'
 import { Route as AppTutorApplyRouteImport } from './routes/app.tutor-apply'
 import { Route as AppTutorStudioRouteImport } from './routes/app.tutor-studio'
+import { Route as AppZekathonsRouteImport } from './routes/app.zekathons'
 import { Route as AppZeroAiRouteImport } from './routes/app.zero-ai'
 import { Route as AppZerohubRouteImport } from './routes/app.zerohub'
 import { Route as BusinessIndexRouteImport } from './routes/business.index'
@@ -338,6 +339,11 @@ const AppTutorApplyRoute = AppTutorApplyRouteImport.update({
 const AppTutorStudioRoute = AppTutorStudioRouteImport.update({
   id: '/tutor-studio',
   path: '/tutor-studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppZekathonsRoute = AppZekathonsRouteImport.update({
+  id: '/zekathons',
+  path: '/zekathons',
   getParentRoute: () => AppRoute,
 } as any)
 const AppZeroAiRoute = AppZeroAiRouteImport.update({
@@ -859,6 +865,7 @@ export interface FileRoutesByFullPath {
   '/app/tasks': typeof AppTasksRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
+  '/app/zekathons': typeof AppZekathonsRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/business/signin': typeof BusinessSigninRoute
@@ -989,6 +996,7 @@ export interface FileRoutesByTo {
   '/app/store': typeof AppStoreRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
+  '/app/zekathons': typeof AppZekathonsRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/business/signin': typeof BusinessSigninRoute
@@ -1126,6 +1134,7 @@ export interface FileRoutesById {
   '/app/tasks': typeof AppTasksRoute
   '/app/tutor-apply': typeof AppTutorApplyRoute
   '/app/tutor-studio': typeof AppTutorStudioRouteWithChildren
+  '/app/zekathons': typeof AppZekathonsRoute
   '/app/zero-ai': typeof AppZeroAiRoute
   '/app/zerohub': typeof AppZerohubRoute
   '/business/signin': typeof BusinessSigninRoute
@@ -1264,6 +1273,7 @@ export interface FileRouteTypes {
     | '/app/tasks'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
+    | '/app/zekathons'
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/business/signin'
@@ -1394,6 +1404,7 @@ export interface FileRouteTypes {
     | '/app/store'
     | '/app/tasks'
     | '/app/tutor-apply'
+    | '/app/zekathons'
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/business/signin'
@@ -1530,6 +1541,7 @@ export interface FileRouteTypes {
     | '/app/tasks'
     | '/app/tutor-apply'
     | '/app/tutor-studio'
+    | '/app/zekathons'
     | '/app/zero-ai'
     | '/app/zerohub'
     | '/business/signin'
@@ -1944,6 +1956,13 @@ declare module '@tanstack/react-router' {
       path: '/tutor-studio'
       fullPath: '/app/tutor-studio'
       preLoaderRoute: typeof AppTutorStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/zekathons': {
+      id: '/app/zekathons'
+      path: '/zekathons'
+      fullPath: '/app/zekathons'
+      preLoaderRoute: typeof AppZekathonsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/zero-ai': {
@@ -2730,6 +2749,7 @@ interface AppRouteChildren {
   AppTasksRoute: typeof AppTasksRoute
   AppTutorApplyRoute: typeof AppTutorApplyRoute
   AppTutorStudioRoute: typeof AppTutorStudioRouteWithChildren
+  AppZekathonsRoute: typeof AppZekathonsRoute
   AppZeroAiRoute: typeof AppZeroAiRoute
   AppZerohubRoute: typeof AppZerohubRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -2805,6 +2825,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTasksRoute: AppTasksRoute,
   AppTutorApplyRoute: AppTutorApplyRoute,
   AppTutorStudioRoute: AppTutorStudioRouteWithChildren,
+  AppZekathonsRoute: AppZekathonsRoute,
   AppZeroAiRoute: AppZeroAiRoute,
   AppZerohubRoute: AppZerohubRoute,
   AppIndexRoute: AppIndexRoute,

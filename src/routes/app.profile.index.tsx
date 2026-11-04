@@ -1,3 +1,4 @@
+import { ShippedProducts } from "@/features/zekathons/ShippedProducts";
 import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { ProfileCredentials, SocialLinksRow } from "@/features/profile/ProfileCredentials";
@@ -409,6 +410,8 @@ function Profile() {
                   "Dynamic builder and creator on Zero Club, specializing in shipping great products."
                 )}
               </div>
+
+              {profile?.id && <ShippedProducts className="mt-4" profileId={profile.id} />}
 
               <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px]">
                 <Link

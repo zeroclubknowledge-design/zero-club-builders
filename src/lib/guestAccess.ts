@@ -38,6 +38,8 @@ const GUEST_READABLE: RegExp[] = [
   new RegExp(`^/app/institution/${UUID}/?$`, "i"),
   // A two-player Space invitation can show its sign-in entry point.
   /^\/app\/games\/space-team\/?$/i,
+  // Shipped products are viewable from public profiles and portfolios.
+  /^\/app\/zekathons\/?$/i,
   // A product link opened from outside.
   new RegExp(`^/app/store/?$`, "i"),
 ];

@@ -1,3 +1,4 @@
+import { ShippedProducts } from "@/features/zekathons/ShippedProducts";
 import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { BusinessProfileCard } from "@/features/business/BusinessProfileCard";
@@ -754,6 +755,7 @@ function ProfileDetailBody({ profile, goBackSmart }: { profile: NonNullable<Retu
                 Add a line about what you build
               </Link>
             ) : null}
+            <ShippedProducts className="mt-4" profileId={profile.id} />
             <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
               {profile?.username && <span>@{profile.username}</span>}
               {profile?.website && (

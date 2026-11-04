@@ -1,3 +1,4 @@
+import { ShippedProducts } from "@/features/zekathons/ShippedProducts";
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -146,6 +147,7 @@ function PublicPortfolioPage() {
           void recordPortfolioView(data.portfolio.id, item.post.id).catch(() => undefined)
         }
       />
+      <ShippedProducts className="mx-auto mb-8 w-[calc(100%-2.5rem)] max-w-[1000px]" profileId={data.profile.id} />
     </main>
   );
 }
