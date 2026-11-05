@@ -1,3 +1,5 @@
+import { AIMessage } from "./AIMessage";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -336,7 +338,10 @@ function Workspace({
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState("");
   const pending = useRef<AbortController | null>(null);
-  const transcriptEnd = useRef<HTMLDivElement>(null);
+  const conversation = useRef<HTMLElement>(null);
+  const followingLatest = useRef(true);
+  const [showLatest, setShowLatest] = useState(false);
+  const keyboardInset = useKeyboardInset();
   const [recordingVoiceNote, setRecordingVoiceNote] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
@@ -348,8 +353,28 @@ function Workspace({
 
   useEffect(() => () => pending.current?.abort(), []);
   useEffect(() => {
-    transcriptEnd.current?.scrollIntoView({ block: "nearest" });
-  }, [messages]);
+    const panel = conversation.current;
+    if (panel && followingLatest.current) panel.scrollTop = panel.scrollHeight;
+  }, [messages, keyboardInset, text]);
+
+  useEffect(() => {
+    const field = input.current;
+    if (!field) return;
+    field.style.height = "auto";
+    field.style.height = Math.min(field.scrollHeight, 144) + "px";
+  }, [text]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const previousBody = document.body.style.overflow;
+    const previousRoot = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousBody;
+      document.documentElement.style.overflow = previousRoot;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -398,6 +423,8 @@ function Workspace({
     setSending(true);
     setChatError("");
     setText("");
+    followingLatest.current = true;
+    setShowLatest(false);
     setMessages([...context, { role: "assistant", content: "" }]);
     let reply = "";
     let completed = false;
@@ -447,6 +474,8 @@ function Workspace({
   function fresh() {
     if (pending.current || recordingVoiceNote) return;
     setSelected(null);
+    followingLatest.current = true;
+    setShowLatest(false);
     setMessages([]);
     setChatError("");
     setText("");
@@ -457,6 +486,8 @@ function Workspace({
     if (pending.current) return;
     setText(prompt);
     setSelected(null);
+    followingLatest.current = true;
+    setShowLatest(false);
     setMessages([]);
     requestAnimationFrame(() => {
       const el = input.current;
@@ -479,6 +510,8 @@ function Workspace({
               <button
                 disabled={sending || recordingVoiceNote}
                 onClick={() => {
+                  followingLatest.current = true;
+                  setShowLatest(false);
                   setSelected(d.id);
                   const history = Array.isArray(d.messages)
                     ? d.messages
@@ -540,8 +573,8 @@ function Workspace({
 
   return (
     <div
-      className="zero-ai-workspace relative flex min-h-[calc(100dvh-env(safe-area-inset-top))] w-full min-w-0 overflow-hidden bg-background text-foreground"
-      style={{ ["--zai-accent" as string]: role.accent }}
+      className="zero-ai-workspace relative flex min-h-0 w-full min-w-0 overflow-hidden bg-background text-foreground"
+      style={{ ["--zai-accent" as string]: role.accent, height: `calc(100dvh - env(safe-area-inset-top) - ${keyboardInset}px)` }}
     >
       {/* Ambient brand light, tinted by the role in use. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -578,7 +611,7 @@ function Workspace({
         <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Chats
         </p>
-        <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">{history}</div>
+        <div className="no-scrollbar -mx-1 min-h-0 flex-1 overflow-y-auto px-1">{history}</div>
         <div className="mt-4 space-y-3 border-t border-border/70 pt-4">
           <Link
             to="/app"
@@ -606,9 +639,9 @@ function Workspace({
         </div>
       </aside>
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+      <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
         {/* ── Top bar ── */}
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 sm:px-6">
+        <header className="z-20 flex h-16 shrink-0 bg-background/95 backdrop-blur-xl items-center justify-between gap-2 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
@@ -637,7 +670,7 @@ function Workspace({
 
         {historyOpen && (
           <section
-            className="zero-ai-mobile-history mx-4 mb-4 rounded-2xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur-xl xl:hidden"
+            className="zero-ai-mobile-history absolute inset-x-0 top-16 z-30 mx-4 max-h-[60%] overflow-y-auto no-scrollbar rounded-2xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur-xl xl:hidden"
             aria-label="Chats"
           >
             <div className="mb-2 flex items-center justify-between px-1">
@@ -652,7 +685,7 @@ function Workspace({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="max-h-72 overflow-y-auto">{history}</div>
+            <div className="no-scrollbar max-h-72 overflow-y-auto">{history}</div>
             <Link
               to="/app"
               className="mt-2 flex items-center gap-2 px-1 py-1 text-[12.5px] text-muted-foreground"
@@ -662,7 +695,13 @@ function Workspace({
           </section>
         )}
 
-        <main className="zero-ai-main mx-auto flex w-full min-w-0 max-w-[880px] flex-1 flex-col px-4 pb-12 pt-4 sm:px-8 sm:pt-8">
+        <main ref={conversation} onScroll={event => {
+          const panel = event.currentTarget;
+          const nearBottom = panel.scrollHeight - panel.scrollTop - panel.clientHeight < 96;
+          followingLatest.current = nearBottom;
+          setShowLatest(!nearBottom);
+        }} className="zero-ai-main no-scrollbar mx-auto flex min-h-0 w-full min-w-0 max-w-[880px] flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-5 pt-4 sm:px-8 sm:pt-8">
+          {messages.length === 0 && <>
           {/* ── Hero ── */}
           <div className="text-center">
             <div className="relative mx-auto mb-6 h-[76px] w-[76px]">
@@ -701,6 +740,8 @@ function Workspace({
             </span>
           </div>
 
+          </>}
+
           {messages.length > 0 && (
             <section
               className="mt-6 space-y-5"
@@ -720,12 +761,13 @@ function Workspace({
                   <p className="mb-1 text-xs font-semibold text-muted-foreground">
                     {message.role === "user" ? "You" : "Zero AI"}
                   </p>
-                  <p className="whitespace-pre-wrap break-words text-[15px] leading-7 [overflow-wrap:anywhere]">
-                    {message.content || (sending ? "Thinking…" : "")}
-                  </p>
+                  {message.role === "assistant" ? (
+                    <AIMessage content={message.content || (sending ? "Thinking…" : "")} />
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words text-[15px] leading-7 [overflow-wrap:anywhere]">{message.content}</p>
+                  )}
                 </article>
               ))}
-              <div ref={transcriptEnd} />
             </section>
           )}
           {chatError && (
@@ -734,82 +776,7 @@ function Workspace({
             </p>
           )}
 
-          {/* Composer */}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void send();
-            }}
-            className="zero-ai-composer group relative mt-6 rounded-[26px] p-[1.5px]"
-          >
-            <div className="rounded-[25px] bg-card p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
-              <label htmlFor="zero-ai-prompt" className="sr-only">
-                Your {role.label.toLowerCase()} prompt
-              </label>
-              <textarea
-                id="zero-ai-prompt"
-                ref={input}
-                value={text}
-                disabled={sending || recordingVoiceNote}
-                maxLength={12000}
-                onChange={(event) => setText(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-                    event.preventDefault();
-                    void send();
-                  }
-                }}
-                placeholder={role.placeholder}
-                rows={4}
-                className="max-h-72 min-h-[116px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
-              />
-              <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3">
-                <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <span
-                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
-                    style={{ background: `${role.accent}14`, color: role.accent }}
-                  >
-                    <RoleIcon className="h-3.5 w-3.5" /> {role.label}
-                  </span>
-                  <span className="hidden tabular-nums sm:inline">
-                    {text.length
-                      ? `${text.length.toLocaleString()} characters`
-                      : "Ctrl + Enter to send"}
-                  </span>
-                </span>
-                <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <ZeroAICalls userId={userId} />
-                  <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
-                    setText(current => current.trim() ? `${current}\n${transcript}` : transcript);
-                    input.current?.focus();
-                  }} />
-                  <button
-                    type={sending ? "button" : "submit"}
-                    onClick={sending ? () => pending.current?.abort() : undefined}
-                    disabled={!sending && (!text.trim() || recordingVoiceNote)}
-                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
-                  >
-                    {sending ? (
-                      <>
-                        Stop reply <Loader2 className="h-4 w-4 animate-spin" />
-                      </>
-                    ) : (
-                      <>
-                        Send <ArrowUpRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-          <p
-            role="status"
-            className="mt-3 flex items-center justify-center gap-2 text-center text-[12px] text-muted-foreground"
-          >
-            Chats are saved on this device. Zero AI can make mistakes; check important answers.
-          </p>
-
+          {messages.length === 0 && <>
           {/* ── Starters ── */}
           <section className="mt-9" aria-labelledby="zai-starters">
             <div className="mb-3 flex items-end justify-between">
@@ -908,7 +875,92 @@ function Workspace({
           <p className="mt-8 text-center text-[11.5px] leading-5 text-muted-foreground/80">
             Zero AI by Zero Club · Your courses, files and learner records are not connected yet.
           </p>
+          </>}
         </main>
+        <footer className="relative z-20 mx-auto w-full max-w-[880px] shrink-0 bg-background px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-8">
+          {showLatest && <button type="button" onClick={() => {
+            const panel = conversation.current;
+            if (panel) panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
+            followingLatest.current = true;
+            setShowLatest(false);
+          }} className="absolute -top-11 left-1/2 -translate-x-1/2 rounded-full bg-card px-4 py-2 text-sm font-medium shadow-md">↓ Latest reply</button>}
+          {/* Composer */}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void send();
+            }}
+            className="zero-ai-composer group relative rounded-[26px] p-[1.5px]"
+          >
+            <div className="rounded-[25px] bg-card p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
+              <label htmlFor="zero-ai-prompt" className="sr-only">
+                Your {role.label.toLowerCase()} prompt
+              </label>
+              <textarea
+                id="zero-ai-prompt"
+                ref={input}
+                value={text}
+                disabled={sending || recordingVoiceNote}
+                maxLength={12000}
+                onChange={(event) => setText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                    event.preventDefault();
+                    void send();
+                  }
+                }}
+                placeholder={role.placeholder}
+                rows={1}
+                className="no-scrollbar max-h-36 min-h-[44px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3">
+                <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <span
+                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
+                    style={{ background: `${role.accent}14`, color: role.accent }}
+                  >
+                    <RoleIcon className="h-3.5 w-3.5" /> {role.label}
+                  </span>
+                  <span className="hidden tabular-nums sm:inline">
+                    {text.length
+                      ? `${text.length.toLocaleString()} characters`
+                      : "Ctrl + Enter to send"}
+                  </span>
+                </span>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <ZeroAICalls userId={userId} />
+                  <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
+                    setText(current => current.trim() ? `${current}\n${transcript}` : transcript);
+                    input.current?.focus();
+                  }} />
+                  <button
+                    type={sending ? "button" : "submit"}
+                    onClick={sending ? () => pending.current?.abort() : undefined}
+                    disabled={!sending && (!text.trim() || recordingVoiceNote)}
+                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
+                  >
+                    {sending ? (
+                      <>
+                        Stop reply <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        Send <ArrowUpRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+          <p
+            role="status"
+            className="mt-2 flex items-center justify-center gap-2 text-center text-[12px] text-muted-foreground"
+          >
+            Chats are saved on this device. Zero AI can make mistakes; check important answers.
+          </p>
+
+        </footer>
       </div>
     </div>
   );

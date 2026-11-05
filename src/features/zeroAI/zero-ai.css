@@ -14,3 +14,35 @@
 @media (prefers-reduced-motion: reduce) {
   .zero-ai-halo, .zero-ai-pulse { animation: none; }
 }
+
+/* Assistant prose follows the application's existing type and theme tokens. */
+.zero-ai-answer > :first-child { margin-top: 0; }
+.zero-ai-answer > :last-child { margin-bottom: 0; }
+.zero-ai-answer p { margin-block: 0.75rem; }
+.zero-ai-answer :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: 1.5rem 0.65rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.zero-ai-answer h1 { font-size: 1.35em; }
+.zero-ai-answer h2 { font-size: 1.2em; }
+.zero-ai-answer :is(h3, h4, h5, h6) { font-size: 1.05em; }
+.zero-ai-answer :is(ul, ol) { margin-block: 0.75rem; padding-inline-start: 1.5rem; }
+.zero-ai-answer ul { list-style-type: disc; }
+.zero-ai-answer ol { list-style-type: decimal; }
+.zero-ai-answer li { margin-block: 0.35rem; padding-inline-start: 0.2rem; }
+.zero-ai-answer li > p { margin-block: 0.3rem; }
+.zero-ai-answer strong { font-weight: 600; }
+.zero-ai-answer blockquote {
+  margin-block: 1rem;
+  border-inline-start: 3px solid var(--border);
+  padding-inline-start: 1rem;
+  color: var(--muted-foreground);
+}
+.zero-ai-answer :not(pre) > code {
+  border-radius: 0.3rem;
+  background: color-mix(in oklab, currentColor 6%, transparent);
+  padding: 0.1rem 0.3rem;
+  font-size: 0.9em;
+}
+.zero-ai-answer hr { margin-block: 1.5rem; border-color: var(--border); }
