@@ -46,8 +46,8 @@ export function ClubAIReply({ message, isMe }: { message: any; isMe: boolean }) 
   });
   const pending = retry.isPending || (!!reply.data && !reply.data.content && Date.now() - new Date(reply.data.created_at).getTime() < 120000);
   return <div className="mx-3 my-3 max-w-[760px] rounded-2xl bg-foreground/[0.03] p-4 sm:mx-6">
-    <div className="mb-2 flex items-center gap-2 text-sm font-semibold"><ZeroMark size={20} className="text-[#c3217e]" />Zero AI<span className="text-xs font-normal text-muted-foreground">Product guidance</span></div>
-    {reply.data?.content ? <AIMessage content={reply.data.content} /> : <p className="text-sm text-muted-foreground">{pending ? "Zero AI is thinking…" : "Ask Zero AI for help with Zero Club. Club records are not connected."}</p>}
+    <div className="mb-2 flex items-center gap-2 text-sm font-semibold"><ZeroMark size={20} className="text-[#c3217e]" />Zero AI<span className="text-xs font-normal text-muted-foreground">Club assistant</span></div>
+    {reply.data?.content ? <AIMessage content={reply.data.content} /> : <p className="text-sm text-muted-foreground">{pending ? "Zero AI is thinking…" : "Ask Zero AI about this club’s discussions, announcements and learning activity."}</p>}
     {isMe && !reply.data?.content && <button type="button" disabled={pending} onClick={() => retry.mutate()} className="mt-2 text-sm font-medium text-accent disabled:opacity-50">{pending ? "Preparing reply…" : "Ask Zero AI"}</button>}
   </div>;
 }

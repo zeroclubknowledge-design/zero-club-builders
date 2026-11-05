@@ -561,7 +561,16 @@ function clubMock(options = {}) {
     if (url.endsWith("/auth/v1/user")) return Response.json({ id: "00000000-0000-0000-0000-000000000001" });
     if (url.includes("/profiles?")) return Response.json([{ account_type: "Learner", active_mode: "learner" }]);
     if (url.endsWith("/claim_club_zero_ai_request")) return options.outsider ? Response.json({message:"ZERO_AI_CLUB_MEMBERS_ONLY"}, {status:400}) : Response.json(options.quota !== false);
-    if (url.includes("/club_messages?")) return Response.json(options.wrongOwner ? [] : [{id:clubMessageId, content:"@ZeroAI How do I enter Discussion?$$MEDIA$$private-file-url"}]);
+    if (url.endsWith("/claim_zero_ai_request")) return Response.json(true);
+    if (url.includes("/clubs?")) return Response.json([{id:clubId,name:"Builders Club",description:"We build apps",rules:"Be helpful",creator_id:"00000000-0000-0000-0000-000000000099"}]);
+    if (url.includes("/club_members?")) return Response.json(options.contextOutsider ? [] : (url.includes("select=clubs") ? [{clubs:{id:clubId,name:"Builders Club"}}] : [{club_id:clubId}]));
+    if (url.includes("/enrollments?")) return Response.json([{bootcamp_id:"course-1",bootcamps:{title:"PRIVATE_ENROLMENT"}}]);
+    if (url.includes("/bootcamps?")) return Response.json([{id:"course-2",title:"Managed class"}]);
+    if (url.includes("/club_announcements?")) return Response.json([{id:"announcement-1",body:"Workshop on Friday",created_at:"2026-11-05T09:00:00Z"}]);
+    if (url.includes("/club_messages?")) {
+      if (url.includes("&id=eq.")) return Response.json(options.wrongOwner ? [] : [{id:clubMessageId, content:"@ZeroAI How do I enter Discussion?$$MEDIA$$private-file-url"}]);
+      return options.historyUnavailable ? Response.json({}, {status:403}) : Response.json([{id:clubMessageId,content:"We studied React components$$MEDIA$$private-file-url",room_id:"general",created_at:"2026-11-05T08:00:00Z"}]);
+    }
     if (url.includes("/club_ai_replies")) {
       if (init.method === "PATCH") return Response.json([{message_id:clubMessageId,content:"Open Discussion."}]);
       if (init.method === "POST") return Response.json(options.race ? [] : [{message_id:clubMessageId}]);
@@ -582,7 +591,7 @@ test("club replies verify membership and ownership before model access", async (
     assert.equal(mock.calls.some(c=>c.url.includes("api.groq.com")),false);
   }
 });
-test("club replies send only the tagged question and guidance, persist with server identity", async () => {
+test("club replies include approved club records, exclude private account data and persist with server identity", async () => {
   const mock=clubMock();
   const response=await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest());
   assert.equal(response.status,200);
@@ -590,7 +599,11 @@ test("club replies send only the tagged question and guidance, persist with serv
   const body=JSON.parse(upstream.init.body);
   assert.deepEqual(body.input,[{role:"user",content:"@ZeroAI How do I enter Discussion?"}]);
   assert.doesNotMatch(JSON.stringify(body),/private-file-url|must not leave server|untrusted override|test-service/);
-  assert.match(body.instructions,/no direct access/);
+  assert.match(body.instructions,/We studied React components/);
+  assert.match(body.instructions,/Workshop on Friday/);
+  assert.match(body.instructions,/untrusted data/);
+  assert.doesNotMatch(body.instructions,/PRIVATE_ENROLMENT/);
+  assert.equal(mock.calls.some(c=>c.url.includes("/enrollments?")),false);
   assert.equal(mock.calls.find(c=>c.init.method==="PATCH").init.headers.Authorization,"Bearer test-service");
   assert.ok(mock.calls.filter(c=>c.init.headers?.Authorization==="Bearer test-service").every(c=>c.url.includes("/club_ai_replies")));
   assert.match(mock.calls.find(c=>c.url.includes("/club_messages?")).url,/profile_id=eq.00000000-0000-0000-0000-000000000001/);
@@ -612,4 +625,31 @@ test("missing club server key gives an explicit setup error without database or 
   assert.equal(response.status,503);
   assert.match((await response.json()).error,/Club AI replies are being set up/);
   assert.equal(mock.calls.length,0);
+});
+
+test("private chats load caller-scoped records and selected club through the caller JWT", async () => {
+  const mock=clubMock();
+  const response=await createZeroAIHandlers({env,fetch:mock.fetch}).chat(request({clubId,messages:[userMessage]}));
+  assert.equal(response.status,200);
+  const body=JSON.parse(mock.calls.find(c=>c.url.endsWith("/responses")).init.body);
+  assert.match(body.instructions,/PRIVATE_ENROLMENT/);
+  assert.match(body.instructions,/We studied React components/);
+  const contextReads=mock.calls.filter(c=>/enrollments\?|club_members\?|club_announcements\?|clubs\?|bootcamps\?/.test(c.url));
+  assert.ok(contextReads.every(c=>c.init.headers.Authorization==="Bearer test-jwt"));
+  assert.ok(mock.calls.filter(c=>/enrollments\?|bootcamps\?/.test(c.url)).every(c=>c.url.includes("00000000-0000-0000-0000-000000000001")));
+});
+test("forged private-chat club selections never load an outsider's history", async () => {
+  const mock=clubMock({contextOutsider:true});
+  await createZeroAIHandlers({env,fetch:mock.fetch}).chat(request({clubId,messages:[userMessage]}));
+  const body=JSON.parse(mock.calls.find(c=>c.url.endsWith("/responses")).init.body);
+  assert.match(body.instructions,/unavailable_or_not_a_member/);
+  assert.doesNotMatch(body.instructions,/We studied React components/);
+  assert.equal(mock.calls.some(c=>c.url.includes("/club_messages?")),false);
+});
+test("unavailable club history is represented as unavailable instead of no activity", async () => {
+  const mock=clubMock({historyUnavailable:true});
+  await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest());
+  const body=JSON.parse(mock.calls.find(c=>c.url.endsWith("/responses")).init.body);
+  assert.match(body.instructions,/"posts":null/);
+  assert.match(body.instructions,/not proof that nothing happened/);
 });

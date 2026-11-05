@@ -1,3 +1,4 @@
+import { CardSelect } from "@/components/CardSelect";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { AIMessage } from "./AIMessage";
@@ -263,7 +264,7 @@ const roles: Record<"learner" | "tutor" | "creator" | "institution", RoleConfig>
 
 type Mode = keyof typeof roles;
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type Draft = { id: string; mode: Mode; text: string; updatedAt: number; messages?: ChatMessage[] };
+type Draft = { id: string; mode: Mode; text: string; updatedAt: number; messages?: ChatMessage[]; clubId?: string };
 const MODES = Object.keys(roles) as Mode[];
 const isMode = (value: string): value is Mode => Object.prototype.hasOwnProperty.call(roles, value);
 
@@ -344,6 +345,18 @@ function Workspace({
   const followingLatest = useRef(true);
   const [showLatest, setShowLatest] = useState(false);
   const keyboardInset = useKeyboardInset();
+  const [contextClub, setContextClub] = useState("");
+  const { data: contextClubs = [] } = useQuery({
+    queryKey: ["zero-ai-context-clubs", userId],
+    queryFn: async () => {
+      const [joined, owned] = await Promise.all([
+        supabase.from("club_members").select("clubs(id,name)").eq("profile_id", userId).limit(50),
+        supabase.from("clubs").select("id,name").eq("creator_id", userId).limit(50),
+      ]);
+      if (joined.error || owned.error) throw joined.error || owned.error;
+      return [...new Map([...(owned.data || []), ...(joined.data || []).map((row: any) => row.clubs)].filter(Boolean).map((club: any) => [club.id, club])).values()] as Array<{id:string;name:string}>;
+    },
+  });
   const [enterToSend] = useEnterToSend();
   const composer = useRef<HTMLFormElement>(null);
   const [composerHeight, setComposerHeight] = useState(90);
@@ -451,7 +464,7 @@ function Workspace({
           Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: context }),
+        body: JSON.stringify({ messages: context, ...(contextClub ? {clubId: contextClub} : {}) }),
         signal: abort.signal,
       });
       await readAIStream(response, (delta) => {
@@ -470,6 +483,7 @@ function Workspace({
         const draft: Draft = {
           id,
           mode,
+          clubId: contextClub || undefined,
           text: drafts.find((d) => d.id === id)?.text || prompt,
           updatedAt: Date.now(),
           messages: [...context, { role: "assistant", content: reply }],
@@ -486,6 +500,7 @@ function Workspace({
   function fresh() {
     if (pending.current || recordingVoiceNote) return;
     setSelected(null);
+    setContextClub("");
     followingLatest.current = true;
     setShowLatest(false);
     setMessages([]);
@@ -498,6 +513,7 @@ function Workspace({
     if (pending.current) return;
     setText(prompt);
     setSelected(null);
+    setContextClub("");
     followingLatest.current = true;
     setShowLatest(false);
     setMessages([]);
@@ -525,6 +541,7 @@ function Workspace({
                   followingLatest.current = true;
                   setShowLatest(false);
                   setSelected(d.id);
+                  setContextClub(d.clubId || "");
                   const history = Array.isArray(d.messages)
                     ? d.messages
                         .filter(
@@ -713,6 +730,13 @@ function Workspace({
           followingLatest.current = nearBottom;
           setShowLatest(!nearBottom);
         }} className="zero-ai-main no-scrollbar mx-auto flex min-h-0 w-full min-w-0 max-w-[880px] flex-1 flex-col overflow-y-auto overscroll-contain px-4 pt-4 sm:px-8 sm:pt-8">
+          {contextClubs.length > 0 && <div className="mb-5 flex min-w-0 flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Context</span>
+            <CardSelect aria-label="Choose club context" label="Choose club context" value={contextClub} onChange={event => setContextClub(event.target.value)} disabled={sending} className="min-w-0 max-w-full rounded-full bg-card px-3 py-2 text-sm">
+              <option value="">My account · choose a club if needed</option>
+              {contextClubs.map(club => <option key={club.id} value={club.id}>{club.name}</option>)}
+            </CardSelect>
+          </div>}
           {messages.length === 0 && <>
           {/* ── Hero ── */}
           <div className="text-center">

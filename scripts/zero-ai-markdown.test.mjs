@@ -8,7 +8,7 @@ import ts from "typescript";
 let source = ts.transpileModule(fs.readFileSync("src/features/zeroAI/AIMessage.tsx", "utf8"), {
   compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-for (const dependency of ["react/jsx-runtime", "react-markdown", "remark-gfm"]) {
+for (const dependency of ["react", "react/jsx-runtime", "react-markdown", "remark-gfm"]) {
   source = source.replaceAll(`"${dependency}"`, JSON.stringify(import.meta.resolve(dependency)));
 }
 const { AIMessage } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
@@ -29,4 +29,13 @@ test("AI formatting keeps code literal and blocks executable HTML and links", ()
   assert.match(html, /<pre/);
   assert.match(html, /\*\*literal\*\*/);
   assert.doesNotMatch(html, /<script|javascript:/i);
+});
+
+test("wide answers use labelled mobile cards and comfortably sized desktop columns", () => {
+  const html=render("| Skill | Why it matters | How to start |\n| --- | --- | --- |\n| Generative AI | Build useful tools | Practise with a small project |\n");
+  assert.match(html,/<dl/);
+  assert.match(html,/<dt[^>]*>Why it matters<\/dt>/);
+  assert.match(html,/<dd[^>]*>Build useful tools<\/dd>/);
+  assert.match(html,/min-w-\[12rem\]/);
+  assert.doesNotMatch(html,/overflow-wrap:anywhere/);
 });
