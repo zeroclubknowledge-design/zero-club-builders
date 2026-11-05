@@ -605,3 +605,11 @@ test("duplicate club requests never generate another answer, provider failures r
   assert.equal((await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest())).status,502);
   assert.ok(mock.calls.some(c=>c.init.method==="DELETE" && c.url.includes("content=is.null")));
 });
+
+test("missing club server key gives an explicit setup error without database or provider calls", async () => {
+  const mock=clubMock();
+  const response=await createZeroAIHandlers({env:{...env,SUPABASE_SERVICE_ROLE_KEY:undefined},fetch:mock.fetch}).chat(clubRequest());
+  assert.equal(response.status,503);
+  assert.match((await response.json()).error,/Club AI replies are being set up/);
+  assert.equal(mock.calls.length,0);
+});

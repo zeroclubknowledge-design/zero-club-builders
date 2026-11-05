@@ -1,3 +1,4 @@
+import { ZeroMark } from "@/components/ZeroLoader";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -110,6 +111,7 @@ export function MentionList({
             index += 1;
             const selected = index === active;
             const i = index;
+            const zeroAI = person.username.toLowerCase() === "zeroai" && !person.id;
             const everyone = person.username === "everyone" && !person.id;
             return (
               <button
@@ -133,7 +135,9 @@ export function MentionList({
                   }`}
                   style={everyone ? { background: PINK } : undefined}
                 >
-                  {everyone ? (
+                  {zeroAI ? (
+                    <ZeroMark size={23} className="text-[#c3217e]" />
+                  ) : everyone ? (
                     "@"
                   ) : person.avatar_url ? (
                     <img src={person.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />

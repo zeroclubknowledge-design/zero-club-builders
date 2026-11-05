@@ -725,7 +725,7 @@ function BottomNav({ pathname, visible, isChat, isDetail, unreadCount, onPost, b
 
           const tabClass = `relative flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg tap transition-all duration-200 active:scale-95 ${
             active
-              ? "bg-primary/[0.12] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+              ? "bg-[#c3217e]/[0.12] text-[#c3217e] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
               : "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground"
           }`;
 
