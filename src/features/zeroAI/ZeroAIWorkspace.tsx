@@ -17,7 +17,7 @@ import {
   ListChecks,
   Megaphone,
   Menu,
-  Mic,
+  Phone,
   Loader2,
   NotebookPen,
   Plus,
@@ -35,8 +35,8 @@ import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { toast } from "sonner";
 import { getCachedSession } from "@/lib/auth";
 import { readAIStream } from "./stream";
-import { useVapiVoice } from "./useVapiVoice";
-import { VoiceOverlay } from "./VoiceOverlay";
+import { VoiceNoteInput } from "./VoiceNoteInput";
+
 import { ZeroAICalls } from "./ZeroAICalls";
 import "./zero-ai.css";
 
@@ -304,7 +304,7 @@ export function ZeroAIWorkspace() {
   const own: Mode = isInstitution(profile) ? "institution" : modeOf(profile) || "learner";
   if (access.isPending) return <div className="grid min-h-[60dvh] place-items-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (access.isError) return <div className="p-6 text-center"><p>Could not check your Zero AI access.</p><button onClick={() => access.refetch()} className="mt-3 underline">Try again</button></div>;
-  if (!access.data) return <div className="mx-auto flex min-h-[60dvh] max-w-lg flex-col items-center justify-center gap-4 px-5 text-center"><Sparkles className="h-10 w-10 text-primary" /><h1 className="text-2xl font-semibold">Zero AI comes with {membershipAudience(profile) === "Tutor" ? "Tutor" : "Creator"} Max</h1><p className="text-muted-foreground">Upgrade to Max for personalized AI assistance and voice conversations.</p><Link to="/app/premium" className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">View your plans</Link></div>;
+  if (!access.data) return <div className="mx-auto flex min-h-[60dvh] max-w-lg flex-col items-center justify-center gap-4 px-5 text-center"><Sparkles className="h-10 w-10 text-primary" /><h1 className="text-2xl font-semibold">Zero AI comes with {membershipAudience(profile) === "Tutor" ? "Tutor" : "Creator"} Max</h1><p className="text-muted-foreground">Upgrade to Max for personalized AI assistance.</p><Link to="/app/premium" className="rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground">View your plans</Link></div>;
   return (
     <Workspace
       key={`${profile.id}:${own}`}
@@ -338,7 +338,7 @@ function Workspace({
   const [chatError, setChatError] = useState("");
   const pending = useRef<AbortController | null>(null);
   const transcriptEnd = useRef<HTMLDivElement>(null);
-  const voice = useVapiVoice();
+  const [recordingVoiceNote, setRecordingVoiceNote] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
   const { format } = useWalletCurrency();
@@ -390,7 +390,7 @@ function Workspace({
     }
   }
   async function send() {
-    if (!text.trim() || pending.current || voice.status !== "idle") return;
+    if (!text.trim() || pending.current || recordingVoiceNote) return;
     const prompt = text.trim();
     const context = [...messages, { role: "user" as const, content: prompt }].slice(-23);
     const id = selected || crypto.randomUUID();
@@ -446,7 +446,7 @@ function Workspace({
     }
   }
   function fresh() {
-    if (pending.current || voice.status !== "idle") return;
+    if (pending.current || recordingVoiceNote) return;
     setSelected(null);
     setMessages([]);
     setChatError("");
@@ -478,7 +478,7 @@ function Workspace({
               className={`group flex items-center rounded-xl transition ${selected === d.id ? "bg-[#c3217e]/[0.08]" : "hover:bg-foreground/[0.04]"}`}
             >
               <button
-                disabled={sending || voice.status !== "idle"}
+                disabled={sending || recordingVoiceNote}
                 onClick={() => {
                   setSelected(d.id);
                   const history = Array.isArray(d.messages)
@@ -516,7 +516,7 @@ function Workspace({
               </button>
               <button
                 aria-label={`Delete chat: ${d.text.slice(0, 30)}`}
-                disabled={sending || voice.status !== "idle"}
+                disabled={sending || recordingVoiceNote}
                 onClick={() => {
                   if (persist(drafts.filter((item) => item.id !== d.id)) && selected === d.id)
                     fresh();
@@ -734,38 +734,6 @@ function Workspace({
               {chatError} Your message is below so you can retry.
             </p>
           )}
-          {voice.status !== "idle" && (
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-              <span role="status" className="text-sm text-muted-foreground">
-                {voice.status === "connecting" ? "Connecting…" : "Voice connected"}
-              </span>
-              {voice.status === "connected" && (
-                <button
-                  onClick={voice.toggleMute}
-                  className="rounded-full border border-border px-3 py-2 text-sm"
-                >
-                  {voice.muted ? "Unmute" : "Mute"}
-                </button>
-              )}
-              <button
-                onClick={voice.stop}
-                className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-white"
-              >
-                End voice chat
-              </button>
-            </div>
-          )}
-          <VoiceOverlay voice={voice} />
-          {voice.error && (
-            <div role="alert" className="mt-2 text-center text-sm text-destructive">
-              {voice.error}
-              {voice.status !== "idle" && (
-                <button onClick={voice.enableAudio} className="ml-2 underline">
-                  Enable audio
-                </button>
-              )}
-            </div>
-          )}
           <ZeroAICalls userId={userId} />
 
           {/* Composer */}
@@ -784,7 +752,7 @@ function Workspace({
                 id="zero-ai-prompt"
                 ref={input}
                 value={text}
-                disabled={sending || voice.status !== "idle"}
+                disabled={sending || recordingVoiceNote}
                 maxLength={12000}
                 onChange={(event) => setText(event.target.value)}
                 onKeyDown={(event) => {
@@ -797,7 +765,7 @@ function Workspace({
                 rows={4}
                 className="max-h-72 min-h-[116px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
               />
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-1 pt-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3">
                 <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
                   <span
                     className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
@@ -812,24 +780,17 @@ function Workspace({
                   </span>
                 </span>
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={sending || voice.status !== "idle"}
-                    onClick={() => void voice.start({ purpose: "conversation" })}
-                    aria-label="Talk to Zero AI"
-                    title="Talk to Zero AI"
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-foreground transition hover:bg-foreground/5 active:scale-[0.98] disabled:opacity-40"
-                  >
-                    {voice.status === "connecting" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
+                  <button type="button" disabled aria-label="AI voice calls coming soon" title="AI voice calls coming soon" className="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-2 text-muted-foreground opacity-50">
+                    <Phone className="h-4 w-4" /><span className="text-[11px]">Coming soon</span>
                   </button>
+                  <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
+                    setText(current => current.trim() ? `${current}\n${transcript}` : transcript);
+                    input.current?.focus();
+                  }} />
                   <button
                     type={sending ? "button" : "submit"}
                     onClick={sending ? () => pending.current?.abort() : undefined}
-                    disabled={!sending && (!text.trim() || voice.status !== "idle")}
+                    disabled={!sending && (!text.trim() || recordingVoiceNote)}
                     className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
                   >
                     {sending ? (

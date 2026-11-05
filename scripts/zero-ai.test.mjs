@@ -18,6 +18,8 @@ const { createCallHandlers } = await moduleFrom("src/features/zeroAI/calls.serve
 const { readAIStream } = await moduleFrom("src/features/zeroAI/stream.ts");
 const env = {
   OPENAI_API_KEY: "test-only-key",
+  GROQ_API_KEY: "test-only-groq-key",
+  ZERO_AI_CALLS_ENABLED: "true",
   SUPABASE_URL: "https://supabase.test",
   SUPABASE_ANON_KEY: "test-publishable",
   SUPABASE_SERVICE_ROLE_KEY: "test-service",
@@ -42,6 +44,47 @@ const chatEvents =
   frame({ type: "response.output_text.delta", delta: "Hello" }) +
   frame({ type: "response.completed" });
 const userMessage = { role: "user", content: "Help me study fractions." };
+
+test("voice notes require authentication and use the fixed Groq transcription model", async () => {
+  const mock = authMock();
+  const transcriptions = [];
+  const fetch = async (url, init) => {
+    if (url.endsWith("/audio/transcriptions")) {
+      transcriptions.push(init);
+      return Response.json({ text: "  Help me plan my product.  " });
+    }
+    return mock.fetch(url, init);
+  };
+  const noteRequest = (token = "test-jwt", mime = "audio/webm") => {
+    const body = new FormData();
+    body.set("file", new Blob(["recorded audio"], { type: mime }), "note.webm");
+    body.set("model", "untrusted-model");
+    return new Request("https://app.test/api/zero-ai/transcribe", {
+      method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body,
+    });
+  };
+  const handler = createZeroAIHandlers({ env, fetch });
+  assert.equal((await handler.transcribe(noteRequest(null))).status, 401);
+  assert.equal(transcriptions.length, 0);
+  assert.equal((await handler.transcribe(noteRequest("test-jwt", "text/html"))).status, 400);
+  assert.equal(transcriptions.length, 0);
+  const response = await handler.transcribe(noteRequest());
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { text: "Help me plan my product." });
+  assert.equal(transcriptions[0].body.get("model"), "whisper-large-v3-turbo");
+  assert.equal(transcriptions[0].headers.Authorization, "Bearer test-only-groq-key");
+  assert.equal(response.headers.get("cache-control"), "no-store");
+});
+
+test("voice notes stop oversized streamed uploads before contacting Groq", async () => {
+  const mock = authMock();
+  const request = new Request("https://app.test/api/zero-ai/transcribe", {
+    method: "POST", headers: { Authorization: "Bearer test-jwt", "Content-Type": "multipart/form-data; boundary=test" },
+    body: new Blob([new Uint8Array(4 * 1024 * 1024)]),
+  });
+  assert.equal((await createZeroAIHandlers({ env, fetch: mock.fetch }).transcribe(request)).status, 413);
+  assert.equal(mock.calls.some(call => call.url.includes("api.groq.com")), false);
+});
 
 test("hosting bridge accepts streamed POST bodies and forwards chunks before completion", async () => {
   let finishStream;
@@ -130,7 +173,7 @@ test("unauthenticated, expired and quota-exhausted users never reach OpenAI", as
     );
     assert.equal(response.status, options.authStatus || 429);
     assert.equal(
-      mock.calls.some((call) => call.url.startsWith("https://api.openai.com")),
+      mock.calls.some((call) => call.url.startsWith("https://api.groq.com")),
       false,
     );
   }
@@ -151,7 +194,7 @@ test("server derives account role, strips spoofed configuration and streams with
   assert.equal(await response.text(), chatEvents);
   const upstream = mock.calls.find((call) => call.url.endsWith("/responses"));
   const payload = JSON.parse(upstream.init.body);
-  assert.equal(payload.model, "gpt-5-mini");
+  assert.equal(payload.model, "openai/gpt-oss-120b");
   assert.match(payload.instructions, /Help the creator/);
   assert.doesNotMatch(payload.instructions, /Ignore all rules/);
   assert.equal(payload.store, false);
@@ -224,7 +267,7 @@ test("call scheduling requires explicit confirmation and stable request identity
   assert.equal((await handlers.schedule(request({ ...body, confirmed: true }))).status, 200);
   assert.equal(JSON.parse(calls[0].init.body).p_request_id, body.requestId);
   assert.equal(
-    calls.some((call) => call.url.startsWith("https://api.openai.com")),
+    calls.some((call) => call.url.startsWith("https://api.groq.com")),
     false,
   );
 });
@@ -486,4 +529,12 @@ test("cancelling while microphone permission is pending never starts a voice cal
   assert.equal(stopped, 1);
   assert.equal(harness.networkCalls(), 0);
   assert.equal(harness.peers.length, 0);
+});
+
+ test("calls disabled by default never reach providers", async () => {
+  const fetch = async () => { throw new Error("No provider request permitted"); };
+  const disabled = { ...env, ZERO_AI_CALLS_ENABLED: undefined };
+  assert.equal((await createZeroAIHandlers({ env: disabled, fetch }).voice(request({}))).status, 503);
+  assert.equal((await createCallHandlers({ env: disabled, fetch }).schedule(request({}))).status, 503);
+  assert.equal((await createCallHandlers({ env: disabled, fetch }).dispatch(request({}))).status, 503);
 });

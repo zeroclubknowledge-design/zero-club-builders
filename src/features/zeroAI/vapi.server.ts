@@ -62,6 +62,7 @@ export function createVapiHandlers({ fetch: send, env }: Runtime) {
 
   return {
     async session(request: Request) {
+      if (env.ZERO_AI_CALLS_ENABLED !== "true") return Response.json({ error: "AI calls are coming soon." }, { status: 503 });
       try {
         const token = request.headers.get("authorization") || "";
         if (!token.startsWith("Bearer ") || token.length > 8192)

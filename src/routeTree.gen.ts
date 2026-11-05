@@ -71,6 +71,7 @@ import { Route as ApiGiftCardCodeRouteImport } from './routes/api.gift-card.$cod
 import { Route as ApiGiftImageCodeRouteImport } from './routes/api.gift-image.$code'
 import { Route as ApiZeroAiCallsRouteImport } from './routes/api.zero-ai.calls'
 import { Route as ApiZeroAiChatRouteImport } from './routes/api.zero-ai.chat'
+import { Route as ApiZeroAiTranscribeRouteImport } from './routes/api.zero-ai.transcribe'
 import { Route as ApiZeroAiVoiceRouteImport } from './routes/api.zero-ai.voice'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppBootcampsIndexRouteImport } from './routes/app.bootcamps.index'
@@ -454,6 +455,11 @@ const ApiZeroAiCallsRoute = ApiZeroAiCallsRouteImport.update({
 const ApiZeroAiChatRoute = ApiZeroAiChatRouteImport.update({
   id: '/api/zero-ai/chat',
   path: '/api/zero-ai/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiZeroAiTranscribeRoute = ApiZeroAiTranscribeRouteImport.update({
+  id: '/api/zero-ai/transcribe',
+  path: '/api/zero-ai/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiZeroAiVoiceRoute = ApiZeroAiVoiceRouteImport.update({
@@ -889,6 +895,7 @@ export interface FileRoutesByFullPath {
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/transcribe': typeof ApiZeroAiTranscribeRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
@@ -1020,6 +1027,7 @@ export interface FileRoutesByTo {
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/transcribe': typeof ApiZeroAiTranscribeRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
@@ -1158,6 +1166,7 @@ export interface FileRoutesById {
   '/api/gift-image/$code': typeof ApiGiftImageCodeRoute
   '/api/zero-ai/calls': typeof ApiZeroAiCallsRouteWithChildren
   '/api/zero-ai/chat': typeof ApiZeroAiChatRoute
+  '/api/zero-ai/transcribe': typeof ApiZeroAiTranscribeRoute
   '/api/zero-ai/voice': typeof ApiZeroAiVoiceRoute
   '/app/bootcamps/$id': typeof AppBootcampsIdRoute
   '/app/bootcamps/requests': typeof AppBootcampsRequestsRoute
@@ -1297,6 +1306,7 @@ export interface FileRouteTypes {
     | '/api/gift-image/$code'
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
+    | '/api/zero-ai/transcribe'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
@@ -1428,6 +1438,7 @@ export interface FileRouteTypes {
     | '/api/gift-image/$code'
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
+    | '/api/zero-ai/transcribe'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
@@ -1565,6 +1576,7 @@ export interface FileRouteTypes {
     | '/api/gift-image/$code'
     | '/api/zero-ai/calls'
     | '/api/zero-ai/chat'
+    | '/api/zero-ai/transcribe'
     | '/api/zero-ai/voice'
     | '/app/bootcamps/$id'
     | '/app/bootcamps/requests'
@@ -1676,6 +1688,7 @@ export interface RootRouteChildren {
   ApiGiftImageCodeRoute: typeof ApiGiftImageCodeRoute
   ApiZeroAiCallsRoute: typeof ApiZeroAiCallsRouteWithChildren
   ApiZeroAiChatRoute: typeof ApiZeroAiChatRoute
+  ApiZeroAiTranscribeRoute: typeof ApiZeroAiTranscribeRoute
   ApiZeroAiVoiceRoute: typeof ApiZeroAiVoiceRoute
   ApiOgKindIdRoute: typeof ApiOgKindIdRoute
   ApiZeroAiVapiSessionRoute: typeof ApiZeroAiVapiSessionRoute
@@ -2117,6 +2130,13 @@ declare module '@tanstack/react-router' {
       path: '/api/zero-ai/chat'
       fullPath: '/api/zero-ai/chat'
       preLoaderRoute: typeof ApiZeroAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/zero-ai/transcribe': {
+      id: '/api/zero-ai/transcribe'
+      path: '/api/zero-ai/transcribe'
+      fullPath: '/api/zero-ai/transcribe'
+      preLoaderRoute: typeof ApiZeroAiTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/zero-ai/voice': {
@@ -2964,6 +2984,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGiftImageCodeRoute: ApiGiftImageCodeRoute,
   ApiZeroAiCallsRoute: ApiZeroAiCallsRouteWithChildren,
   ApiZeroAiChatRoute: ApiZeroAiChatRoute,
+  ApiZeroAiTranscribeRoute: ApiZeroAiTranscribeRoute,
   ApiZeroAiVoiceRoute: ApiZeroAiVoiceRoute,
   ApiOgKindIdRoute: ApiOgKindIdRoute,
   ApiZeroAiVapiSessionRoute: ApiZeroAiVapiSessionRoute,
@@ -2973,13 +2994,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

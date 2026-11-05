@@ -36,6 +36,7 @@ export function createCallHandlers({ fetch: send, env }: Runtime) {
 
   return {
     async schedule(request: Request) {
+      if (env.ZERO_AI_CALLS_ENABLED !== "true") return Response.json({ error: "AI calls are coming soon." }, { status: 503 });
       const headers = await userHeaders(request);
       if (!headers) return json("Please sign in to schedule a call.", 401);
       if (!configured())
@@ -97,6 +98,7 @@ export function createCallHandlers({ fetch: send, env }: Runtime) {
       }
     },
     async dispatch(request: Request) {
+      if (env.ZERO_AI_CALLS_ENABLED !== "true") return Response.json({ error: "AI calls are coming soon." }, { status: 503 });
       if (!env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`)
         return json("Unauthorized", 401);
       if (!configured()) return json("Phone calling configuration is incomplete.");
