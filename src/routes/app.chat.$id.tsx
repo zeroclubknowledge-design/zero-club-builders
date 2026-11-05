@@ -1591,7 +1591,7 @@ function ChatViewPage() {
         {/* One container. The avatar used to sit outside the input, which read
             as two boxes side by side for what is a single action. */}
         <div
-          className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 transition-[padding] duration-200 ${composerHasContent ? "pl-4" : "pl-1.5"} ${editingId ? "ring-success/40" : "ring-foreground/[0.07] focus-within:ring-[#c3217e]/40"}`}
+          className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] transition-[padding] duration-200 ${composerHasContent ? "pl-4" : "pl-1.5"}`}
           style={{ fontFamily: 'var(--font-sans)', "--font-button": 'var(--font-sans)' } as React.CSSProperties}
         >
               <input 

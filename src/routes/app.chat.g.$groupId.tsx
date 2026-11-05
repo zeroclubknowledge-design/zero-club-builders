@@ -551,7 +551,7 @@ function GroupChatPage() {
                 ))}
               </div>
             )}
-            <div className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] ring-1 ring-foreground/[0.07] transition-[padding] duration-200 focus-within:ring-[#c3217e]/40 ${groupHasContent ? "pl-4" : "pl-1.5"}`}>
+            <div className={`flex items-end gap-1 rounded-[28px] bg-card py-2 pr-2 shadow-[0_12px_32px_-20px_rgba(0,0,0,0.65)] transition-[padding] duration-200 ${groupHasContent ? "pl-4" : "pl-1.5"}`}>
               {/* Options on the left, voice note on the right; both fold away
                   while typing so only Send shows and the text gets the room. */}
               <ComposerSlot show={!groupHasContent}>
