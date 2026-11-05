@@ -17,7 +17,7 @@ import {
   ListChecks,
   Megaphone,
   Menu,
-  Phone,
+  Headphones,
   Loader2,
   NotebookPen,
   Plus,
@@ -734,7 +734,6 @@ function Workspace({
               {chatError} Your message is below so you can retry.
             </p>
           )}
-          <ZeroAICalls userId={userId} />
 
           {/* Composer */}
           <form
@@ -780,8 +779,15 @@ function Workspace({
                   </span>
                 </span>
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <button type="button" disabled aria-label="AI voice calls coming soon" title="AI voice calls coming soon" className="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-2 text-muted-foreground opacity-50">
-                    <Phone className="h-4 w-4" /><span className="text-[11px]">Coming soon</span>
+                  <ZeroAICalls userId={userId} />
+                  <button
+                    type="button"
+                    aria-label="Talk to Zero AI"
+                    title="Talk to Zero AI"
+                    onClick={() => toast.info("AI voice calls are coming soon.")}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground transition hover:bg-foreground/5 active:scale-[0.98]"
+                  >
+                    <Headphones className="h-4 w-4" />
                   </button>
                   <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
                     setText(current => current.trim() ? `${current}\n${transcript}` : transcript);

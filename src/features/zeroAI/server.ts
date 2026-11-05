@@ -45,13 +45,16 @@ export function validateChat(
 
 export function createZeroAIHandlers(runtime: Runtime) {
   const { env, fetch: send } = runtime;
+  const groqKey = env.GROQ_API_KEY?.trim();
 
   async function authorize(request: Request, kind: "chat" | "voice") {
     const token = request.headers.get("authorization");
     if (!token?.startsWith("Bearer ") || token.length > 8192)
       return failure("Please sign in to use Zero AI.", 401);
-    if ((kind === "chat" ? !env.GROQ_API_KEY : !env.OPENAI_API_KEY) || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY)
-      return failure("Zero AI is not connected yet. Please contact Zero Club support.");
+    if (kind === "chat" && !groqKey)
+      return failure("Zero AI's Groq key is missing from this deployment. Add GROQ_API_KEY to the server environment and redeploy.");
+    if ((kind === "voice" && !env.OPENAI_API_KEY) || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY)
+      return failure("Zero AI's server configuration is incomplete. Please contact Zero Club support.");
     const headers = {
       Authorization: token,
       apikey: env.SUPABASE_ANON_KEY,
@@ -94,6 +97,7 @@ export function createZeroAIHandlers(runtime: Runtime) {
     if (!quotaResponse.ok) {
       const error = await quotaResponse.json().catch(() => ({}));
       if (String(error.message || "").includes("ZERO_AI_MAX_REQUIRED")) return failure("Zero AI assistance requires Creator Max or Tutor Max for your account.", 403);
+      if (["PGRST202", "42883"].includes(error.code)) return failure("Zero AI's database setup is missing. Please contact Zero Club support.");
       return failure("Zero AI is being set up. Please try again later.");
     }
     if ((await quotaResponse.json()) !== true)
@@ -123,7 +127,7 @@ export function createZeroAIHandlers(runtime: Runtime) {
         const upstream = await send("https://api.groq.com/openai/v1/responses", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${env.GROQ_API_KEY}`,
+            Authorization: `Bearer ${groqKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -131,7 +135,6 @@ export function createZeroAIHandlers(runtime: Runtime) {
             instructions: instructions(access.role),
             input: messages,
             stream: true,
-            store: false,
             max_output_tokens: 2048,
             reasoning: { effort: "low" },
           }),
@@ -139,9 +142,11 @@ export function createZeroAIHandlers(runtime: Runtime) {
         });
         if (!upstream.ok || !upstream.body) {
           console.error("Zero AI upstream status", upstream.status);
+          if (upstream.status === 401) return failure("Groq rejected the API key. Check GROQ_API_KEY in the server environment and redeploy.");
+          if (upstream.status === 403) return failure("The Groq account cannot access GPT-OSS 120B. Check its model permissions.");
           return failure(
             upstream.status === 429
-              ? "Zero AI is busy. Please try again shortly."
+              ? "Zero AI's Groq usage allowance is temporarily exhausted. Please try again later."
               : "Zero AI couldn't reply. Please try again.",
             upstream.status === 429 ? 429 : 502,
           );
@@ -195,7 +200,7 @@ export function createZeroAIHandlers(runtime: Runtime) {
         body.set("response_format", "json");
         const response = await send("https://api.groq.com/openai/v1/audio/transcriptions", {
           method: "POST",
-          headers: { Authorization: `Bearer ${env.GROQ_API_KEY}` },
+          headers: { Authorization: `Bearer ${groqKey}` },
           body,
           signal: AbortSignal.any([request.signal, AbortSignal.timeout(60000)]),
         });

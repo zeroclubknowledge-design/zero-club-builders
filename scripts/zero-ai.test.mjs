@@ -197,8 +197,21 @@ test("server derives account role, strips spoofed configuration and streams with
   assert.equal(payload.model, "openai/gpt-oss-120b");
   assert.match(payload.instructions, /Help the creator/);
   assert.doesNotMatch(payload.instructions, /Ignore all rules/);
-  assert.equal(payload.store, false);
+  assert.equal("store" in payload, false);
   assert.equal(payload.stream, true);
+});
+
+test("Groq configuration and provider failures give actionable errors", async () => {
+  const mock = authMock();
+  const missing = await createZeroAIHandlers({ env: { ...env, GROQ_API_KEY: " " }, fetch: mock.fetch }).chat(request({ messages: [userMessage] }));
+  assert.match((await missing.json()).error, /missing from this deployment/);
+  assert.equal(mock.calls.length, 0);
+  for (const status of [401, 403, 429]) {
+    const fetch = (url, init) => url.endsWith("/responses") ? Promise.resolve(Response.json({}, { status })) : mock.fetch(url, init);
+    const response = await createZeroAIHandlers({ env, fetch }).chat(request({ messages: [userMessage] }));
+    const message = (await response.json()).error;
+    assert.match(message, status === 401 ? /rejected the API key/ : status === 403 ? /model permissions/ : /usage allowance/);
+  }
 });
 
 test("voice uses an authenticated server-created SDP session and trusted account role", async () => {
