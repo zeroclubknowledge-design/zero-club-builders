@@ -514,7 +514,7 @@ function BootcampDetail() {
                 {club && (
                   <Link
                     to="/app/clubs/chat"
-                    search={{ clubId: club.id, showRules: "false" }}
+                    search={{ clubId: club.id, showRules: "false", room: "general" }}
                     className="flex h-10 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[14px] font-semibold text-foreground transition active:scale-[0.98]"
                   >
                     <Users className="h-4 w-4" /> Manage club
@@ -534,7 +534,7 @@ function BootcampDetail() {
                   <Video className="h-[18px] w-[18px]" /> Join live class
                 </Link>
                 {club && (
-                  <Link to="/app/clubs/chat" search={{ clubId: club.id, showRules: "false" }} className="flex h-11 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[15px] font-semibold text-foreground transition active:scale-[0.98]">
+                  <Link to="/app/clubs/chat" search={{ clubId: club.id, showRules: "false", room: "general" }} className="flex h-11 items-center justify-center gap-2 rounded-full border-[1.5px] border-foreground text-[15px] font-semibold text-foreground transition active:scale-[0.98]">
                     <Users className="h-[18px] w-[18px]" /> Enter club
                   </Link>
                 )}

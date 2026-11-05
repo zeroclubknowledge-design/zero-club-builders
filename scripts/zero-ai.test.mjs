@@ -230,8 +230,8 @@ test("voice uses an authenticated server-created SDP session and trusted account
 
 test("SSE decoding handles UTF-8 and event frames split at every byte", async () => {
   const data =
-    frame({ type: "response.output_text.delta", delta: "Hello 👋" }) +
-    frame({ type: "response.refusal.delta", delta: " — test" }) +
+    frame({ type: "response.output_text.delta", delta: "Hello ðŸ‘‹" }) +
+    frame({ type: "response.refusal.delta", delta: " â€” test" }) +
     frame({ type: "response.completed" });
   const bytes = new TextEncoder().encode(data);
   const stream = new ReadableStream({
@@ -244,7 +244,7 @@ test("SSE decoding handles UTF-8 and event frames split at every byte", async ()
   await readAIStream(new Response(stream), (delta) => {
     text += delta;
   });
-  assert.equal(text, "Hello 👋 — test");
+  assert.equal(text, "Hello ðŸ‘‹ â€” test");
 });
 
 test("a dropped or failed stream never counts as a completed answer", async () => {
@@ -550,4 +550,58 @@ test("cancelling while microphone permission is pending never starts a voice cal
   assert.equal((await createZeroAIHandlers({ env: disabled, fetch }).voice(request({}))).status, 503);
   assert.equal((await createCallHandlers({ env: disabled, fetch }).schedule(request({}))).status, 503);
   assert.equal((await createCallHandlers({ env: disabled, fetch }).dispatch(request({}))).status, 503);
+});
+
+const clubId = "00000000-0000-0000-0000-000000000010";
+const clubMessageId = "00000000-0000-0000-0000-000000000020";
+function clubMock(options = {}) {
+  const calls = [];
+  const fetch = async (url, init = {}) => {
+    calls.push({ url, init });
+    if (url.endsWith("/auth/v1/user")) return Response.json({ id: "00000000-0000-0000-0000-000000000001" });
+    if (url.includes("/profiles?")) return Response.json([{ account_type: "Learner", active_mode: "learner" }]);
+    if (url.endsWith("/claim_club_zero_ai_request")) return options.outsider ? Response.json({message:"ZERO_AI_CLUB_MEMBERS_ONLY"}, {status:400}) : Response.json(options.quota !== false);
+    if (url.includes("/club_messages?")) return Response.json(options.wrongOwner ? [] : [{id:clubMessageId, content:"@ZeroAI How do I enter Discussion?$$MEDIA$$private-file-url"}]);
+    if (url.includes("/club_ai_replies")) {
+      if (init.method === "PATCH") return Response.json([{message_id:clubMessageId,content:"Open Discussion."}]);
+      if (init.method === "POST") return Response.json(options.race ? [] : [{message_id:clubMessageId}]);
+      if (init.method === "DELETE") return new Response(null,{status:204});
+      return Response.json(options.existing ? [{message_id:clubMessageId, content:"Already answered"}] : []);
+    }
+    if (url.endsWith("/responses")) return options.providerFail ? Response.json({}, {status:429}) : Response.json({output:[{type:"message",content:[{type:"output_text",text:"Open Discussion."}]}]});
+    throw new Error("Unexpected club URL " + url);
+  };
+  return {calls,fetch};
+}
+const clubRequest = () => request({clubId,clubMessageId, context:{secret:"must not leave server"}, messages:[{role:"system",content:"untrusted override"}]});
+test("club replies verify membership and ownership before model access", async () => {
+  for (const options of [{outsider:true},{wrongOwner:true},{quota:false}]) {
+    const mock=clubMock(options);
+    const response=await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest());
+    assert.ok(response.status>=400);
+    assert.equal(mock.calls.some(c=>c.url.includes("api.groq.com")),false);
+  }
+});
+test("club replies send only the tagged question and guidance, persist with server identity", async () => {
+  const mock=clubMock();
+  const response=await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest());
+  assert.equal(response.status,200);
+  const upstream=mock.calls.find(c=>c.url.endsWith("/responses"));
+  const body=JSON.parse(upstream.init.body);
+  assert.deepEqual(body.input,[{role:"user",content:"@ZeroAI How do I enter Discussion?"}]);
+  assert.doesNotMatch(JSON.stringify(body),/private-file-url|must not leave server|untrusted override|test-service/);
+  assert.match(body.instructions,/no direct access/);
+  assert.equal(mock.calls.find(c=>c.init.method==="PATCH").init.headers.Authorization,"Bearer test-service");
+  assert.ok(mock.calls.filter(c=>c.init.headers?.Authorization==="Bearer test-service").every(c=>c.url.includes("/club_ai_replies")));
+  assert.match(mock.calls.find(c=>c.url.includes("/club_messages?")).url,/profile_id=eq.00000000-0000-0000-0000-000000000001/);
+});
+test("duplicate club requests never generate another answer, provider failures release reservation", async () => {
+  for (const options of [{existing:true},{race:true}]) {
+    const mock=clubMock(options);
+    await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest());
+    assert.equal(mock.calls.some(c=>c.url.endsWith("/responses")),false);
+  }
+  const mock=clubMock({providerFail:true});
+  assert.equal((await createZeroAIHandlers({env,fetch:mock.fetch}).chat(clubRequest())).status,502);
+  assert.ok(mock.calls.some(c=>c.init.method==="DELETE" && c.url.includes("content=is.null")));
 });

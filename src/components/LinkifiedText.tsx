@@ -251,7 +251,7 @@ export function LinkifiedText({
         (_match, before: string, mention: string) => {
           const username = mention.substring(1);
           // @everyone / @all tag the whole group or club; there is no profile to open.
-          if (/^(everyone|all)$/i.test(username)) return `${before}<strong class="${mentionClass}">${mention}</strong>`;
+          if (/^(everyone|all|zeroai)$/i.test(username)) return `${before}<strong class="${mentionClass}">${mention}</strong>`;
           const displayName = profileMap[username.toLowerCase()] || mention;
           return `${before}<strong class="${mentionClass} cursor-pointer" data-username="${username}">${displayName}</strong>`;
         },

@@ -1,3 +1,5 @@
+import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
 import { AIMessage } from "./AIMessage";
 import { useKeyboardInset } from "@/hooks/useKeyboardInset";
 import { Link } from "@tanstack/react-router";
@@ -342,6 +344,16 @@ function Workspace({
   const followingLatest = useRef(true);
   const [showLatest, setShowLatest] = useState(false);
   const keyboardInset = useKeyboardInset();
+  const [enterToSend] = useEnterToSend();
+  const composer = useRef<HTMLFormElement>(null);
+  const [composerHeight, setComposerHeight] = useState(90);
+  useEffect(() => {
+    const element = composer.current;
+    if (!element) return;
+    const observer = new ResizeObserver(() => setComposerHeight(element.getBoundingClientRect().height + 40));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const [recordingVoiceNote, setRecordingVoiceNote] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
   const { available } = useZeroGiftBalance("zero-ai");
@@ -355,7 +367,7 @@ function Workspace({
   useEffect(() => {
     const panel = conversation.current;
     if (panel && followingLatest.current) panel.scrollTop = panel.scrollHeight;
-  }, [messages, keyboardInset, text]);
+  }, [messages, keyboardInset, text, composerHeight]);
 
   useEffect(() => {
     const field = input.current;
@@ -695,12 +707,12 @@ function Workspace({
           </section>
         )}
 
-        <main ref={conversation} onScroll={event => {
+        <main ref={conversation} style={{ paddingBottom: `calc(${composerHeight}px + env(safe-area-inset-bottom))` }} onScroll={event => {
           const panel = event.currentTarget;
           const nearBottom = panel.scrollHeight - panel.scrollTop - panel.clientHeight < 96;
           followingLatest.current = nearBottom;
           setShowLatest(!nearBottom);
-        }} className="zero-ai-main no-scrollbar mx-auto flex min-h-0 w-full min-w-0 max-w-[880px] flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-5 pt-4 sm:px-8 sm:pt-8">
+        }} className="zero-ai-main no-scrollbar mx-auto flex min-h-0 w-full min-w-0 max-w-[880px] flex-1 flex-col overflow-y-auto overscroll-contain px-4 pt-4 sm:px-8 sm:pt-8">
           {messages.length === 0 && <>
           {/* ── Hero ── */}
           <div className="text-center">
@@ -873,11 +885,11 @@ function Workspace({
             </p>
           )}
           <p className="mt-8 text-center text-[11.5px] leading-5 text-muted-foreground/80">
-            Zero AI by Zero Club · Your courses, files and learner records are not connected yet.
+            Zero AI can make mistakes. Check important answers.
           </p>
           </>}
         </main>
-        <footer className="relative z-20 mx-auto w-full max-w-[880px] shrink-0 bg-background px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-8">
+        <ComposerOverlay position="absolute" maxWidthClassName="max-w-[880px]">
           {showLatest && <button type="button" onClick={() => {
             const panel = conversation.current;
             if (panel) panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
@@ -886,15 +898,16 @@ function Workspace({
           }} className="absolute -top-11 left-1/2 -translate-x-1/2 rounded-full bg-card px-4 py-2 text-sm font-medium shadow-md">↓ Latest reply</button>}
           {/* Composer */}
           <form
+            ref={composer}
             onSubmit={(event) => {
               event.preventDefault();
               void send();
             }}
             className="zero-ai-composer group relative rounded-[26px] p-[1.5px]"
           >
-            <div className="rounded-[25px] bg-card p-3 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
+            <div className="flex items-end gap-1 rounded-[25px] bg-card p-2 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
               <label htmlFor="zero-ai-prompt" className="sr-only">
-                Your {role.label.toLowerCase()} prompt
+                Message Zero AI
               </label>
               <textarea
                 id="zero-ai-prompt"
@@ -904,30 +917,16 @@ function Workspace({
                 maxLength={12000}
                 onChange={(event) => setText(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                  if (isSendKey(event, enterToSend)) {
                     event.preventDefault();
                     void send();
                   }
                 }}
-                placeholder={role.placeholder}
+                placeholder="Message Zero AI…"
                 rows={1}
-                className="no-scrollbar max-h-36 min-h-[44px] w-full resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
+                className="no-scrollbar max-h-36 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
               />
-              <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-3">
-                <span className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <span
-                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold"
-                    style={{ background: `${role.accent}14`, color: role.accent }}
-                  >
-                    <RoleIcon className="h-3.5 w-3.5" /> {role.label}
-                  </span>
-                  <span className="hidden tabular-nums sm:inline">
-                    {text.length
-                      ? `${text.length.toLocaleString()} characters`
-                      : "Ctrl + Enter to send"}
-                  </span>
-                </span>
-                <div className="ml-auto flex shrink-0 items-center gap-2">
+              <div className="flex h-11 shrink-0 items-center gap-1">
                   <ZeroAICalls userId={userId} />
                   <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
                     setText(current => current.trim() ? `${current}\n${transcript}` : transcript);
@@ -937,30 +936,24 @@ function Workspace({
                     type={sending ? "button" : "submit"}
                     onClick={sending ? () => pending.current?.abort() : undefined}
                     disabled={!sending && (!text.trim() || recordingVoiceNote)}
-                    className="flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] px-5 text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
+                    aria-label={sending ? "Stop reply" : "Send message"}
+                    title={sending ? "Stop reply" : "Send message"}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-r from-[#c3217e] to-[#dd409a] text-[13px] font-bold text-white shadow-[0_10px_24px_-12px_rgba(195,33,126,0.9)] transition hover:brightness-110 active:scale-[0.98] disabled:opacity-35 disabled:shadow-none"
                   >
                     {sending ? (
                       <>
-                        Stop reply <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="sr-only">Stop reply</span><Loader2 className="h-4 w-4 animate-spin" />
                       </>
                     ) : (
                       <>
-                        Send <ArrowUpRight className="h-4 w-4" />
+                        <span className="sr-only">Send</span><ArrowUpRight className="h-4 w-4" />
                       </>
                     )}
                   </button>
-                </div>
               </div>
             </div>
           </form>
-          <p
-            role="status"
-            className="mt-2 flex items-center justify-center gap-2 text-center text-[12px] text-muted-foreground"
-          >
-            Chats are saved on this device. Zero AI can make mistakes; check important answers.
-          </p>
-
-        </footer>
+        </ComposerOverlay>
       </div>
     </div>
   );

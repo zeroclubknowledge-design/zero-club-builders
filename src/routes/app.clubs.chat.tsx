@@ -1,3 +1,4 @@
+import { ClubAIReply, askClubAI, tagsZeroAI } from "@/features/zeroAI/ClubAIReply";
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
 import { tooLargeMessage, UPLOAD_LIMIT_MB } from "@/lib/storage";
@@ -18,7 +19,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 import { draftKey, usePersistentDraft } from "@/lib/draftStorage";
 import { useDraftMedia } from "@/hooks/useDraftMedia";
 import { readChatAttachments } from "@/lib/chatAttachments";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import { LinkPreview } from "@/components/LinkPreview";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -229,6 +230,7 @@ const giveawayPrizeLine = (g: ClubGiveaway, money: (n: number) => string) =>
 
 
 function ClubChat() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const goBack = useGoBack("/app/clubs");
   const {
@@ -1079,6 +1081,12 @@ function ClubChat() {
         type: "club_chat",
         entityTitle: club.name,
       });
+
+      if (tagsZeroAI(text) && !["assignments", "announcements", "q-and-a", QUIZ_ROOM].includes(activeRoom)) {
+        void askClubAI(club.id, data.id).then(() => {
+          void queryClient.invalidateQueries({ queryKey: ["club-ai-reply", data.id] });
+        }).catch((error: Error) => toast.error(error.message));
+      }
 
       // Featured club first-message reward
       if (club.name === "Zero K Bootcamp") {
@@ -3448,6 +3456,7 @@ function ClubChat() {
                   onReplyText={(text: string) => handleSendMessage(text, m.id)}
                   onTogglePin={isAdmin && !m.pending ? () => void togglePin(m) : undefined}
                 />
+                {!m.pending && tagsZeroAI(m.content || "") && <ClubAIReply message={m} isMe={m.profile_id === currentUser?.id} />}
               </Fragment>
             ))}
           </main>
@@ -3734,6 +3743,7 @@ function ClubChat() {
           )}
 
           <ClubComposer
+            allowZeroAI
             storageKey={draftKey(currentUser?.id, "club-message", club?.id || clubId || "", activeRoom)}
             placeholder={
               activeRoom === "general" ? "Write a message..." : `Post in ${activeRoom}...`

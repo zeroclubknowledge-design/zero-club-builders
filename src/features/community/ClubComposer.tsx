@@ -31,6 +31,7 @@ export function ClubComposer({
   onTyping,
   onStopTyping,
   canTagAll = false,
+  allowZeroAI = false,
   peopleLabel = "In this club",
   sendLabel = "Send message",
 }: {
@@ -57,6 +58,7 @@ export function ClubComposer({
   avatar?: ReactNode;
   /** Admins can tag everyone; the server checks the role before notifying. */
   canTagAll?: boolean;
+  allowZeroAI?: boolean;
   peopleLabel?: string;
   sendLabel?: string;
 }) {
@@ -76,6 +78,7 @@ export function ClubComposer({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const mentionPeople = useMemo<MentionPerson[]>(
     () => [
+      ...(allowZeroAI ? [{ id: null, username: "ZeroAI", full_name: "Zero AI", avatar_url: null, badge: "Ask AI" }] : []),
       ...(canTagAll && members.length > 1
         ? [
             {
@@ -102,7 +105,7 @@ export function ClubComposer({
         })
         .filter(Boolean) as MentionPerson[]),
     ],
-    [members, canTagAll],
+    [members, canTagAll, allowZeroAI],
   );
 
   // Only the word the caret is sitting in, so an @ earlier in the sentence does

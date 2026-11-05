@@ -26,7 +26,7 @@ export async function notifyMentionedUsers({
 
   // @everyone / @all are handled by the server (admins only), not as people.
   const usernames = Array.from(new Set(mentions.map((m) => m.slice(1)))).filter(
-    (u) => !/^(everyone|all)$/i.test(u),
+    (u) => !/^(everyone|all|zeroai)$/i.test(u),
   );
   if (usernames.length === 0) return;
 
