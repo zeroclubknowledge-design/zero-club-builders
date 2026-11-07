@@ -173,8 +173,8 @@ test('finishing supply activation or leaving the shop preserves an intentional p
 });
 
 test('thumbstick has a dead zone, proportional speed and bounded diagonals', () => {
-  assert.equal(arenaModule.spaceStick(0.05,0.05).x,0);
-  assert.equal(arenaModule.spaceStick(0.05,0.05).y,0);
+  assert.equal(arenaModule.spaceStick(0.01,0.01).x,0);
+  assert.equal(arenaModule.spaceStick(0.01,0.01).y,0);
   const gentle=arenaModule.spaceStick(0.5,0);
   assert.ok(gentle.x>0 && gentle.x<1); assert.equal(gentle.y,0);
   const diagonal=arenaModule.spaceStick(4,-4);
@@ -203,4 +203,28 @@ test('thumbstick captures one finger and releases steering on lift, cancellation
   pad.onPointerUp(event(1,200,-200)); assert.deepEqual(movements.at(-1),[0,0]);
   pad.onPointerDown(event(3,20,48)); pad.onPointerCancel(event(3,20,48)); assert.deepEqual(movements.at(-1),[0,0]);
   pad.onPointerDown(event(4,48,20)); listeners.get('blur')(); assert.deepEqual(movements.at(-1),[0,0]);
+});
+
+test('analogue flight moves immediately, reverses next frame and leaves no catch-up target', () => {
+  const bounds=arenaModule.spaceArena(500,600);
+  const craft={x:250,y:300,vx:0,vy:0}, target={x:250,y:300};
+  const dt=1/60;
+  arenaModule.advanceSpaceStick(craft,target,{x:1,y:0},dt,bounds);
+  assert.equal(craft.x,256); assert.equal(craft.vx,360); assert.equal(target.x,craft.x);
+  arenaModule.advanceSpaceStick(craft,target,{x:-1,y:0},dt,bounds);
+  assert.equal(craft.x,250); assert.equal(craft.vx,-360); assert.equal(target.x,250);
+  arenaModule.advanceSpaceStick(craft,target,{x:0,y:0},dt,bounds);
+  assert.equal(craft.x,250); assert.equal(craft.vx,0); assert.equal(target.x,250);
+  craft.x=bounds.right;
+  arenaModule.advanceSpaceStick(craft,target,{x:1,y:0},dt,bounds);
+  assert.equal(craft.x,bounds.right); assert.equal(craft.vx,0);
+});
+test('small thumb movements respond and travel stays consistent across frame rates', () => {
+  const gentle=arenaModule.spaceStick(0.08,0);
+  assert.ok(gentle.x>0);
+  for(const fps of [30,60,120]) {
+    const craft={x:100,y:300,vx:0,vy:0},target={x:100,y:300};
+    for(let frame=0;frame<fps;frame++) arenaModule.advanceSpaceStick(craft,target,{x:0.5,y:0},1/fps,arenaModule.spaceArena(1000,600));
+    assert.ok(Math.abs(craft.x-280)<0.00001);
+  }
 });

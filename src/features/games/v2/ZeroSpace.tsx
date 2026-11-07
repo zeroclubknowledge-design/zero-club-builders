@@ -1,4 +1,4 @@
-import { spaceArena, clampToSpaceArena, createSpacePause, spaceStick } from "./spaceArena";
+import { spaceArena, clampToSpaceArena, createSpacePause, spaceStick, advanceSpaceStick } from "./spaceArena";
 import { useEffect, useRef, type RefObject } from "react";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { spaceFuelDrain, type ZeroSpaceControls } from "./spaceSupplies";
@@ -142,11 +142,20 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
 
     const pauseState = createSpacePause();
     let stick = {x:0,y:0};
+    const stopStick = () => {
+      stick = {x:0,y:0};
+      target.x=craft.x; target.y=craft.y;
+      craft.vx=craft.vy=0;
+    };
     if (controls) controls.current = {
-      steer: (x, y) => { stick = pauseState.paused ? {x:0,y:0} : spaceStick(x,y); },
+      steer: (x, y) => {
+        const next = pauseState.paused ? {x:0,y:0} : spaceStick(x,y);
+        if (!next.x && !next.y) stopStick();
+        else stick=next;
+      },
       ready: () => !dead && intro <= 0 && !hidden,
       fuelEnhancement: () => fuelEnhancement,
-      pause: (value, reason) => { pauseState.set(value, reason); stick = {x:0,y:0}; last = performance.now(); keys.clear(); dragging = null; },
+      pause: (value, reason) => { pauseState.set(value, reason); stopStick(); last = performance.now(); keys.clear(); dragging = null; },
       activate: (item) => {
         if (dead) return;
         if (item === "enhancer2" || item === "enhancer3" || item === "enhancer5") {
@@ -208,7 +217,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     window.addEventListener("keyup", ku);
 
     let hidden = false;
-    const blur = () => { stick = {x:0,y:0}; keys.clear(); dragging = null; };
+    const blur = () => { stopStick(); keys.clear(); dragging = null; };
     window.addEventListener("blur", blur);
     const vis = () => { blur(); hidden = document.hidden; last = performance.now(); };
     document.addEventListener("visibilitychange", vis);
@@ -256,19 +265,21 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       if (keys.has("arrowright") || keys.has("d")) kx += 1;
       if (keys.has("arrowup") || keys.has("w")) ky -= 1;
       if (keys.has("arrowdown") || keys.has("s")) ky += 1;
-      if (!kx && !ky) { kx = stick.x; ky = stick.y; }
-      if (kx || ky) {
-        const n = Math.hypot(kx, ky);
-        const strength = Math.min(1, n);
-        target.x += (kx / n) * 330 * dt * strength;
-        target.y += (ky / n) * 330 * dt * strength;
-        clampToSpaceArena(target, bounds());
+      if (!kx && !ky && (stick.x || stick.y)) {
+        advanceSpaceStick(craft, target, stick, dt, bounds());
+      } else {
+        if (kx || ky) {
+          const n = Math.hypot(kx, ky);
+          target.x += (kx / n) * 330 * dt;
+          target.y += (ky / n) * 330 * dt;
+          clampToSpaceArena(target, bounds());
+        }
+        const ax = (target.x - craft.x) * 14, ay = (target.y - craft.y) * 14;
+        craft.vx += (ax - craft.vx) * Math.min(1, dt * 10);
+        craft.vy += (ay - craft.vy) * Math.min(1, dt * 10);
+        craft.x += craft.vx * dt; craft.y += craft.vy * dt;
+        clampToSpaceArena(craft, bounds());
       }
-      const ax = (target.x - craft.x) * 14, ay = (target.y - craft.y) * 14;
-      craft.vx += (ax - craft.vx) * Math.min(1, dt * 10);
-      craft.vy += (ay - craft.vy) * Math.min(1, dt * 10);
-      craft.x += craft.vx * dt; craft.y += craft.vy * dt;
-      clampToSpaceArena(craft, bounds());
       const sp = Math.hypot(craft.vx, craft.vy);
       if (sp > 30) {
         const want = Math.atan2(craft.vy, craft.vx);

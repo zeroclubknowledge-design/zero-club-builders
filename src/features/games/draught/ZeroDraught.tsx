@@ -450,7 +450,7 @@ export function ZeroDraught({
                         role="radio"
                         aria-checked={difficulty === d.v}
                         onClick={() => setDifficulty(d.v)}
-                        className={`rounded-2xl px-2 py-2.5 text-left transition active:scale-[0.97] ${difficulty === d.v ? "bg-white text-[#140a1c] shadow-[0_10px_24px_-12px_rgba(255,255,255,0.6)]" : "bg-white/[0.05] text-white ring-1 ring-white/10 hover:bg-white/[0.08]"}`}
+                        className={`rounded-2xl px-2 py-2.5 text-center transition active:scale-[0.97] ${difficulty === d.v ? "bg-white text-[#140a1c] shadow-[0_10px_24px_-12px_rgba(255,255,255,0.6)]" : "bg-white/[0.05] text-white ring-1 ring-white/10 hover:bg-white/[0.08]"}`}
                       >
                         <span className="block text-[13px] font-bold">{d.label}</span>
                         <span className={`block text-[11px] ${difficulty === d.v ? "text-[#140a1c]/60" : "text-white/45"}`}>{d.note}</span>

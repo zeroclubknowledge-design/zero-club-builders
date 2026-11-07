@@ -21,7 +21,19 @@ export function createSpacePause() {
 export function spaceStick(x: number, y: number) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return {x:0,y:0};
   const length = Math.hypot(x,y);
-  if (length <= 0.12) return {x:0,y:0};
-  const strength = (Math.min(1,length)-0.12)/0.88;
+  if (length <= 0.04) return {x:0,y:0};
+  const strength = (Math.min(1,length)-0.04)/0.96;
   return {x:x/length*strength,y:y/length*strength};
+}
+
+/** Direct analogue movement: bypass drag-target smoothing and stop at the arena edge. */
+export function advanceSpaceStick(craft: {x:number;y:number;vx:number;vy:number}, target: {x:number;y:number}, stick: {x:number;y:number}, seconds: number, arena: ReturnType<typeof spaceArena>) {
+  const dt = Math.max(0, Math.min(0.05, seconds));
+  const beforeX=craft.x, beforeY=craft.y;
+  craft.x += stick.x * 360 * dt;
+  craft.y += stick.y * 360 * dt;
+  clampToSpaceArena(craft,arena);
+  craft.vx = dt ? (craft.x-beforeX)/dt : 0;
+  craft.vy = dt ? (craft.y-beforeY)/dt : 0;
+  target.x=craft.x; target.y=craft.y;
 }
