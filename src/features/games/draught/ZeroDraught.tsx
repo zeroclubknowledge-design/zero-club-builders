@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -50,12 +51,14 @@ export function ZeroDraught({
   mode,
   onNavigate,
   onBack,
+  onCompetition,
 }: {
   roomId?: string;
   code?: string;
   mode?: "solo";
   onNavigate: (room?: string, mode?: "solo") => void;
   onBack: () => void;
+  onCompetition?: () => void;
 }) {
   const { data: profile } = useUser();
   const client = useQueryClient();
@@ -373,7 +376,7 @@ export function ZeroDraught({
         {/* Glass header */}
         <header className="sticky top-[calc(env(safe-area-inset-top)+8px)] z-20 mb-5 flex items-center gap-3 rounded-[22px] bg-[#140a18]/70 px-2.5 py-2 ring-1 ring-white/[0.07] backdrop-blur-xl">
           <button
-            onClick={roomId || mode ? () => onNavigate() : onBack}
+            onClick={onCompetition || (roomId || mode ? () => onNavigate() : onBack)}
             aria-label="Back"
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/[0.07] transition hover:bg-white/[0.12]"
           >
@@ -542,6 +545,7 @@ export function ZeroDraught({
               <p role="alert" className="my-4 text-sm text-white/60">{draughtError(home.error)}</p>
             )}
 
+            <Link to="/app/games/draught-competitions" search={{id:undefined}} className="my-6 flex items-center gap-3 rounded-[24px] bg-white/[0.06] p-5 text-white"><Trophy className="h-7 w-7 shrink-0 text-[#ffca75]"/><div><p className="font-display text-lg font-bold">Competitions</p><p className="mt-1 text-sm text-white/60">Host or join a knockout. Free or paid entry. Three prize winners.</p></div><ChevronRight className="ml-auto h-5 w-5 shrink-0"/></Link>
             <LiveMatches onWatch={(room) => onNavigate(room)} />
 
             {Boolean(home.data?.length) && (
@@ -644,8 +648,8 @@ export function ZeroDraught({
                             <Coins className="h-4 w-4" /> {stakeLine}
                           </p>
                         )}
-                        <button className={`${primary} relative mt-5 min-h-[50px] w-full max-w-[320px] text-[15.5px] sm:mt-7 sm:min-h-[52px] sm:text-[16px]`} onClick={() => (isSolo ? setSolo(initialDraught()) : onNavigate())}>
-                          {spectator ? "Back to Zero Draught" : "Play again"}
+                        <button className={`${primary} relative mt-5 min-h-[50px] w-full max-w-[320px] text-[15.5px] sm:mt-7 sm:min-h-[52px] sm:text-[16px]`} onClick={() => (isSolo ? setSolo(initialDraught()) : onCompetition ? onCompetition() : onNavigate())}>
+                          {onCompetition ? "Back to competition" : spectator ? "Back to Zero Draught" : "Play again"}
                         </button>
                       </div>
                     </div>

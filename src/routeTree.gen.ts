@@ -90,6 +90,7 @@ import { Route as AppGamesIndexRouteImport } from './routes/app.games.index'
 import { Route as AppGamesIdRouteImport } from './routes/app.games.$id'
 import { Route as AppGamesCreateRouteImport } from './routes/app.games.create'
 import { Route as AppGamesDraughtRouteImport } from './routes/app.games.draught'
+import { Route as AppGamesDraughtCompetitionsRouteImport } from './routes/app.games.draught-competitions'
 import { Route as AppGamesQuestRouteImport } from './routes/app.games.quest'
 import { Route as AppGamesSoloRouteImport } from './routes/app.games.solo'
 import { Route as AppGamesSpaceTeamRouteImport } from './routes/app.games.space-team'
@@ -552,6 +553,12 @@ const AppGamesDraughtRoute = AppGamesDraughtRouteImport.update({
   path: '/games/draught',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGamesDraughtCompetitionsRoute =
+  AppGamesDraughtCompetitionsRouteImport.update({
+    id: '/games/draught-competitions',
+    path: '/games/draught-competitions',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppGamesQuestRoute = AppGamesQuestRouteImport.update({
   id: '/games/quest',
   path: '/games/quest',
@@ -909,6 +916,7 @@ export interface FileRoutesByFullPath {
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/draught': typeof AppGamesDraughtRoute
+  '/app/games/draught-competitions': typeof AppGamesDraughtCompetitionsRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/games/space-team': typeof AppGamesSpaceTeamRoute
@@ -1041,6 +1049,7 @@ export interface FileRoutesByTo {
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/draught': typeof AppGamesDraughtRoute
+  '/app/games/draught-competitions': typeof AppGamesDraughtCompetitionsRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/games/space-team': typeof AppGamesSpaceTeamRoute
@@ -1180,6 +1189,7 @@ export interface FileRoutesById {
   '/app/games/$id': typeof AppGamesIdRoute
   '/app/games/create': typeof AppGamesCreateRoute
   '/app/games/draught': typeof AppGamesDraughtRoute
+  '/app/games/draught-competitions': typeof AppGamesDraughtCompetitionsRoute
   '/app/games/quest': typeof AppGamesQuestRoute
   '/app/games/solo': typeof AppGamesSoloRoute
   '/app/games/space-team': typeof AppGamesSpaceTeamRoute
@@ -1320,6 +1330,7 @@ export interface FileRouteTypes {
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/draught'
+    | '/app/games/draught-competitions'
     | '/app/games/quest'
     | '/app/games/solo'
     | '/app/games/space-team'
@@ -1452,6 +1463,7 @@ export interface FileRouteTypes {
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/draught'
+    | '/app/games/draught-competitions'
     | '/app/games/quest'
     | '/app/games/solo'
     | '/app/games/space-team'
@@ -1590,6 +1602,7 @@ export interface FileRouteTypes {
     | '/app/games/$id'
     | '/app/games/create'
     | '/app/games/draught'
+    | '/app/games/draught-competitions'
     | '/app/games/quest'
     | '/app/games/solo'
     | '/app/games/space-team'
@@ -2265,6 +2278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGamesDraughtRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/games/draught-competitions': {
+      id: '/app/games/draught-competitions'
+      path: '/games/draught-competitions'
+      fullPath: '/app/games/draught-competitions'
+      preLoaderRoute: typeof AppGamesDraughtCompetitionsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/games/quest': {
       id: '/app/games/quest'
       path: '/games/quest'
@@ -2785,6 +2805,7 @@ interface AppRouteChildren {
   AppGamesIdRoute: typeof AppGamesIdRoute
   AppGamesCreateRoute: typeof AppGamesCreateRoute
   AppGamesDraughtRoute: typeof AppGamesDraughtRoute
+  AppGamesDraughtCompetitionsRoute: typeof AppGamesDraughtCompetitionsRoute
   AppGamesQuestRoute: typeof AppGamesQuestRoute
   AppGamesSoloRoute: typeof AppGamesSoloRoute
   AppGamesSpaceTeamRoute: typeof AppGamesSpaceTeamRoute
@@ -2861,6 +2882,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGamesIdRoute: AppGamesIdRoute,
   AppGamesCreateRoute: AppGamesCreateRoute,
   AppGamesDraughtRoute: AppGamesDraughtRoute,
+  AppGamesDraughtCompetitionsRoute: AppGamesDraughtCompetitionsRoute,
   AppGamesQuestRoute: AppGamesQuestRoute,
   AppGamesSoloRoute: AppGamesSoloRoute,
   AppGamesSpaceTeamRoute: AppGamesSpaceTeamRoute,
@@ -2994,3 +3016,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -1,3 +1,5 @@
+import { voicePlayback, useVoicePlayback } from "@/lib/voicePlayback";
+import { toast } from "sonner";
 import {
   useEffect,
   useMemo,
@@ -23,9 +25,7 @@ import { Pause, Play } from "@/components/icons/glyphs";
  * - Plays inline: never opens the file in a browser tab
  */
 
-const SPEEDS = [1, 1.5, 2] as const;
 const BARS = 34;
-let current: HTMLAudioElement | null = null;
 
 /** "voice-note-1784650518-42s.webm" -> 42 */
 export function voiceNoteSeconds(name?: string | null) {
@@ -66,124 +66,66 @@ export function VoiceNotePlayer({
   mine?: boolean;
   avatarUrl?: string | null;
 }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [duration, setDuration] = useState<number>(voiceNoteSeconds(name) ?? 0);
-  const [position, setPosition] = useState(0);
-  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
-  const [loading, setLoading] = useState(false);
+  const playback = useVoicePlayback();
+  const active = playback.src === src;
+  const [measured, setMeasured] = useState(voiceNoteSeconds(name) ?? 0);
+  const [previewPosition, setPreviewPosition] = useState(0);
+  const duration = active ? playback.duration || measured : measured;
+  const position = active ? playback.position : previewPosition,
+    playing = active && playback.playing,
+    loading = active && playback.loading;
+  const speed = playback.speed;
   const bars = useMemo(() => barsFor(src), [src]);
-
   useEffect(() => {
+    setPreviewPosition(0);
+    setMeasured(voiceNoteSeconds(name) ?? 0);
     const audio = new Audio();
     audio.preload = "metadata";
     audio.src = src;
-    audioRef.current = audio;
     let measuring = false;
-
-    const knownDuration = () => {
-      if (Number.isFinite(audio.duration) && audio.duration > 0) setDuration(audio.duration);
-    };
-    const onMeta = () => {
+    const measure = () => {
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        setDuration(audio.duration);
+        setMeasured(audio.duration);
+        if (measuring) {
+          measuring = false;
+          audio.currentTime = 0;
+        }
       } else if (!measuring) {
-        // WebM without a length: jump far past the end, and the browser works out the real length.
         measuring = true;
         audio.currentTime = 1e101;
       }
     };
-    const onDurationChange = () => {
-      knownDuration();
-      if (measuring && Number.isFinite(audio.duration)) {
-        measuring = false;
-        audio.currentTime = 0;
-      }
-    };
-    const onTime = () => {
-      if (!measuring) setPosition(audio.currentTime);
-    };
-    const onEnded = () => {
-      setPlaying(false);
-      setPosition(0);
-      audio.currentTime = 0;
-    };
-    const onPause = () => setPlaying(false);
-    const onPlay = () => setPlaying(true);
-    const onWaiting = () => setLoading(true);
-    const onPlaying = () => setLoading(false);
-
-    audio.addEventListener("loadedmetadata", onMeta);
-    audio.addEventListener("durationchange", onDurationChange);
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("pause", onPause);
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("waiting", onWaiting);
-    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("loadedmetadata", measure);
+    audio.addEventListener("durationchange", measure);
     return () => {
-      audio.pause();
-      if (current === audio) current = null;
-      audio.removeEventListener("loadedmetadata", onMeta);
-      audio.removeEventListener("durationchange", onDurationChange);
-      audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("waiting", onWaiting);
-      audio.removeEventListener("playing", onPlaying);
-      audio.src = "";
+      audio.removeEventListener("loadedmetadata", measure);
+      audio.removeEventListener("durationchange", measure);
+      audio.removeAttribute("src");
+      audio.load();
     };
   }, [src]);
-
-  // Smooth progress while playing (timeupdate alone only fires ~4 times a second).
-  useEffect(() => {
-    if (!playing) return;
-    let frame = 0;
-    const tick = () => {
-      const audio = audioRef.current;
-      if (audio) setPosition(audio.currentTime);
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [playing]);
-
-  const toggle = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!audio.paused) {
-      audio.pause();
+  const toggle = () => {
+    if (playing) {
+      voicePlayback.pause();
       return;
     }
-    if (current && current !== audio) current.pause();
-    current = audio;
-    audio.playbackRate = speed;
-    setLoading(true);
-    try {
-      await audio.play();
-    } catch {
-      /* blocked or failed; leave the button as Play */
-    } finally {
-      setLoading(false);
-    }
+    void voicePlayback
+      .play(src, {
+        name,
+        duration,
+        origin: window.location.pathname + window.location.search,
+        position: active ? undefined : previewPosition,
+      })
+      .catch(() => toast.error("Could not play this voice note. Try again."));
   };
-
-  const cycleSpeed = () => {
-    const next = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
-    setSpeed(next);
-    if (audioRef.current) audioRef.current.playbackRate = next;
-  };
-
+  const cycleSpeed = () => voicePlayback.speed();
   const seekFromPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const audio = audioRef.current;
-    const track = trackRef.current;
-    if (!audio || !track || !duration) return;
-    const rect = track.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-    audio.currentTime = ratio * duration;
-    setPosition(audio.currentTime);
+    if (!trackRef.current || !duration) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const next = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)) * duration;
+    if (active) voicePlayback.seek(next);
+    else setPreviewPosition(next);
   };
 
   const progress = duration ? Math.min(1, position / duration) : 0;

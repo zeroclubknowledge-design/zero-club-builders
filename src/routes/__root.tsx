@@ -1,3 +1,4 @@
+import { FloatingVoicePlayer } from "@/components/FloatingVoicePlayer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -481,6 +482,7 @@ function RootComponent() {
         <GroupCallProvider>
         <div vaul-drawer-wrapper="">
           <Outlet />
+          <FloatingVoicePlayer />
           <ClientOnlyGlobalLiveRoom />
           <ClientOnlyGroupCall />
           <ClientOnlyIncomingCalls />
