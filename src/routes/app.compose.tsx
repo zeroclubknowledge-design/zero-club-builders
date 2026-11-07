@@ -112,13 +112,18 @@ function ComposePage() {
 
   useEffect(() => {
     async function fetchEditPost() {
-      if (!editId || !bodyDraftKey || readDraft(bodyDraftKey, null) !== null) return;
+      if (!editId || !bodyDraftKey) return;
       const { data } = await supabase
         .from('posts')
         .select('*')
         .eq('id', editId)
         .single();
       
+      if (data?.is_build_post) {
+        void navigate({ to: "/app/ship", search: { editId } });
+        return;
+      }
+      if (readDraft(bodyDraftKey, null) !== null) return;
       if (data) {
         setBodyText(data.content || "");
         writeDraft(bodyDraftKey, data.content || "");
@@ -132,7 +137,7 @@ function ComposePage() {
         
         setAudience(data.audience === 'club' && data.audience_club_id ? data.audience_club_id : "Everyone");
 
-        if (data.is_build_post && data.bootcamp_id) {
+        if (data.bootcamp_id) {
           setSelectedBootcampId(data.bootcamp_id);
           setIsBuild(true);
         }
@@ -332,20 +337,17 @@ function ComposePage() {
 
       const finalContent = bodyTextRef.current;
 
-      const isBuild = !!selectedBootcampId;
 
       const postData: any = {
         author_id: user.id,
         content: finalContent,
         media_urls,
-        is_build_post: isBuild,
+        is_build_post: false,
+        bootcamp_id: selectedBootcampId || null,
         audience: audience === "Everyone" ? 'everyone' : 'club',
         audience_club_id: audience === "Everyone" ? null : audience,
       };
 
-      if (isBuild && selectedBootcampId) {
-        postData.bootcamp_id = selectedBootcampId;
-      }
 
       if (quotedPost) {
         postData.quoted_post_id = quotedPost.id;
@@ -371,7 +373,7 @@ function ComposePage() {
         newPost = data;
       }
 
-      if (isBuild && selectedBootcampId && newPost) {
+      if (selectedBootcampId && newPost) {
         const bootcamp = enrolledBootcamps.find(b => b.id === selectedBootcampId);
         if (bootcamp && bootcamp.creator_id) {
           await supabase
@@ -380,7 +382,7 @@ function ComposePage() {
               recipient_id: bootcamp.creator_id,
               actor_id: user.id,
               type: 'build_tagged',
-              content: `tagged their build in ${bootcamp.title}. Click to verify!`,
+              content: `tagged ${bootcamp.title} in a post.`,
               entity_id: newPost.id
             }]);
         }
@@ -614,7 +616,7 @@ function ComposePage() {
             );
           })()}
 
-          {/* Tagging a bootcamp makes this a build post the tutor can verify.
+          {/* A bootcamp tag is a reference on a regular post, not a project publication.
               The picker existed but nothing on the page ever opened it. */}
           {enrolledBootcamps.length > 0 && (
             <div className="mt-4">

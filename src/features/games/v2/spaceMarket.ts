@@ -7,8 +7,8 @@ export async function getSpaceMarket(): Promise<SpaceMarketState> {
   return data as SpaceMarketState;
 }
 
-export async function transactSpaceSupply(item: SpaceSupply, action: "buy" | "use", request: string): Promise<SpaceMarketState> {
-  const { data, error } = await supabase.rpc("zero_space_supply", { p_item: item, p_action: action, p_request: request });
+export async function transactSpaceSupply(item: SpaceSupply, action: "buy" | "use", request: string, quantity = 1): Promise<SpaceMarketState> {
+  const { data, error } = await supabase.rpc("zero_space_supply", { p_item: item, p_action: action, p_request: request, ...(action === "buy" ? { p_quantity: quantity } : {}) });
   if (error) throw error;
   return data as SpaceMarketState;
 }

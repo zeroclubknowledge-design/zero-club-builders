@@ -88,15 +88,15 @@ function useSpaceInventory() {
   const requests = useRef<Record<string, string>>({});
   const [busy, setBusy] = useState<SpaceSupply | null>(null);
 
-  const transact = async (item: SpaceSupply, action: "buy" | "use") => {
+  const transact = async (item: SpaceSupply, action: "buy" | "use", quantity = 1) => {
     if (lock.current || !profile?.id) return false;
     lock.current = true;
     setBusy(item);
-    const requestKey = `${profile.id}:${action}:${item}`;
+    const requestKey = `${profile.id}:${action}:${item}:${quantity}`;
     // Keep the identifier on failure: retrying a lost response cannot charge twice.
     const request = (requests.current[requestKey] ||= crypto.randomUUID());
     try {
-      const state = await transactSpaceSupply(item, action, request);
+      const state = await transactSpaceSupply(item, action, request, quantity);
       await client.cancelQueries({ queryKey: key });
       client.setQueryData(key, state);
       delete requests.current[requestKey];
@@ -132,9 +132,9 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
     setBought(false);
     setSelected(item);
   };
-  const purchase = async () => {
+  const purchase = async (quantity: number) => {
     if (!selected) return;
-    if (await market.transact(selected.id, "buy")) setBought(true);
+    if (await market.transact(selected.id, "buy", quantity)) setBought(true);
   };
 
   const card = (item: SupplyInfo) => {
@@ -328,13 +328,14 @@ export function SpaceMarketplace({ onBack }: { onBack: () => void }) {
 
       {selected && (
         <PurchaseSheet
+          key={selected.id}
           item={selected}
           price={priceOf(selected)}
           balance={balance ?? 0}
           owned={owned(selected.id)}
           busy={market.busy === selected.id}
           bought={bought}
-          onBuy={() => void purchase()}
+          onBuy={quantity => void purchase(quantity)}
           onAgain={() => setBought(false)}
           onClose={() => !market.busy && setSelected(null)}
         />
@@ -366,9 +367,14 @@ function PurchaseSheet({
   item, price, balance, owned, busy, bought, onBuy, onAgain, onClose,
 }: {
   item: SupplyInfo; price: number; balance: number; owned: number; busy: boolean; bought: boolean;
-  onBuy: () => void; onAgain: () => void; onClose: () => void;
+  onBuy: (quantity: number) => void; onAgain: () => void; onClose: () => void;
 }) {
-  const after = balance - price;
+  const [quantityText, setQuantityText] = useState("1");
+  const quantity = Number(quantityText);
+  const capacity = Math.max(0, 999 - owned);
+  const validQuantity = /^\d+$/.test(quantityText) && Number.isSafeInteger(quantity) && quantity >= 1 && quantity <= capacity;
+  const total = validQuantity ? price * quantity : 0;
+  const after = balance - total;
   const short = after < 0;
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" onClick={onClose} style={{ pointerEvents: "auto" }}>
@@ -377,7 +383,7 @@ function PurchaseSheet({
         aria-modal="true"
         aria-label={`Buy ${item.name}`}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full overflow-hidden rounded-t-[30px] bg-[#130a1f] p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] ring-1 ring-white/10 sm:max-w-[420px] sm:rounded-[30px] sm:pb-6"
+        className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-[30px] bg-[#130a1f] p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] ring-1 ring-white/10 sm:max-w-[420px] sm:rounded-[30px] sm:pb-6"
         style={{ animation: "zsm-up .32s cubic-bezier(.2,.8,.2,1)" }}
       >
         <style>{`@keyframes zsm-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}`}</style>
@@ -394,15 +400,25 @@ function PurchaseSheet({
           ) : (
             <SupplyOrb item={item} size={72} />
           )}
-          <h3 className="mt-4 font-display text-[22px] font-extrabold tracking-tight">{bought ? `${item.name} added` : item.name}</h3>
+          <h3 className="mt-4 font-display text-[22px] font-extrabold tracking-tight">{bought ? `${quantity} × ${item.name} added` : item.name}</h3>
           <p className="mt-1.5 max-w-[300px] text-[13.5px] leading-relaxed text-white/55">
             {bought ? `You now have ${owned} in your hangar. Tap it in your dock during a run.` : item.detail}
           </p>
         </div>
 
+        {!bought && <div className="relative mt-5">
+          <label htmlFor="space-supply-quantity" className="mb-2 block text-sm font-semibold">Quantity</label>
+          <div className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-2">
+            <button type="button" aria-label="Decrease quantity" disabled={busy || quantity <= 1} onClick={() => setQuantityText(String(Math.max(1, (quantity || 1) - 1)))} className="h-11 w-11 rounded-full bg-white/10 text-xl disabled:opacity-30">−</button>
+            <input id="space-supply-quantity" type="number" inputMode="numeric" min={1} max={capacity} step={1} value={quantityText} disabled={busy} onChange={event => setQuantityText(event.target.value)} className="h-11 min-w-0 flex-1 rounded-xl bg-transparent text-center text-lg font-bold tabular-nums outline-none" />
+            <button type="button" aria-label="Increase quantity" disabled={busy || quantity >= capacity} onClick={() => setQuantityText(String(Math.min(capacity, (quantity || 0) + 1)))} className="h-11 w-11 rounded-full bg-white/10 text-xl disabled:opacity-30">+</button>
+          </div>
+          {!validQuantity && <p role="status" className="mt-2 text-xs text-[#ffb8d9]">{capacity ? `Choose 1–${capacity} supplies.` : "Your hangar is full for this supply."}</p>}
+        </div>}
         {!bought && (
           <dl className="relative mt-6 space-y-2.5 rounded-2xl bg-white/[0.04] p-4 text-[13.5px] ring-1 ring-white/[0.08]">
-            <div className="flex justify-between"><dt className="text-white/50">Price</dt><dd className="font-bold tabular-nums">{price === 0 ? "Free" : `${price} ZP`}</dd></div>
+            <div className="flex justify-between"><dt className="text-white/50">Unit price</dt><dd className="font-bold tabular-nums">{price === 0 ? "Free" : `${price} ZP`}</dd></div>
+            <div className="flex justify-between"><dt className="text-white/50">Total</dt><dd className="font-bold tabular-nums">{validQuantity ? `${total.toLocaleString()} ZP` : "—"}</dd></div>
             <div className="flex justify-between"><dt className="text-white/50">Your balance</dt><dd className="tabular-nums">{balance.toLocaleString()} ZP</dd></div>
             <div className="flex justify-between border-t border-white/[0.07] pt-2.5">
               <dt className="text-white/50">After purchase</dt>
@@ -416,23 +432,23 @@ function PurchaseSheet({
             <>
               <button
                 onClick={onAgain}
-                disabled={balance < price}
+                disabled={balance < price || owned >= 999}
                 className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-white text-[14.5px] font-bold text-[#140a1c] transition active:scale-[0.98] disabled:opacity-40"
               >
-                <Plus className="h-4 w-4" /> Buy another · {price} ZP
+                <Plus className="h-4 w-4" /> Buy more
               </button>
               <button onClick={onClose} className="min-h-12 rounded-full bg-white/[0.07] text-[14px] font-semibold">Done</button>
             </>
           ) : (
             <>
               <button
-                onClick={onBuy}
-                disabled={busy || short}
+                onClick={() => onBuy(quantity)}
+                disabled={busy || short || !validQuantity}
                 className="flex min-h-12 items-center justify-center gap-2 rounded-full text-[14.5px] font-bold text-[#140a1c] transition active:scale-[0.98] disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, #ffffff, ${item.color})`, boxShadow: `0 16px 36px -18px ${item.color}` }}
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                {short ? "Not enough ZP" : price === 0 ? "Add to hangar" : `Buy for ${price} ZP`}
+                {short ? "Not enough ZP" : price === 0 ? "Add to hangar" : `Buy ${quantity} · ${total.toLocaleString()} ZP`}
               </button>
               <button onClick={onClose} disabled={busy} className="min-h-12 rounded-full bg-white/[0.07] text-[14px] font-semibold disabled:opacity-40">Not now</button>
             </>
@@ -445,7 +461,7 @@ function PurchaseSheet({
 
 /* ── in-run dock ────────────────────────────────────────────────────────── */
 
-export function SpaceSupplyTray({ controls, onShop }: { controls: RefObject<ZeroSpaceControls | null>; onShop: () => void }) {
+export function SpaceSupplyTray({ controls, onShop, embedded = false, onBusyChange }: { controls: RefObject<ZeroSpaceControls | null>; onShop: () => void; embedded?: boolean; onBusyChange?: (busy: boolean) => void }) {
   const market = useSpaceInventory();
   const activating = useRef(false);
   const activate = async (item: SpaceSupply) => {
@@ -460,18 +476,20 @@ export function SpaceSupplyTray({ controls, onShop }: { controls: RefObject<Zero
       return;
     }
     activating.current = true;
+    onBusyChange?.(true);
     // Pause while the server confirms consumption, so a slow connection cannot
     // cost a life or consume an item after the run has ended.
-    engine.pause(true);
+    engine.pause(true, "supply");
     try {
       if (await market.transact(item, "use")) engine.activate(item);
     } finally {
-      engine.pause(false);
+      engine.pause(false, "supply");
       activating.current = false;
+      onBusyChange?.(false);
     }
   };
   return (
-    <div className="absolute left-2 right-2 top-[calc(env(safe-area-inset-top)+8px)] mx-auto max-w-[720px]" role="group" aria-label="Space tools">
+    <div className={embedded ? "relative mx-auto w-full max-w-[960px] shrink-0 pb-3" : "absolute left-2 right-2 top-[calc(env(safe-area-inset-top)+8px)] mx-auto max-w-[720px]"} role="group" aria-label="Space tools">
       <div className="grid gap-1 rounded-[22px] bg-[#0f0819]/75 p-1.5 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10 backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${SPACE_SUPPLIES.length + 1}, minmax(0, 1fr))` }}>
         {SPACE_SUPPLIES.map((item) => {
           const owned = market.data?.inventory[item.id] || 0;

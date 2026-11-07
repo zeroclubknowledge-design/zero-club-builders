@@ -16,7 +16,7 @@ export type SpaceStock = Record<SpaceSupply, number>;
 export type SpaceMarketState = { balance: number; administrator: boolean; inventory: SpaceStock };
 export type ZeroSpaceControls = {
   ready: () => boolean;
-  pause: (paused: boolean) => void;
+  pause: (paused: boolean, reason?: "player" | "supply" | "shop" | "leave") => void;
   activate: (item: SpaceSupply) => void;
   fuelEnhancement: () => number;
 };

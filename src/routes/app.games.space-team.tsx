@@ -1,10 +1,11 @@
+import { SpaceFlight } from "@/features/games/v2/SpaceFlight";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/share";
 import { useUser } from "@/hooks/useUser";
 import { supabase } from "@/lib/supabase";
-import { ZeroSpaceGame, type SpaceFlightFrame } from "@/features/games/v2/ZeroSpace";
+import { type SpaceFlightFrame } from "@/features/games/v2/ZeroSpace";
 
 export const Route = createFileRoute("/app/games/space-team")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -95,17 +96,11 @@ function SpaceTeam() {
   const done = exited || status === "finished";
 
   return <main className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#140a21] text-white">
-    {playing && (!me?.finished || finished.current) && <div className="absolute inset-0">
-      <ZeroSpaceGame topInset={144} teammate={teammate} reserveReceived={me?.reserveReceived} onFrame={next => { if (!finished.current) frame.current = next; }} onGameOver={result => {
-        if (frame.current) frame.current = { ...frame.current, score: result.score };
-        finished.current = true;
-      }} />
-    </div>}
     <header className="relative z-10 flex items-center justify-between bg-[#140a21]/85 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
       <h1 className="font-display text-xl font-bold">Zero Space · Co-op</h1>
       {room && !done ? <button onClick={() => void leave()} disabled={busy} className="rounded-full bg-white/10 px-4 py-2 text-sm">Leave</button> : <Link to="/app/games" search={{ game: undefined }} className="rounded-full bg-white/10 px-4 py-2 text-sm">Back</Link>}
     </header>
-    {playing ? <div className="pointer-events-none relative z-10 bg-[#140a21]/85 px-4 pb-3 text-sm">
+    {playing ? <><div className="pointer-events-none relative z-10 bg-[#140a21]/85 px-4 pb-3 text-sm">
       <p className="font-bold text-[#ff8ccc]">Team score · {(room?.score ?? 0).toLocaleString()}</p>
       <p className="mt-1 text-white/80">{me?.finished ? "You're out of the run" : "You're flying"} · {partner?.finished ? `${partner.name} is out` : `${partner?.name || "Teammate"} · ${Math.round((partner?.fuel ?? 1) * 100)}% fuel`}</p>
       {me?.finished && !partner?.finished && <p>Your teammate is still adding to the team score.</p>}
@@ -115,7 +110,12 @@ function SpaceTeam() {
         </button>
       )}
       {error && <p role="status">{error}</p>}
-    </div> : <div className="relative m-auto w-full max-w-md px-6 text-center">
+    </div>
+    <SpaceFlight cooperative teammate={teammate} reserveReceived={me?.reserveReceived} onLeave={leave} onFrame={next => { if (!finished.current) frame.current = next; }} onGameOver={result => {
+      if (frame.current) frame.current = { ...frame.current, score: result.score };
+      finished.current = true;
+    }} />
+    </> : <div className="relative m-auto w-full max-w-md px-6 text-center">
       <h2 className="font-display text-3xl font-bold">{done ? (exited ? "You left the room" : "Team run complete") : room ? "Waiting for your wingmate" : "Fly with a friend"}</h2>
       <p className="mt-3 text-white/70">{done ? (exited ? "Your teammate can keep flying." : `${room?.score.toLocaleString()} team points`) : "Share one score. Keep flying as long as either pilot is still active."}</p>
       {status === "finished" && !exited && room && (

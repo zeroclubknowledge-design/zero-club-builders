@@ -1,15 +1,15 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useGoBack } from "@/hooks/useGoBack";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, RotateCcw, Trophy, X } from "@/components/icons/glyphs";
 import { ZeroPageLoader } from "@/components/ZeroLoader";
 import { ZERO_GAMES, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameSplash, SPLASH_CSS } from "@/features/games/v2/GameSplash";
-import { ZeroSpaceGame, type ZeroSpaceResult } from "@/features/games/v2/ZeroSpace";
-import { SpaceMarketplace, SpaceSupplyTray } from "@/features/games/v2/SpaceMarketplace";
-import type { ZeroSpaceControls } from "@/features/games/v2/spaceSupplies";
+import { type ZeroSpaceResult } from "@/features/games/v2/ZeroSpace";
+import { SpaceMarketplace } from "@/features/games/v2/SpaceMarketplace";
+import { SpaceFlight } from "@/features/games/v2/SpaceFlight";
 import {
   countdown, finishRun, joinTournament, JOIN_REFUSAL, listTournaments, previewPrizeLine, startRun, tournamentDetail,
 } from "@/features/games/v2/api";
@@ -52,7 +52,6 @@ function PlayGame() {
   const startedAt = useRef(0);
   const [now, setNow] = useState(Date.now());
   const [marketOpen, setMarketOpen] = useState(false);
-  const spaceControls = useRef<ZeroSpaceControls | null>(null);
   const openMarketplace = game === "space" ? () => setMarketOpen(true) : undefined;
 
   const detail = useQuery({
@@ -290,26 +289,9 @@ function PlayGame() {
 
   /* ── playing ── */
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0b0618]">
-      <SafeTop>{(top) => <ZeroSpaceGame key={runKey} onGameOver={onSpaceOver} topInset={top + 80} controls={spaceControls} />}</SafeTop>
-      <SpaceSupplyTray key={runKey} controls={spaceControls} onShop={() => { spaceControls.current?.pause(true); setMarketOpen(true); }} />
-      <button onClick={quit} aria-label="Leave game" className="absolute bottom-[calc(env(safe-area-inset-bottom)+14px)] right-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
-        <X className="h-5 w-5" />
-      </button>
-      {marketOpen && <SpaceMarketplace onBack={() => { setMarketOpen(false); spaceControls.current?.pause(false); }} />}{submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
+    <div className="fixed inset-0 z-[60] flex flex-col bg-[#0b0618] pt-[calc(env(safe-area-inset-top)+8px)]">
+      <SpaceFlight key={runKey} onGameOver={onSpaceOver} onLeave={quit} />
+      {submitting && <div className="absolute inset-0 grid place-items-center bg-black/40"><ZeroPageLoader label="Saving your run" /></div>}
     </div>
-  );
-}
-
-/** Measures env(safe-area-inset-top) so the canvas HUD clears the notch. */
-function SafeTop({ children }: { children: (top: number) => ReactNode }) {
-  const probe = useRef<HTMLDivElement>(null);
-  const [top, setTop] = useState<number | null>(null);
-  useEffect(() => { setTop(probe.current ? probe.current.getBoundingClientRect().height : 0); }, []);
-  return (
-    <>
-      <div ref={probe} aria-hidden className="pointer-events-none absolute left-0 top-0 w-px" style={{ height: "env(safe-area-inset-top)" }} />
-      <div className="absolute inset-0">{top === null ? null : children(top)}</div>
-    </>
   );
 }

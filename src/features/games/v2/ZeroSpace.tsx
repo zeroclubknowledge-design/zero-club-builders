@@ -1,3 +1,4 @@
+import { spaceArena, clampToSpaceArena, createSpacePause } from "./spaceArena";
 import { useEffect, useRef, type RefObject } from "react";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { spaceFuelDrain, type ZeroSpaceControls } from "./spaceSupplies";
@@ -56,12 +57,15 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     const mark = new Path2D(ZERO_MARK_PATH);
     let W = 0, H = 0, dpr = 1;
 
+    let reflow = () => {};
+    const bounds = () => spaceArena(W, H, topInset);
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = rect.width; H = rect.height;
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
+      reflow();
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -99,14 +103,14 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     const keys = new Set<string>();
 
     const freeSpot = (minFromCraft: number): Vec => {
-      const pad = 36;
+      const arena = bounds();
       for (let i = 0; i < 30; i++) {
-        const p = { x: rand(pad, W - pad), y: rand(pad + topInset + 40, H - pad) };
+        const p = { x: rand(arena.left, arena.right), y: rand(arena.top, arena.bottom) };
         if (dist(p, craft) < minFromCraft) continue;
         if (enemies.some((e) => dist(p, e) < 70)) continue;
         return p;
       }
-      return { x: rand(pad, W - pad), y: rand(pad + topInset + 40, H - pad) };
+      return { x: rand(arena.left, arena.right), y: rand(arena.top, arena.bottom) };
     };
 
     const spawnOrb = (golden = false) => {
@@ -118,9 +122,11 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       const count = enemies.length;
       const kind: Enemy["kind"] = count >= 2 && count % 3 === 2 ? "dasher" : "chaser";
       // Enter from the edge furthest from the craft.
+      const arena = bounds();
       const edge = Math.floor(Math.random() * 4);
-      const p = edge === 0 ? { x: rand(0, W), y: topInset + 30 } : edge === 1 ? { x: W - 10, y: rand(topInset, H) } : edge === 2 ? { x: rand(0, W), y: H - 10 } : { x: 10, y: rand(topInset, H) };
-      if (dist(p, craft) < 180) { p.x = W - p.x; p.y = Math.max(topInset + 30, H - p.y); }
+      const p = edge === 0 ? { x: rand(arena.left, arena.right), y: arena.top } : edge === 1 ? { x: arena.right, y: rand(arena.top, arena.bottom) } : edge === 2 ? { x: rand(arena.left, arena.right), y: arena.bottom } : { x: arena.left, y: rand(arena.top, arena.bottom) };
+      if (dist(p, craft) < 180) { p.x = W - p.x; p.y = arena.top + arena.bottom - p.y; }
+      clampToSpaceArena(p, arena);
       enemies.push({ ...p, vx: 0, vy: 0, kind, warm: 1.2, phase: Math.random() * 6, state: "hunt", t: rand(1.5, 3), dir: { x: 0, y: 0 }, spin: 0 });
     };
 
@@ -134,11 +140,11 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
 
     const float = (x: number, y: number, text: string, color = "#fff") => floaters.push({ x, y, text, life: 1, color });
 
-    let paused = false;
+    const pauseState = createSpacePause();
     if (controls) controls.current = {
       ready: () => !dead && intro <= 0 && !hidden,
       fuelEnhancement: () => fuelEnhancement,
-      pause: (value) => { paused = value; last = performance.now(); keys.clear(); dragging = null; },
+      pause: (value, reason) => { pauseState.set(value, reason); last = performance.now(); keys.clear(); dragging = null; },
       activate: (item) => {
         if (dead) return;
         if (item === "enhancer2" || item === "enhancer3" || item === "enhancer5") {
@@ -158,27 +164,36 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
 
     const reset = () => {
       craft.x = target.x = W / 2;
-      craft.y = target.y = H / 2 + 40;
+      craft.y = target.y = (bounds().top + bounds().bottom) / 2;
       spawnOrb();
       spawnEnemy();
     };
     reset();
+    reflow = () => {
+      const arena = bounds();
+      for (const point of [craft, target, ...enemies, ...orbs, ...powers]) clampToSpaceArena(point, arena);
+      craft.vx = craft.vy = 0;
+    };
+    reflow();
 
     /* ── input ── */
     let dragging: { id: number; x: number; y: number } | null = null;
     const down = (e: PointerEvent) => {
+      if (pauseState.paused) return;
       dragging = { id: e.pointerId, x: e.clientX, y: e.clientY };
       canvas.setPointerCapture?.(e.pointerId);
     };
     const move = (e: PointerEvent) => {
       if (!dragging || dragging.id !== e.pointerId) return;
       const sens = e.pointerType === "mouse" ? 1 : 1.35;
-      target.x = Math.min(W - 12, Math.max(12, target.x + (e.clientX - dragging.x) * sens));
-      target.y = Math.min(H - 12, Math.max(topInset + 12, target.y + (e.clientY - dragging.y) * sens));
+      target.x += (e.clientX - dragging.x) * sens;
+      target.y += (e.clientY - dragging.y) * sens;
+      clampToSpaceArena(target, bounds());
       dragging.x = e.clientX; dragging.y = e.clientY;
     };
     const up = (e: PointerEvent) => { if (dragging?.id === e.pointerId) dragging = null; };
     const kd = (e: KeyboardEvent) => {
+      if (pauseState.paused) return;
       const k = e.key.toLowerCase();
       if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(k)) { keys.add(k); e.preventDefault(); }
     };
@@ -239,13 +254,15 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       if (keys.has("arrowdown") || keys.has("s")) ky += 1;
       if (kx || ky) {
         const n = Math.hypot(kx, ky);
-        target.x = Math.min(W - 12, Math.max(12, target.x + (kx / n) * 330 * dt));
-        target.y = Math.min(H - 12, Math.max(topInset + 12, target.y + (ky / n) * 330 * dt));
+        target.x += (kx / n) * 330 * dt;
+        target.y += (ky / n) * 330 * dt;
+        clampToSpaceArena(target, bounds());
       }
       const ax = (target.x - craft.x) * 14, ay = (target.y - craft.y) * 14;
       craft.vx += (ax - craft.vx) * Math.min(1, dt * 10);
       craft.vy += (ay - craft.vy) * Math.min(1, dt * 10);
       craft.x += craft.vx * dt; craft.y += craft.vy * dt;
+      clampToSpaceArena(craft, bounds());
       const sp = Math.hypot(craft.vx, craft.vy);
       if (sp > 30) {
         const want = Math.atan2(craft.vy, craft.vx);
@@ -348,7 +365,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
           } else if (e.t <= 0) { e.state = "hunt"; e.t = rand(2, 3.5); }
         }
         e.x += e.vx * dt * slow; e.y += e.vy * dt * slow;
-        e.x = Math.min(W - 8, Math.max(8, e.x)); e.y = Math.min(H - 8, Math.max(topInset + 8, e.y));
+        clampToSpaceArena(e, bounds());
       }
       // Drones push apart so they don't stack into one blob.
       for (let i = 0; i < enemies.length; i++) for (let j = i + 1; j < enemies.length; j++) {
@@ -637,7 +654,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     let teammatePosition: Vec | undefined;
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
-      if (hidden || paused) { last = now; return; }
+      if (hidden || pauseState.paused) { last = now; if (!hidden) draw(); return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       step(dt);
@@ -646,7 +663,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       frameRef.current?.({ score: Math.round(score + survival), fuel: fuel / FUEL_MAX, x: craft.x / W, y: craft.y / H });
       const wingmate = teammate?.current;
       if (!wingmate || wingmate.finished) return;
-      const target = { x: wingmate.x * W, y: wingmate.y * H };
+      const target = clampToSpaceArena({ x: wingmate.x * W, y: wingmate.y * H }, bounds());
       teammatePosition ??= target;
       teammatePosition.x += (target.x - teammatePosition.x) * Math.min(1, dt * 7);
       teammatePosition.y += (target.y - teammatePosition.y) * Math.min(1, dt * 7);
