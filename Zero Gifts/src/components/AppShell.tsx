@@ -38,7 +38,7 @@ export function AppShell({ brand, nav, children }: { brand: ReactNode; nav: NavI
         </div>
       </header>
       <main className="mx-auto w-full max-w-[1080px] px-4 pb-[calc(104px+env(safe-area-inset-bottom))] pt-5 sm:px-6 md:pb-16">{children}</main>
-      <nav className="fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-20px)] max-w-[480px] -translate-x-1/2 md:hidden">
+      <nav data-zc-bottom-nav className="fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-20px)] max-w-[480px] -translate-x-1/2 md:hidden">
         <div className="grid gap-1 rounded-[24px] border border-border bg-background/95 p-1.5 shadow-[0_18px_48px_-20px_rgba(0,0,0,0.45)] backdrop-blur-xl" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
           {nav.map((item) => {
             const Icon = item.icon;

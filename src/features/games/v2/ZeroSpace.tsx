@@ -1,4 +1,4 @@
-import { spaceArena, clampToSpaceArena, createSpacePause } from "./spaceArena";
+import { spaceArena, clampToSpaceArena, createSpacePause, spaceStick } from "./spaceArena";
 import { useEffect, useRef, type RefObject } from "react";
 import { ZERO_MARK_PATH } from "@/components/ZeroLoader";
 import { spaceFuelDrain, type ZeroSpaceControls } from "./spaceSupplies";
@@ -141,10 +141,12 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     const float = (x: number, y: number, text: string, color = "#fff") => floaters.push({ x, y, text, life: 1, color });
 
     const pauseState = createSpacePause();
+    let stick = {x:0,y:0};
     if (controls) controls.current = {
+      steer: (x, y) => { stick = pauseState.paused ? {x:0,y:0} : spaceStick(x,y); },
       ready: () => !dead && intro <= 0 && !hidden,
       fuelEnhancement: () => fuelEnhancement,
-      pause: (value, reason) => { pauseState.set(value, reason); last = performance.now(); keys.clear(); dragging = null; },
+      pause: (value, reason) => { pauseState.set(value, reason); stick = {x:0,y:0}; last = performance.now(); keys.clear(); dragging = null; },
       activate: (item) => {
         if (dead) return;
         if (item === "enhancer2" || item === "enhancer3" || item === "enhancer5") {
@@ -206,7 +208,9 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
     window.addEventListener("keyup", ku);
 
     let hidden = false;
-    const vis = () => { hidden = document.hidden; last = performance.now(); };
+    const blur = () => { stick = {x:0,y:0}; keys.clear(); dragging = null; };
+    window.addEventListener("blur", blur);
+    const vis = () => { blur(); hidden = document.hidden; last = performance.now(); };
     document.addEventListener("visibilitychange", vis);
 
     /* ── loop ── */
@@ -252,10 +256,12 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       if (keys.has("arrowright") || keys.has("d")) kx += 1;
       if (keys.has("arrowup") || keys.has("w")) ky -= 1;
       if (keys.has("arrowdown") || keys.has("s")) ky += 1;
+      if (!kx && !ky) { kx = stick.x; ky = stick.y; }
       if (kx || ky) {
         const n = Math.hypot(kx, ky);
-        target.x += (kx / n) * 330 * dt;
-        target.y += (ky / n) * 330 * dt;
+        const strength = Math.min(1, n);
+        target.x += (kx / n) * 330 * dt * strength;
+        target.y += (ky / n) * 330 * dt * strength;
         clampToSpaceArena(target, bounds());
       }
       const ax = (target.x - craft.x) * 14, ay = (target.y - craft.y) * 14;
@@ -691,6 +697,7 @@ export function ZeroSpaceGame({ onGameOver, topInset = 0, controls, onFrame, tea
       window.removeEventListener("pointercancel", up);
       window.removeEventListener("keydown", kd);
       window.removeEventListener("keyup", ku);
+      window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", vis);
     };
   }, [topInset, controls, teammate]);

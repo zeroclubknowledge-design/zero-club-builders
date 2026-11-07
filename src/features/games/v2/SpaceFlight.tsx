@@ -1,3 +1,4 @@
+import { SpaceThumbstick } from "./SpaceThumbstick";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Pause, Play, ShoppingBag, X } from "@/components/icons/glyphs";
 import { ZeroSpaceGame } from "./ZeroSpace";
@@ -41,7 +42,7 @@ export function SpaceFlight({ onLeave, cooperative = false, ...game }: Props) {
     </div>
     <div className="flex shrink-0 items-center justify-between gap-3 pt-3">
       <button type="button" disabled={usingSupply} onClick={() => pause(!paused)} aria-pressed={paused} className="flex min-h-11 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold disabled:opacity-40">{paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}{paused ? "Resume" : "Pause"}</button>
-      <span className="text-center text-[11px] text-white/50">{usingSupply ? "Applying supply · flight paused" : "Drag inside the arena to fly"}</span>
+      <div className="flex flex-col items-center gap-1"><SpaceThumbstick controls={controls} disabled={paused || shopping || usingSupply} /><span className="text-center text-[10px] text-white/50">{usingSupply ? "Applying supply…" : "Hold to steer"}</span></div>
       <button type="button" onClick={() => void leave()} aria-label="Leave game" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10"><X className="h-5 w-5" /></button>
     </div>
     {shopping && <SpaceMarketplace onBack={() => shop(false)} />}

@@ -6,7 +6,7 @@ import { ZeroLoader } from "@/components/ZeroLoader";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useUser } from "@/hooks/useUser";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
-import { ZERO_GAMES, ZERO_GAME_LIST, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
+import { ZERO_GAMES, isZeroGameKey, type ZeroGameKey } from "@/features/games/v2/catalog";
 import { GameEmblem, SPLASH_CSS } from "@/features/games/v2/GameSplash";
 import { countdown, listTournaments, rewardHeadline, type TournamentRow } from "@/features/games/v2/api";
 
@@ -64,10 +64,6 @@ function ZeroGamesHub() {
       <main className="zc-page-width mx-auto flex w-full max-w-[680px] flex-1 flex-col gap-2 pt-2 md:pb-6">
         {/* Featured: Zero Space */}
         <section className="bg-card p-3 md:rounded-xl md:border md:border-border">
-          <Link to="/app/games/space-team" search={{ room: undefined }} className="mb-3 flex w-full items-center gap-4 rounded-2xl bg-[#2b153d] p-5 text-white">
-            <Users className="h-7 w-7 shrink-0 text-[#ff8ccc]" />
-            <div><p className="font-display text-lg font-bold">Zero Space Co-op</p><p className="text-sm text-white/70">Two pilots. One team score.</p></div>
-          </Link>
           <button
             onClick={() => navigate({ to: "/app/games/play/$game", params: { game: "space" }, search: { t: undefined, code: undefined } })}
             className="relative flex w-full items-center gap-4 overflow-hidden rounded-2xl p-5 text-left text-white transition active:scale-[0.99]"
@@ -82,20 +78,8 @@ function ZeroGamesHub() {
             <GameEmblem game="space" size={110} />
           </button>
 
-          <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+          <div className="mt-2.5 grid grid-cols-1 gap-2.5">
 <Link to="/app/games/draught" search={{ room: undefined, code: undefined, mode: undefined }} className="flex flex-col items-start rounded-2xl border border-white/10 p-4 text-left text-white" style={{ background: "linear-gradient(150deg,#633148,#160d24)" }}><span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full border-4 border-[#fd7ac5] bg-[#9f1f68] text-3xl">♛</span><p className="mt-3 font-display text-[17px] font-bold">Zero Draught</p><p className="mt-1 text-[12.5px] text-white/65">Solo or multiplayer. Your avatar. Your strategy.</p></Link>
-            {ZERO_GAME_LIST.filter((g) => g.key !== "space").map((g) => (
-              <button
-                key={g.key}
-                onClick={() => navigate({ to: "/app/games/play/$game", params: { game: g.key }, search: { t: undefined, code: undefined } })}
-                className="flex flex-col items-start overflow-hidden rounded-2xl p-4 text-left text-white transition active:scale-[0.98]"
-                style={{ background: `linear-gradient(150deg, ${g.to}, ${g.from})` }}
-              >
-                <GameEmblem game={g.key} size={56} />
-                <p className="mt-3 font-display text-[17px] font-bold">{g.name}</p>
-                <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-white/65">{g.tagline}</p>
-              </button>
-            ))}
           </div>
 
           <Link

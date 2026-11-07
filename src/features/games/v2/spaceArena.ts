@@ -16,3 +16,12 @@ export function createSpacePause() {
     get paused() { return reasons.size > 0; },
   };
 }
+
+/** Circular thumbstick input: no diagonal speed boost; a small centre dead zone. */
+export function spaceStick(x: number, y: number) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return {x:0,y:0};
+  const length = Math.hypot(x,y);
+  if (length <= 0.12) return {x:0,y:0};
+  const strength = (Math.min(1,length)-0.12)/0.88;
+  return {x:x/length*strength,y:y/length*strength};
+}

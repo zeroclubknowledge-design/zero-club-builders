@@ -27,7 +27,7 @@ export const ZERO_GAMES: Record<ZeroGameKey, ZeroGameInfo> = {
     to: "#3b0f4f",
     accent: "#fd49b0",
     howTo: [
-      { title: "Move", body: "Drag anywhere on the screen to steer. On a keyboard use WASD or the arrow keys." },
+      { title: "Move", body: "Use the thumbstick below the arena to steer; release it to stop. You can also drag in the arena or use WASD / arrow keys on a keyboard." },
       { title: "Grab orbs", body: "Every pink opportunity orb refuels you. Let the fuel ring hit zero and the craft is lost." },
       { title: "Dodge doubt", body: "Red Doubt drones chase you. One touch ends the run. More join every 5 orbs." },
       { title: "Power-ups", body: "Shield blocks one hit, Focus slows time, Magnet pulls orbs to you." },

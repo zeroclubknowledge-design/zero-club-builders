@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowLeft, HelpCircle, Play, ShoppingBag, Trophy, X } from "@/components/icons/glyphs";
+import { ArrowLeft, HelpCircle, Play, ShoppingBag, Trophy, Users, X } from "@/components/icons/glyphs";
 import { ZeroMark } from "@/components/ZeroLoader";
 import { ZERO_GAMES, type ZeroGameKey } from "./catalog";
 
@@ -48,10 +48,11 @@ type SplashProps = {
   secondary?: { label: string; onClick: () => void };
   footer?: ReactNode;
   onMarketplace?: () => void;
+  onMultiplayer?: () => void;
 };
 
 /** Full-screen splash shown when a Zero Game is opened. */
-export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, primaryBusy, primaryDisabled, secondary, footer, onMarketplace }: SplashProps) {
+export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, primaryBusy, primaryDisabled, secondary, footer, onMarketplace, onMultiplayer }: SplashProps) {
   const info = ZERO_GAMES[game];
   const [howTo, setHowTo] = useState(false);
   const [ready, setReady] = useState(false);
@@ -92,6 +93,7 @@ export function GameSplash({ game, onBack, eyebrow, primaryLabel, onPrimary, pri
           {primaryBusy ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#140a1c]/30 border-t-[#140a1c]" /> : <Play className="h-5 w-5 fill-current" />}
           {primaryLabel}
         </button>
+        {onMultiplayer && <button onClick={onMultiplayer} className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white/10 px-4 text-[14.5px] font-semibold transition active:scale-[0.98]"><Users className="h-5 w-5" />Play multiplayer</button>}
         {secondary && (
           <button onClick={secondary.onClick} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white/10 text-[14.5px] font-semibold backdrop-blur transition active:scale-[0.98]">
             <Trophy className="h-4 w-4" /> {secondary.label}

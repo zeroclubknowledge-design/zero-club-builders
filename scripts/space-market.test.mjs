@@ -171,3 +171,36 @@ test('finishing supply activation or leaving the shop preserves an intentional p
   assert.equal(flight.paused,true);
   flight.set(false,'supply'); assert.equal(flight.paused,false);
 });
+
+test('thumbstick has a dead zone, proportional speed and bounded diagonals', () => {
+  assert.equal(arenaModule.spaceStick(0.05,0.05).x,0);
+  assert.equal(arenaModule.spaceStick(0.05,0.05).y,0);
+  const gentle=arenaModule.spaceStick(0.5,0);
+  assert.ok(gentle.x>0 && gentle.x<1); assert.equal(gentle.y,0);
+  const diagonal=arenaModule.spaceStick(4,-4);
+  assert.ok(Math.abs(Math.hypot(diagonal.x,diagonal.y)-1)<0.000001);
+  assert.ok(diagonal.x>0 && diagonal.y<0);
+  assert.equal(arenaModule.spaceStick(Infinity,1).x,0);
+});
+
+test('thumbstick captures one finger and releases steering on lift, cancellation or window blur', () => {
+  const movements=[], listeners=new Map(), offsets=[];
+  const hooks={useCallback:fn=>fn,useRef:value=>({current:value}),useState:value=>[value,update=>offsets.push(update)],useEffect:fn=>fn()};
+  const jsx=(_type,props)=>({props});
+  const exports={};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('../src/features/games/v2/SpaceThumbstick.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText,{
+    exports,Math,window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:()=>{}},
+    require:name=>name==='react'?hooks:{jsx,jsxs:jsx},
+  });
+  const pad=exports.SpaceThumbstick({controls:{current:{steer:(x,y)=>movements.push([x,y])}},disabled:false}).props;
+  let captured;
+  const event=(pointerId,x,y)=>({pointerId,clientX:x,clientY:y,preventDefault(){},currentTarget:{setPointerCapture:id=>{captured=id;},getBoundingClientRect:()=>({left:0,top:0,width:96,height:96})}});
+  pad.onPointerDown(event(1,80,48)); assert.equal(captured,1); assert.ok(movements.at(-1)[0]>0);
+  const count=movements.length;
+  pad.onPointerDown(event(2,0,0)); pad.onPointerMove(event(2,0,0)); pad.onPointerUp(event(2,0,0));
+  assert.equal(movements.length,count);
+  pad.onPointerMove(event(1,200,-200)); assert.ok(Math.hypot(offsets.at(-1).x,offsets.at(-1).y)<=96*0.32+0.000001);
+  pad.onPointerUp(event(1,200,-200)); assert.deepEqual(movements.at(-1),[0,0]);
+  pad.onPointerDown(event(3,20,48)); pad.onPointerCancel(event(3,20,48)); assert.deepEqual(movements.at(-1),[0,0]);
+  pad.onPointerDown(event(4,48,20)); listeners.get('blur')(); assert.deepEqual(movements.at(-1),[0,0]);
+});

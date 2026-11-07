@@ -52,6 +52,7 @@ function PlayGame() {
   const startedAt = useRef(0);
   const [now, setNow] = useState(Date.now());
   const [marketOpen, setMarketOpen] = useState(false);
+  const multiplayer = () => navigate({ to: "/app/games/space-team", search: { room: undefined } });
   const openMarketplace = game === "space" ? () => setMarketOpen(true) : undefined;
 
   const detail = useQuery({
@@ -217,7 +218,8 @@ function PlayGame() {
           onBack={back}
           eyebrow={featured.sponsored ? "Zero Club tournament · live" : "Live tournament"}
           onMarketplace={openMarketplace}
-          primaryLabel={featured.joined ? "Play in the tournament" : "Join & play the tournament"}
+          onMultiplayer={multiplayer}
+          primaryLabel={featured.joined ? "Play solo · tournament" : "Join solo tournament"}
           onPrimary={() => navigate({ to: "/app/games/play/$game", params: { game }, search: { t: featured.id, code: undefined }, replace: true })}
           secondary={{ label: "Practice instead", onClick: startPractice }}
           footer={
@@ -225,7 +227,6 @@ function PlayGame() {
               <p className="font-semibold text-white/90">{featured.title}</p>
               <p>{previewPrizeLine(featured)} · {featured.players.toLocaleString()} {featured.players === 1 ? "player" : "players"} · ends in {countdown(new Date(featured.ends_at).getTime() - now)}</p>
               <p className="text-white/55">Only tournament runs count on the leaderboard.</p>
-              <Link to="/app/games/space-team" search={{ room: undefined }} className="inline-flex rounded-full bg-white/10 px-4 py-2 font-semibold text-white">Play with a friend</Link>
             </div>
           }
         />
@@ -236,12 +237,12 @@ function PlayGame() {
         game={game}
         onBack={back}
         onMarketplace={openMarketplace}
-        primaryLabel="Play practice"
+        onMultiplayer={multiplayer}
+        primaryLabel="Play solo · practice"
         onPrimary={startPractice}
         secondary={{ label: `${info.name} tournaments`, onClick: () => navigate({ to: "/app/games", search: { game } }) }}
         footer={
           <div className="space-y-3">
-            <Link to="/app/games/space-team" search={{ room: undefined }} className="inline-flex rounded-full bg-white/10 px-4 py-2 font-semibold text-white">Play with a friend</Link>
             <p>{best > 0 ? `Your best: ${best.toLocaleString()} pts` : "Practice runs don't affect tournaments"}</p>
           </div>
         }
