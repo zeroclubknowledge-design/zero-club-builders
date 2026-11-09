@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { writeSharedText as copySharedText } from "@/lib/share";
 import { hasShareSheet, openShareSheet } from "@/components/ShareSheet";
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
@@ -153,13 +154,13 @@ function NotesIndexPage() {
     <div className="relative flex min-h-screen w-full flex-col bg-canvas selection:bg-foreground selection:text-background">
       <div className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
         <header className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button
-            onClick={() => navigate({ to: '/app' })}
+          <BackButton
+            fallback="/app"
             aria-label="Back"
             className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </button>
+          </BackButton>
           <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">ZeroNotes</h1>
           <Link to="/app/notes/create" className="flex h-9 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-[14px] font-semibold text-background transition hover:opacity-90">
             <PenLine className="h-4 w-4" /> Write

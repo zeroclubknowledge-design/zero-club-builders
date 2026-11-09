@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { writeSharedText as copySharedText } from "@/lib/share";
 import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -21,6 +22,8 @@ import {
   Lock,
   LogOut,
   Megaphone,
+  Mic,
+  Square,
   MoreHorizontal,
   Paperclip,
   Pencil,
@@ -48,7 +51,9 @@ import { ContributorsView } from "@/features/community/ContributorsView";
 import { claimClubInvites, clubInviteLink } from "@/features/community/clubInvites";
 import { useUser } from "@/hooks/useUser";
 import { draftKey } from "@/lib/draftStorage";
-import { decodeChatMedia, encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
+import { VoiceNotePlayer } from "@/components/VoiceNotePlayer";
+import { ComposerOverlay } from "@/components/ComposerOverlay";
+import { useVoiceRecorder, decodeChatMedia, encodeChatMedia, getChatMediaType } from "@/hooks/useVoiceRecorder";
 import { useWalletCurrency } from "@/hooks/useWalletCurrency";
 import { compressImage, COVER_IMAGE } from "@/lib/imageCompression";
 import { supabase } from "@/lib/supabase";
@@ -516,13 +521,13 @@ function HubNav({ h, active, go }: { h: Hub; active: HubSection; go: (s?: HubSec
           style={{ background: `radial-gradient(120% 90% at 0% 0%, ${PINK}, transparent 60%)` }}
         />
         <div className="relative flex items-center gap-1 px-2 pt-2">
-          <Link
-            to="/app/clubs"
+          <BackButton
+            fallback="/app/clubs"
             aria-label="All clubs"
             className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.05]"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </BackButton>
           <span className="flex-1 text-[13px] font-semibold text-muted-foreground">Clubs</span>
           <button
             type="button"
@@ -928,6 +933,14 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
     types: ("image" | "video")[];
   } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder(
+    (file) => setFiles((current) => [...current, file].slice(0, 10)),
+  );
+  const toggleRecording = async () => {
+    if (isRecording) { stopRecording(); return; }
+    try { await startRecording(); }
+    catch (error: any) { toast.error(error.message || "Microphone access is required to record a voice note."); }
+  };
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["club-hub", h.club.id] });
 
   /* The composer owns the text; this only turns text + staged files into one
@@ -995,14 +1008,14 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
   });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-1 flex-col">
       <SectionHeader
         title="Announcements"
         sub={h.me.admin ? "Only the club team can post here" : "From the club team"}
         onBack={onBack}
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[760px] space-y-3 px-4 py-5 md:px-8">
+        <div className="mx-auto max-w-[760px] space-y-3 px-4 py-5 pb-36 md:px-8">
           {!h.me.member ? (
             <JoinCommunityCard h={h} />
           ) : h.announcements.length === 0 ? (
@@ -1078,7 +1091,10 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
                       />
                     </div>
                   )}
-                  {docs.map((f, i) => (
+                  {docs.filter((f) => f.type === "audio").map((f, i) => (
+                    <div key={i} className="mt-3 max-w-[480px]"><VoiceNotePlayer src={f.url} name={f.name} /></div>
+                  ))}
+                  {docs.filter((f) => f.type !== "audio").map((f, i) => (
                     <a
                       key={i}
                       href={f.url}
@@ -1101,7 +1117,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
         </div>
       </div>
       {h.me.admin && (
-        <div className="shrink-0 border-t border-border bg-background px-3 py-2.5 pb-[calc(0.6rem+env(safe-area-inset-bottom))] md:px-6">
+        <ComposerOverlay position="absolute">
           {files.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1.5">
               {files.map((f, i) => (
@@ -1129,10 +1145,12 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
             members={h.staff}
             canTagAll
             peopleLabel="In this club"
+            trailing={<button type="button" onClick={() => void toggleRecording()} aria-label={isRecording ? "Stop recording" : "Record voice note"} className={`grid h-11 min-w-11 shrink-0 place-items-center rounded-full px-2 ${isRecording ? "bg-red-500 text-white" : "text-muted-foreground hover:bg-foreground/[0.05]"}`}>
+              {isRecording ? <span className="flex items-center gap-1"><Square className="h-4 w-4 fill-current" /><span className="text-xs tabular-nums">{recordingSeconds}s</span></span> : <Mic className="h-[22px] w-[22px]" />}
+            </button>}
             sendLabel="Post announcement"
             onSend={post}
-            avatar={<Avatar url={me?.avatar_url} name={nameOf(me)} size={44} />}
-            controls={
+            leading={
               <>
                 <input
                   ref={fileRef}
@@ -1156,7 +1174,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
               </>
             }
           />
-        </div>
+        </ComposerOverlay>
       )}
       {viewer && (
         <ImageLightbox

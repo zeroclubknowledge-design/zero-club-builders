@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { Link } from "@tanstack/react-router";
 import { UsernamePicker } from "@/components/UsernamePicker";
 import { AvatarMotionAdmin } from "@/features/admin/AvatarMotionAdmin";
@@ -288,7 +289,7 @@ export function AdminDashboard() {
       <header className="sticky top-0 z-40 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6">
         <div className="zc-page-width mx-auto flex max-w-[1500px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/app" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Link>
+            <BackButton fallback="/app" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"><ChevronLeft className="h-4 w-4" /></BackButton>
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground"><ShieldCheck className="h-[18px] w-[18px]" /></div>
             <div className="min-w-0"><p className="truncate text-[15px] font-semibold tracking-tight">Admin Control Center</p><p className="text-[11.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">Zero Club operations</p></div>
           </div>

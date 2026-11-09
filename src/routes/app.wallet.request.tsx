@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
@@ -142,13 +143,13 @@ function RequestPage() {
     <div className="flex min-h-screen flex-col bg-canvas text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <Link
-            to="/app/wallet"
+          <BackButton
+            fallback="/app/wallet"
             aria-label="Back to wallet"
             className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </Link>
+          </BackButton>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Request money</h1>
         </div>
       </header>

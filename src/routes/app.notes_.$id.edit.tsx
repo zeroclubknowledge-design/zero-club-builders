@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { normalizeNoteHtml } from "@/features/notes/noteHtml";
 import { NoteHeadingPicker } from "@/features/notes/NoteHeadingPicker";
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -546,9 +547,9 @@ function NotesEditPage() {
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[760px] items-center gap-1 px-2">
-        <button onClick={() => noteData?.slug ? navigate({ to: '/notes/$slug', params: { slug: noteData.slug } }) : navigate({ to: '/app/notes/$id', params: { id: noteId } })} aria-label="Back to the note" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+        <BackButton fallback={noteData?.slug ? `/notes/${encodeURIComponent(noteData.slug)}` : `/app/notes/${encodeURIComponent(noteId)}`} aria-label="Back to the note" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
           <ArrowLeft className="h-[22px] w-[22px]" />
-        </button>
+        </BackButton>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] text-muted-foreground">Editing · {wordCount} {wordCount === 1 ? "word" : "words"}</p>
         </div>

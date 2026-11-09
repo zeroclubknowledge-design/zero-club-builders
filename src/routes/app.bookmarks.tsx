@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Bookmark, Search, X, Loader2 } from "@/components/icons/glyphs";
 import { supabase } from "@/lib/supabase";
@@ -85,9 +86,9 @@ function BookmarksPage() {
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <Link to="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <BackButton fallback="/app" aria-label="Back" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </Link>
+          </BackButton>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Saved</h1>
           {bookmarks.length > 0 && <span className="pr-3 text-[13px] text-muted-foreground">{bookmarks.length} saved</span>}
         </div>

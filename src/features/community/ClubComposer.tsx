@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Send, Loader2 } from "@/components/icons/glyphs";
 import { MentionField, type MentionPerson } from "@/components/MentionField";
@@ -64,6 +64,8 @@ export function ClubComposer({
 }) {
   const [draft, setDraft] = usePersistentDraft(storageKey, "");
   const [sending, setSending] = useState(false);
+  // An abandoned mention trigger is not a message draft.
+  useEffect(() => { setDraft((text) => text.trim() === "@" ? "" : text); }, [setDraft]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [enterToSend] = useEnterToSend();
 
@@ -124,7 +126,7 @@ export function ClubComposer({
   };
 
   const submit = async () => {
-    if ((!draft.trim() && !hasMedia) || sending) return;
+    if ((!draft.trim().replace(/^@$/, "") && !hasMedia) || sending) return;
     onStopTyping?.();
     const text = draft;
     setMentionQuery(null);
@@ -141,12 +143,12 @@ export function ClubComposer({
     }
   };
 
-  const hasContent = Boolean(draft.trim()) || hasMedia;
+  const hasContent = Boolean(draft.trim().replace(/^@$/, "")) || hasMedia;
 
   if (leading !== undefined || trailing !== undefined)
     return (
       <div
-        className={`relative flex w-full items-end gap-1 rounded-[28px] border border-border bg-card py-2 pr-2 transition-[padding,border-color] duration-200 focus-within:border-primary/50 ${
+        className={`relative flex w-full items-end gap-1 rounded-[28px] bg-card py-2 pr-2 transition-[padding] duration-200 ${
           hasContent || !leading ? "pl-3.5" : "pl-1.5"
         }`}
       >
@@ -199,7 +201,7 @@ export function ClubComposer({
     );
 
   return (
-    <div className="relative flex w-full items-end gap-1.5 rounded-[28px] border border-border bg-card py-2 pl-2.5 pr-2 transition-colors focus-within:border-primary/50">
+    <div className="relative flex w-full items-end gap-1.5 rounded-[28px] bg-card py-2 pl-2.5 pr-2 transition-colors">
       {avatar}
       <MentionField
         ref={textareaRef as any}

@@ -1,3 +1,4 @@
+import { useGoBack } from "@/hooks/useGoBack";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/app/chat/g/new")({
 
 /** Two steps, like every chat app: who's in it, then what it's called. */
 function NewGroupPage() {
+  const goBack = useGoBack("/app/chat");
   const navigate = useNavigate();
   const { data: me } = useUser();
   const [step, setStep] = useState<"people" | "details">("people");
@@ -51,7 +53,7 @@ function NewGroupPage() {
       <header className="sticky top-0 z-40 bg-card/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
           <button
-            onClick={() => (step === "details" ? setStep("people") : navigate({ to: "/app/chat" }))}
+            onClick={() => (step === "details" ? setStep("people") : goBack())}
             aria-label="Back"
             className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]"
           >

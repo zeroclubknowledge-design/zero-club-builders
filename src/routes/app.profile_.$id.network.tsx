@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { useLoaderData, createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { AffiliationBadge, SubscriptionBadge } from "@/components/AffiliationBadge";
 import { useState, useEffect } from "react";
@@ -127,13 +128,13 @@ function ProfileNetwork() {
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <button
-            onClick={() => navigate({ to: "/app/profile/$id", params: { id: profile.username || profile.id } })}
+          <BackButton
+            fallback={`/app/profile/${encodeURIComponent(profile.username || profile.id)}`}
             aria-label="Back to profile"
             className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]"
           >
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </button>
+          </BackButton>
           <h1 className="min-w-0 flex-1 truncate font-display text-[18px] font-semibold text-foreground">{displayName}</h1>
         </div>
         <div className="zc-page-width mx-auto grid w-full max-w-[680px] grid-cols-3 border-b border-border text-center text-[14px] font-semibold">

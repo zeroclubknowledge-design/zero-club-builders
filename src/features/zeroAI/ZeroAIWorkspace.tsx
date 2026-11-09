@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { CardSelect } from "@/components/CardSelect";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
 import { ComposerOverlay } from "@/components/ComposerOverlay";
@@ -642,13 +643,13 @@ function Workspace({
         </p>
         <div className="no-scrollbar -mx-1 min-h-0 flex-1 overflow-y-auto px-1">{history}</div>
         <div className="mt-4 space-y-3 border-t border-border/70 pt-4">
-          <Link
-            to="/app"
+          <BackButton
+            fallback="/app"
             className="flex items-center gap-2 px-1 text-[12.5px] text-muted-foreground transition hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Zero Club
-          </Link>
-          <div className="flex items-center gap-2.5 rounded-xl bg-foreground/[0.03] p-2.5">
+          </BackButton>
+          <div className="flex items-center gap-2.5 rounded-xl bg-card p-2.5">
             {avatar ? (
               <img src={avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
             ) : (
@@ -715,12 +716,12 @@ function Workspace({
               </button>
             </div>
             <div className="no-scrollbar max-h-72 overflow-y-auto">{history}</div>
-            <Link
-              to="/app"
+            <BackButton
+              fallback="/app"
               className="mt-2 flex items-center gap-2 px-1 py-1 text-[12.5px] text-muted-foreground"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to Zero Club
-            </Link>
+            </BackButton>
           </section>
         )}
 
@@ -790,7 +791,7 @@ function Workspace({
                   key={index}
                   className={
                     message.role === "user"
-                      ? "ml-auto max-w-[85%] rounded-2xl bg-foreground/[0.06] px-4 py-3"
+                      ? "ml-auto max-w-[85%] rounded-2xl bg-card px-4 py-3"
                       : "px-1 py-2"
                   }
                 >
@@ -829,7 +830,7 @@ function Workspace({
                 <button
                   key={title}
                   onClick={() => applyStarter(prompt)}
-                  className="group relative flex items-start gap-3.5 overflow-hidden rounded-2xl border border-border bg-card/80 p-4 text-left shadow-[0_1px_0_rgba(0,0,0,0.02)] transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]"
+                  className="group relative flex items-start gap-3.5 overflow-hidden rounded-2xl border border-border bg-card p-4 text-left shadow-[0_1px_0_rgba(0,0,0,0.02)] transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_18px_40px_-28px_rgba(0,0,0,0.5)]"
                 >
                   <span
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-xl transition group-hover:scale-105"
@@ -851,7 +852,7 @@ function Workspace({
 
           {/* ── Made for you + shortcuts ── */}
           <section className="mt-6 grid gap-3 lg:grid-cols-[1.35fr_1fr]">
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-card/80 p-5">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5">
               <div
                 aria-hidden
                 className="absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-20 blur-2xl"
@@ -882,7 +883,7 @@ function Workspace({
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl border border-border bg-card/80 p-2">
+            <div className="rounded-2xl border border-border bg-card p-2">
               <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 Your Zero Club
               </p>

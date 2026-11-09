@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -231,13 +232,13 @@ function GiftCampaignsPage() {
       <header className="sticky top-0 z-40 bg-background/95 px-4 pb-3 pt-[calc(0.85rem+env(safe-area-inset-top))] backdrop-blur-xl md:px-7">
         <div className="zc-page-width mx-auto flex max-w-[1080px] items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <button
-              onClick={() => navigate({ to: "/app/gifts" })}
+            <BackButton
+              fallback="/app/gifts"
               className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card hover:bg-muted"
               aria-label="Back to gifts"
             >
               <ArrowLeft className="h-5 w-5" />
-            </button>
+            </BackButton>
             <div className="min-w-0">
               <p className="text-[10px] font-medium uppercase text-muted-foreground">Zero Cards</p>
               <h1 className="truncate text-[18px] font-semibold tracking-tight">Your gifts</h1>

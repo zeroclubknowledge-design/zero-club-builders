@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Info, HelpCircle, ShieldAlert, FileText, ChevronRight } from "@/components/icons/glyphs";
 
@@ -17,9 +18,9 @@ function ResourcesSettings() {
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center">
-        <Link to="/app/settings" className="mr-6 p-2 rounded-full transition active:bg-accent/10">
+        <BackButton fallback="/app/settings" className="mr-6 p-2 rounded-full transition active:bg-accent/10">
           <ChevronLeft className="h-5 w-5 text-foreground" />
-        </Link>
+        </BackButton>
         <h1 className="text-lg font-bold text-foreground">Additional resources</h1>
       </header>
 

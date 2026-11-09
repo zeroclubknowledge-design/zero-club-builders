@@ -3792,28 +3792,28 @@ function ClubChat() {
                   <DropdownMenuContent
                     align="start"
                     side="top"
-                    className="z-[100] w-44 border-border bg-background/95 shadow-lift backdrop-blur-xl"
+                    className="z-[100] w-52 rounded-2xl border-0 bg-card p-1.5 shadow-lift"
                   >
                     <DropdownMenuItem
                       onSelect={() => mediaInputRef.current?.click()}
                       className="gap-2.5"
                     >
-                      <Image className="h-4 w-4" /> Pictures
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Image className="h-5 w-5 fill-current" /></span> Pictures
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() => videoInputRef.current?.click()}
                       className="gap-2.5"
                     >
-                      <Film className="h-4 w-4" /> Video
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Film className="h-5 w-5 fill-current" /></span> Video
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() => documentInputRef.current?.click()}
                       className="gap-2.5"
                     >
-                      <File className="h-4 w-4" /> File
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><File className="h-5 w-5 fill-current" /></span> File
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setShowPoll(true)} className="gap-2.5">
-                      <BarChart3 className="h-4 w-4" /> Poll
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><BarChart3 className="h-5 w-5 fill-current" /></span> Poll
                     </DropdownMenuItem>
                     {/* Admins only: members see Pictures, Video and File. */}
                     {isAdmin && activeRoom === "general" && (
@@ -3821,7 +3821,7 @@ function ClubChat() {
                         onSelect={() => setShowNotePicker(true)}
                         className="gap-2.5"
                       >
-                        <BookOpen className="h-4 w-4" /> Notes
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><BookOpen className="h-5 w-5 fill-current" /></span> Notes
                       </DropdownMenuItem>
                     )}
                     {isAdmin && activeRoom === "general" && (

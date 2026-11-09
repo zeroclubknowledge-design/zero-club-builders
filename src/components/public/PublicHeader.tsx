@@ -1,3 +1,4 @@
+import { useUser } from "@/hooks/useUser";
 import { Link } from "@tanstack/react-router";
 import { Menu, X, Sun, Moon } from "@/components/icons/glyphs";
 import { useState } from "react";
@@ -11,6 +12,7 @@ const productLinks = [
 ] as const;
 
 export function PublicHeader({ section }: { section?: string }) {
+  const { data: user, isPending } = useUser();
   const [open, setOpen] = useState(false);
   const { dark, toggle: toggleTheme } = usePublicTheme();
 
@@ -57,8 +59,12 @@ export function PublicHeader({ section }: { section?: string }) {
             >
               {dark ? <Sun className="h-[17px] w-[17px]" /> : <Moon className="h-[17px] w-[17px]" />}
             </button>
+            {user ? (
+              <Link to="/app" className="grid h-9 place-items-center rounded-md bg-[#171717] dark:bg-white px-4 text-[11.5px] font-semibold text-white dark:text-[#171717]">Open Zero Club</Link>
+            ) : !isPending && (<>
             <Link to="/signin" search={{ ref: undefined, club: undefined }} className="hidden px-3 py-2 text-[12px] font-semibold text-[#555155] dark:text-white/60 sm:block">Sign in</Link>
             <Link to="/signup" search={{ ref: undefined, club: undefined }} className="grid h-9 place-items-center rounded-md bg-[#171717] dark:bg-white px-4 text-[11.5px] font-semibold text-white dark:text-[#171717]">Join</Link>
+            </>)}
             <button type="button" onClick={() => setOpen((value) => !value)} className="grid h-9 w-9 place-items-center rounded-md text-[#171717] dark:text-white lg:hidden" aria-label={open ? "Close menu" : "Open menu"}>
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>

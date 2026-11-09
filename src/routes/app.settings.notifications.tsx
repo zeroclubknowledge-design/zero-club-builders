@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { notificationSettingsIntent } from "@/lib/notificationSettings";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -131,9 +132,9 @@ function NotificationsSettings() {
       </Dialog>
       <header className="sticky top-0 z-50 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[680px] items-center gap-1 px-2">
-          <Link to="/app/settings" aria-label="Back to settings" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <BackButton fallback="/app/settings" aria-label="Back to settings" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </Link>
+          </BackButton>
           <h1 className="flex-1 font-display text-[18px] font-semibold text-foreground">Notifications</h1>
         </div>
       </header>

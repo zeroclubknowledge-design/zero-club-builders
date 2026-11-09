@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft, ChevronDown, ChevronRight, Calendar, Loader2,
@@ -110,12 +111,12 @@ function TutorSettingsPage() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="zc-page-width mx-auto flex max-w-[1180px] items-center gap-3 px-4 py-3.5 md:px-7">
-          <Link
-            to="/app/tutor-studio"
+          <BackButton
+            fallback="/app/tutor-studio"
             className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-card tap hover:bg-muted"
           >
             <ChevronLeft className="h-[18px] w-[18px] text-foreground" />
-          </Link>
+          </BackButton>
           <div>
             <p className="text-[10px] font-medium uppercase text-muted-foreground">Tutor Studio</p>
             <h1 className="text-[19px] font-semibold tracking-tight text-foreground">Studio settings</h1>

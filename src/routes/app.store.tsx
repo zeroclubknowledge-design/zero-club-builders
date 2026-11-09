@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Gift, ArrowUpRight, Search, Loader2, PackagePlus, TicketPercent, Check, ShieldCheck, Tag, Share2, Copy } from "@/components/icons/glyphs";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -238,9 +239,9 @@ function StorePage() {
     <div className="min-h-screen bg-card pb-24 text-foreground">
       <header className="sticky top-0 z-40 bg-card pt-[env(safe-area-inset-top)]">
         <div className="zc-page-width mx-auto flex h-14 w-full max-w-[1180px] items-center gap-1 px-2 md:px-5">
-          <Link to="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
+          <BackButton fallback="/app/wallet" aria-label="Back to wallet" className="grid h-11 w-10 shrink-0 place-items-center rounded-full text-foreground tap hover:bg-foreground/[0.04]">
             <ArrowLeft className="h-[22px] w-[22px]" />
-          </Link>
+          </BackButton>
           <h1 className="flex-1 font-display text-[18px] font-semibold">Zero Store</h1>
           <span className="mr-1 hidden items-center gap-2 text-[13px] text-muted-foreground sm:flex">
             <b className="font-semibold tabular-nums text-foreground">{Number(profile?.zp || 0).toLocaleString()}</b> ZP

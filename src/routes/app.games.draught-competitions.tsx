@@ -1,3 +1,4 @@
+import { useGoBack } from "@/hooks/useGoBack";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +67,7 @@ async function action<T>(p_action: string, p_id?: string, p_payload: Record<stri
 const field =
   "min-h-12 w-full rounded-2xl bg-white/[0.06] px-4 py-3 text-white outline-none focus:ring-1 focus:ring-[#c3217e]";
 function Competitions() {
+  const goBack = useGoBack("/app/games/draught");
   const { id } = Route.useSearch(),
     navigate = useNavigate(),
     client = useQueryClient();
@@ -182,22 +184,9 @@ function Competitions() {
           <button
             type="button"
             aria-label="Back"
-            onClick={() =>
-              id
-                ? void navigate({
-                    to: "/app/games/draught-competitions",
-                    search: { id: undefined },
-                  })
-                : void navigate({
-                    to: "/app/games/draught",
-                    search: {
-                      room: undefined,
-                      code: undefined,
-                      mode: undefined,
-                      competition: undefined,
-                    },
-                  })
-            }
+            onClick={() => id
+              ? void navigate({ to: "/app/games/draught-competitions", search: { id: undefined }, replace: true })
+              : goBack()}
             className="grid h-11 w-11 place-items-center rounded-full bg-white/10"
           >
             <ArrowLeft className="h-5 w-5" />

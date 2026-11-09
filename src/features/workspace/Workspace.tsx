@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 /**
  * A team workspace — the organization as its people see it.
  *
@@ -337,9 +338,9 @@ function WorkspaceNav({ w, active, channelId, go }: { w: Workspace; active: Work
       <div className="relative shrink-0 overflow-hidden border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="pointer-events-none absolute inset-0 opacity-[0.16]" style={{ background: `radial-gradient(120% 90% at 0% 0%, ${PINK}, transparent 60%)` }} />
         <div className="relative flex items-center gap-1 px-2 pt-2 md:hidden">
-          <Link to="/app/teams" aria-label="All teams" className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.05]">
+          <BackButton fallback="/app/teams" aria-label="All teams" className="grid h-10 w-10 place-items-center rounded-full hover:bg-foreground/[0.05]">
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </BackButton>
           <span className="text-[13px] font-semibold text-muted-foreground">Teams</span>
         </div>
         <div className="relative flex items-center gap-3 px-4 pb-4 pt-2 md:pt-4">

@@ -1,3 +1,4 @@
+import { useGoBack } from "@/hooks/useGoBack";
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -43,6 +44,7 @@ const STEPS = ["Brief", "Rules", "Prize", "Review"] as const;
 const DEADLINE_PRESETS = [7, 14, 30];
 
 function NewChallenge() {
+  const goBack = useGoBack("/app/zerohub");
   const { project: projectId } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -181,7 +183,7 @@ function NewChallenge() {
         <div className="mx-auto flex h-14 w-full max-w-[640px] items-center gap-1 px-2">
           <button
             type="button"
-            onClick={() => (step > 0 ? setStep(step - 1) : navigate({ to: "/app/zerohub" }))}
+            onClick={() => (step > 0 ? setStep(step - 1) : goBack())}
             className="grid h-11 w-10 place-items-center rounded-full hover:bg-foreground/[0.04]"
             aria-label="Back"
           >

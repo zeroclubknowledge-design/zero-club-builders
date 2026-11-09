@@ -14,7 +14,7 @@ function ResponseTable({ children }: { children?: ReactNode }) {
     <div className="space-y-4 sm:hidden">
       {rows.map((row, index) => {
         const cells = elements(row.props.children);
-        return <section key={index} className="min-w-0 rounded-2xl bg-foreground/[0.035] p-4">
+        return <section key={index} className="min-w-0 rounded-2xl bg-card p-4">
           <h3 className="!mb-3 !mt-0 text-base font-semibold leading-6">{cells[0]?.props.children}</h3>
           <dl className="space-y-4">
             {cells.slice(1).map((cell, column) => <div key={column} className="min-w-0">
@@ -25,7 +25,7 @@ function ResponseTable({ children }: { children?: ReactNode }) {
         </section>;
       })}
     </div>
-    <div className="no-scrollbar hidden max-w-full overflow-x-auto rounded-lg bg-foreground/[0.03] sm:block" tabIndex={0} role="region" aria-label="Response table. Scroll horizontally to see all columns.">
+    <div className="no-scrollbar hidden max-w-full overflow-x-auto rounded-lg bg-card sm:block" tabIndex={0} role="region" aria-label="Response table. Scroll horizontally to see all columns.">
       <table className="w-max min-w-full border-collapse text-left text-[15px] leading-7">{children}</table>
     </div>
   </div>;
@@ -38,7 +38,7 @@ export function AIMessage({ content }: { content: string }) {
       table: ResponseTable,
       th: ({ children }) => <th className="min-w-[12rem] max-w-[24rem] border-b border-border px-4 py-3 align-top font-semibold [overflow-wrap:break-word]">{children}</th>,
       td: ({ children }) => <td className="min-w-[12rem] max-w-[24rem] border-b border-border/50 px-4 py-3 align-top [overflow-wrap:break-word]">{children}</td>,
-      pre: ({ children }) => <pre className="no-scrollbar my-4 max-w-full overflow-x-auto rounded-xl bg-foreground/[0.05] p-4 text-[13px] leading-6">{children}</pre>,
+      pre: ({ children }) => <pre className="no-scrollbar my-4 max-w-full overflow-x-auto rounded-xl bg-card p-4 text-[13px] leading-6">{children}</pre>,
       a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-4">{children}</a>,
       img: ({ alt, src }) => <a href={src} target="_blank" rel="noopener noreferrer" className="text-accent underline">{alt || "View image"}</a>,
     }}>{content}</Markdown>

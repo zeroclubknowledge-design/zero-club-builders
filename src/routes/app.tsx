@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { accountNavigation, navigationAudience, navigationAudienceLabel } from "@/lib/accountNavigation";
 import { payWithGiftCredit } from "@/lib/giftCheckout";
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, useRouter, useRouterState } from "@tanstack/react-router";
@@ -517,10 +518,10 @@ function SidebarContent({
                 );
               })}
             </nav>
-            <Link to="/app" title={collapsed ? "Back to app" : undefined} data-rail-row className="mt-auto flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
+            <BackButton fallback="/app" title={collapsed ? "Back to app" : undefined} data-rail-row className="mt-auto flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-[14px] font-medium text-muted-foreground tap hover:bg-foreground/[0.04] hover:text-foreground">
               <ChevronLeft className="h-4 w-4" />
               <span>Back to app</span>
-            </Link>
+            </BackButton>
           </div>
         ) : businessMode ? (
           <BusinessSidebarNav

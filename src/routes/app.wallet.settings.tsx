@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Landmark, CreditCard, History, ChevronRight, ShieldCheck } from "@/components/icons/glyphs";
 import { useState, useEffect } from "react";
@@ -56,9 +57,9 @@ function PaymentsSettings() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background">
         <div className="zc-page-width mx-auto flex min-h-16 max-w-[980px] items-center gap-3 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] md:px-6 md:pt-3">
-          <Link to="/app/wallet" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border/60 bg-card transition hover:bg-accent/60 active:scale-95">
+          <BackButton fallback="/app/wallet" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border/60 bg-card transition hover:bg-accent/60 active:scale-95">
             <ChevronLeft className="h-5 w-5 text-foreground" />
-          </Link>
+          </BackButton>
           <div>
             <h1 className="text-[18px] font-semibold tracking-tight text-foreground">Wallet settings</h1>
             <p className="mt-0.5 text-[11px] text-muted-foreground">Payouts, verification and payment preferences</p>
