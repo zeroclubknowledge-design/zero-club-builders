@@ -1,4 +1,4 @@
-import { Phone } from "@/components/icons/glyphs";
+import { AIIcon } from "./AIIcons";
 import { toast } from "sonner";
 
 export function ZeroAICalls({ userId: _userId }: { userId: string }) {
@@ -8,9 +8,9 @@ export function ZeroAICalls({ userId: _userId }: { userId: string }) {
       aria-label="AI phone calls"
       title="AI phone calls"
       onClick={() => toast.info("AI phone calls are coming soon.")}
-      className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-foreground transition hover:bg-foreground/5 active:scale-[0.98]"
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition hover:brightness-110 active:scale-[0.98]"
     >
-      <Phone className="h-4 w-4" />
+      <AIIcon name="voice" className="h-5 w-5" />
     </button>
   );
 }

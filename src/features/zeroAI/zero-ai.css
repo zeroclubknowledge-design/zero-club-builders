@@ -1,7 +1,8 @@
 /* Density overrides must not turn a portrait phone into a two-column chat. */
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   .zero-ai-history { display: none !important; }
-  .zero-ai-history-toggle, .zero-ai-mobile-history { display: block; }
+  .zero-ai-history-toggle { display: grid; }
+  .zero-ai-mobile-history { display: block; }
   .zero-ai-main { max-width: none; }
 }
 

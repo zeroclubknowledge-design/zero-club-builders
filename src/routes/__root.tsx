@@ -1,3 +1,4 @@
+import { installResumeRefresh } from "@/lib/resumeRefresh";
 import { FloatingVoicePlayer } from "@/components/FloatingVoicePlayer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -22,11 +23,7 @@ const GlobalLiveRoom = lazy(() =>
     .then(m => ({ default: m.GlobalLiveRoom }))
     .catch((error) => {
       console.error("GlobalLiveRoom import failed:", error);
-      // Guarded: this used to reload unconditionally, so a chunk that stayed
-      // missing would reload the app forever. The live room is optional, so
-      // when recovery is on cooldown the app renders without it rather than
-      // taking the whole page down.
-      if (isChunkLoadError(error)) recoverFromChunkError();
+      // An optional background widget must never reload the active page.
       return { default: () => null };
     })
 );
@@ -36,7 +33,6 @@ const GroupCallHost = lazy(() =>
     .then((m) => ({ default: m.GroupCallHost }))
     .catch((error) => {
       console.error("GroupCallHost import failed:", error);
-      if (isChunkLoadError(error)) recoverFromChunkError();
       return { default: () => null };
     }),
 );
@@ -404,6 +400,7 @@ import { setupMultiAccountSync } from "@/lib/multiAccount";
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  useEffect(() => installResumeRefresh(queryClient), [queryClient]);
 
   // A tapped phone notification: the service worker asks the open app to go
   // to the chat / post / profile it was about, and waits for this reply.

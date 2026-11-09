@@ -89,6 +89,7 @@ export function useIdlePreload() {
 
     const step = () => {
       if (cancelled || index >= PRIMARY_DESTINATIONS.length) return;
+      if (document.hidden || !navigator.onLine) { handle = onIdle(step); return; }
       const to = PRIMARY_DESTINATIONS[index++];
       // A destination that fails to preload is not a problem worth surfacing —
       // it just means the tap pays the download it would have paid anyway.

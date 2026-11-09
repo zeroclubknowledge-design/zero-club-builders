@@ -1,3 +1,4 @@
+import { AIIcon } from "./AIIcons";
 import { BackButton } from "@/components/BackButton";
 import { CardSelect } from "@/components/CardSelect";
 import { isSendKey, useEnterToSend } from "@/lib/chatPrefs";
@@ -677,9 +678,9 @@ function Workspace({
               onClick={() => setHistoryOpen(!historyOpen)}
               aria-label="Chats"
               aria-expanded={historyOpen}
-              className="zero-ai-history-toggle rounded-xl p-2 transition hover:bg-foreground/5 xl:hidden"
+              className="zero-ai-history-toggle grid h-11 w-11 place-items-center rounded-full bg-card transition hover:bg-foreground/5 xl:hidden"
             >
-              <Menu className="h-5 w-5" />
+              <AIIcon name="chats" className="h-6 w-6" />
             </button>
             <span className="flex items-center gap-2 xl:hidden">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#c3217e] to-[#721e4e] text-white">
@@ -692,9 +693,9 @@ function Workspace({
             onClick={fresh}
             aria-label="New chat"
             title="New chat"
-            className="flex h-9 items-center gap-1.5 rounded-full border border-border bg-background/70 px-3 text-[12.5px] font-semibold backdrop-blur transition hover:bg-foreground/5"
+            className="flex h-11 items-center justify-center gap-2 rounded-full bg-card px-3 text-[12.5px] font-semibold transition hover:bg-foreground/5"
           >
-            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New</span>
+            <AIIcon name="compose" className="h-[22px] w-[22px]" /> <span className="hidden sm:inline">New chat</span>
           </button>
         </header>
 
@@ -914,7 +915,7 @@ function Workspace({
           </p>
           </>}
         </main>
-        <ComposerOverlay position="absolute" maxWidthClassName="max-w-[880px]">
+        <ComposerOverlay position="absolute" maxWidthClassName="max-w-[800px]">
           {showLatest && <button type="button" onClick={() => {
             const panel = conversation.current;
             if (panel) panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
@@ -928,9 +929,9 @@ function Workspace({
               event.preventDefault();
               void send();
             }}
-            className="zero-ai-composer group relative rounded-[26px] p-[1.5px]"
+            className="zero-ai-composer group relative mx-auto w-full rounded-[28px]"
           >
-            <div className="flex items-end gap-1 rounded-[25px] bg-card p-2 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center gap-1 rounded-[28px] bg-card p-2 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.45)]">
               <label htmlFor="zero-ai-prompt" className="sr-only">
                 Message Zero AI
               </label>
@@ -949,15 +950,15 @@ function Workspace({
                 }}
                 placeholder="Message Zero AI…"
                 rows={1}
-                className="no-scrollbar max-h-36 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
+                className="no-scrollbar max-h-36 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-3 py-2 text-[16px] leading-7 outline-none placeholder:text-muted-foreground/70"
               />
               <div className="flex h-11 shrink-0 items-center gap-1">
-                  <ZeroAICalls userId={userId} />
                   <VoiceNoteInput key={selected || "new"} disabled={sending} onBusyChange={setRecordingVoiceNote} onTranscript={transcript => {
                     setText(current => current.trim() ? `${current}\n${transcript}` : transcript);
                     input.current?.focus();
                   }} />
-                  <button
+                  {!text.trim() && !sending && <ZeroAICalls userId={userId} />}
+                  {(Boolean(text.trim()) || sending) && <button
                     type={sending ? "button" : "submit"}
                     onClick={sending ? () => pending.current?.abort() : undefined}
                     disabled={!sending && (!text.trim() || recordingVoiceNote)}
@@ -971,10 +972,10 @@ function Workspace({
                       </>
                     ) : (
                       <>
-                        <span className="sr-only">Send</span><ArrowUpRight className="h-4 w-4" />
+                        <span className="sr-only">Send</span><AIIcon name="send" className="h-[22px] w-[22px]" />
                       </>
                     )}
-                  </button>
+                  </button>}
               </div>
             </div>
           </form>

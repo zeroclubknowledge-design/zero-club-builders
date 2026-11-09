@@ -1,3 +1,4 @@
+import { AIIcon } from "./AIIcons";
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square, X } from "@/components/icons/glyphs";
 import { toast } from "sonner";
@@ -109,7 +110,7 @@ export function VoiceNoteInput({ disabled, onBusyChange, onTranscript }: { disab
 
   return <>
     <button type="button" aria-label={recording ? "Stop voice note" : "Record voice note"} title={recording ? "Stop voice note" : "Record voice note"} disabled={disabled || starting || transcribing || Boolean(preview)} onClick={() => recording ? recorder.current?.stop() : void start()} className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-foreground/5 disabled:opacity-40 ${recording ? "text-destructive" : "text-foreground"}`}>
-      {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+      {recording ? <Square className="h-4 w-4" /> : <AIIcon name="mic" className="h-[22px] w-[22px]" />}
     </button>
     {recording && <span role="status" className="text-xs text-muted-foreground">Recording · tap stop</span>}
     {preview && <div className="absolute bottom-full left-0 mb-2 w-full rounded-xl bg-card p-3 shadow-lg">

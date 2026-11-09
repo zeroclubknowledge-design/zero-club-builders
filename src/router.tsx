@@ -5,9 +5,8 @@ import { routeTree } from "./routeTree.gen";
 import { installChunkRecovery } from "./lib/chunk-recovery";
 
 export const getRouter = () => {
-  // Registered here rather than in a component: a chunk can fail to load
-  // before any component has mounted, and this runs on both the first render
-  // and every subsequent navigation attempt.
+  // Clean recovery URLs before rendering. Actual route errors own recovery;
+  // speculative preloads must never reload a working screen.
   installChunkRecovery();
 
   const queryClient = new QueryClient({

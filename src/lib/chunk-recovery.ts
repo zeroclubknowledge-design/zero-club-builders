@@ -105,6 +105,7 @@ export function recoverFromChunkError(): boolean {
  * did not.
  */
 function reloadOnce(): boolean {
+  if (typeof document !== "undefined" && document.hidden) return false;
   let attempt = 1;
 
   try {
@@ -209,29 +210,9 @@ export function installChunkRecovery() {
 
   tidyRecoveryParam();
 
-  // Vite's own signal for a failed module preload — fires before the import
-  // rejects, so this is the earliest and cleanest place to catch it.
-  window.addEventListener("vite:preloadError", (event) => {
-    event.preventDefault();
-    reloadOnce();
-  });
-
-  // A lazy import that rejects with nobody to catch it.
-  window.addEventListener("unhandledrejection", (event) => {
-    if (isChunkLoadError(event.reason) || isStaleShellError(event.reason)) {
-      event.preventDefault();
-      reloadOnce();
-    }
-  });
-
-  // Failure to load a <script> the router injected for a preload.
-  window.addEventListener(
-    "error",
-    (event) => {
-      if (isChunkLoadError(event.message) || isChunkLoadError(event.error)) {
-        reloadOnce();
-      }
-    },
-    true,
-  );
+  // Do not reload from global preload/rejection events. They also fire for
+  // speculative route warming while a perfectly usable screen is open.
+  // Let imports reject normally: preload callers can catch them, and an
+  // actual rendered route failure reaches RootErrorComponent, which owns
+  // bounded recovery. Preventing Vite's default here would swallow that error.
 }
