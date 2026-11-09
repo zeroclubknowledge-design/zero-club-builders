@@ -56,3 +56,41 @@ for (const state of ['signed-in', 'guest', 'loading']) {
     if (state === 'signed-in') assert.match(html, /Open Zero Club/);
   });
 }
+
+test('an empty club or announcement field cannot wrap or scroll its placeholder', () => {
+  const { ClubComposer } = load('src/features/community/ClubComposer.tsx', {
+    ...base,
+    '@/lib/draftStorage': { usePersistentDraft: () => ['', () => {}] },
+    '@/lib/chatPrefs': { useEnterToSend: () => [false] },
+    '@/components/MentionField': { MentionField: ({ style, wrap, placeholder }) => React.createElement('textarea', { style, wrap, placeholder }) },
+    '@/components/ComposerSlot': { ComposerSlot: ({ show, children }) => show ? children : null },
+  });
+  const html = renderToStaticMarkup(React.createElement(ClubComposer, {
+    storageKey: null, hasMedia: false, placeholder: 'Post an announcement…', onSend: () => true,
+    leading: React.createElement('button', { 'aria-label': 'Options' }),
+  }));
+  assert.match(html, /wrap="off"/);
+  assert.match(html, /overflow-y:hidden/);
+  assert.match(html, /white-space:pre/);
+});
+
+test('shared attachment menu opens the corresponding picker and optional club poll', () => {
+  const primitive = () => null;
+  const { ChatAttachmentMenu } = load('src/features/community/ChatAttachmentMenu.tsx', {
+    ...base,
+    '@/components/ui/dropdown-menu': {
+      DropdownMenu: primitive, DropdownMenuTrigger: primitive,
+      DropdownMenuContent: primitive, DropdownMenuItem: primitive,
+    },
+  });
+  const chosen = [];
+  const actions = { onPictures: () => chosen.push('pictures'), onVideo: () => chosen.push('video'), onFile: () => chosen.push('file') };
+  const menu = ChatAttachmentMenu(actions);
+  const entries = menu.props.children[1].props.children[0];
+  assert.deepEqual(Array.from(entries, entry => entry.props.children[1]), ['Pictures', 'Video', 'File']);
+  for (const entry of entries) entry.props.onSelect();
+  assert.deepEqual(chosen, ['pictures', 'video', 'file']);
+  const clubMenu = ChatAttachmentMenu({ ...actions, onPoll: () => chosen.push('poll') });
+  clubMenu.props.children[1].props.children[0][3].props.onSelect();
+  assert.equal(chosen.at(-1), 'poll');
+});

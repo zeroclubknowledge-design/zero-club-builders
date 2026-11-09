@@ -68,6 +68,13 @@ export function ClubComposer({
   useEffect(() => { setDraft((text) => text.trim() === "@" ? "" : text); }, [setDraft]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [enterToSend] = useEnterToSend();
+  useEffect(() => {
+    const field = textareaRef.current;
+    if (!field) return;
+    field.style.height = "44px";
+    if (draft) field.style.height = `${Math.min(field.scrollHeight, 132)}px`;
+    else field.scrollTop = 0;
+  }, [draft, storageKey]);
 
   /*
    * Tagging someone.
@@ -148,7 +155,7 @@ export function ClubComposer({
   if (leading !== undefined || trailing !== undefined)
     return (
       <div
-        className={`relative flex w-full items-end gap-1 rounded-[28px] bg-card py-2 pr-2 transition-[padding] duration-200 ${
+        className={`relative flex w-full items-center gap-1 rounded-[28px] bg-card py-2 pr-2 transition-[padding] duration-200 ${
           hasContent || !leading ? "pl-3.5" : "pl-1.5"
         }`}
       >
@@ -179,7 +186,8 @@ export function ClubComposer({
         placeholder={placeholder}
         className="block w-full flex-1 resize-none bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
         rows={1}
-        style={{ minHeight: "44px", maxHeight: "132px", height: "44px" }}
+        wrap={draft ? "soft" : "off"}
+        style={{ minHeight: "44px", maxHeight: "132px", height: "44px", overflowY: draft ? "auto" : "hidden", overflowX: "hidden", whiteSpace: draft ? "pre-wrap" : "pre" }}
       />
         {trailing && <ComposerSlot show={!hasContent}>{trailing}</ComposerSlot>}
         <ComposerSlot show={hasContent}>
@@ -201,7 +209,7 @@ export function ClubComposer({
     );
 
   return (
-    <div className="relative flex w-full items-end gap-1.5 rounded-[28px] bg-card py-2 pl-2.5 pr-2 transition-colors">
+    <div className="relative flex w-full items-center gap-1.5 rounded-[28px] bg-card py-2 pl-2.5 pr-2 transition-colors">
       {avatar}
       <MentionField
         ref={textareaRef as any}
@@ -228,7 +236,8 @@ export function ClubComposer({
         placeholder={placeholder}
         className="block w-full flex-1 resize-none bg-transparent py-[11px] text-[16px] leading-[22px] text-foreground outline-none placeholder:text-muted-foreground no-scrollbar"
         rows={1}
-        style={{ minHeight: "44px", maxHeight: "132px", height: "44px" }}
+        wrap={draft ? "soft" : "off"}
+        style={{ minHeight: "44px", maxHeight: "132px", height: "44px", overflowY: draft ? "auto" : "hidden", overflowX: "hidden", whiteSpace: draft ? "pre-wrap" : "pre" }}
       />
       <div className="flex shrink-0 items-center gap-1">
         {controls}

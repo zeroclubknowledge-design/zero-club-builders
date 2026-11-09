@@ -1,3 +1,4 @@
+import { ChatAttachmentMenu } from "./ChatAttachmentMenu";
 import { BackButton } from "@/components/BackButton";
 import { writeSharedText as copySharedText } from "@/lib/share";
 import { payWithGiftCredit } from "@/lib/giftCheckout";
@@ -933,6 +934,12 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
     types: ("image" | "video")[];
   } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const pictureRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
+  const stageFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFiles((current) => [...current, ...Array.from(event.target.files || [])].slice(0, 10));
+    event.target.value = "";
+  };
   const { isRecording, recordingSeconds, startRecording, stopRecording } = useVoiceRecorder(
     (file) => setFiles((current) => [...current, file].slice(0, 10)),
   );
@@ -1140,7 +1147,7 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
           )}
           <ClubComposer
             storageKey={draftKey(me?.id, "club-announcement", h.club.id)}
-            placeholder="Post an announcement to everyone…"
+            placeholder="Post an announcement…"
             hasMedia={files.length > 0}
             members={h.staff}
             canTagAll
@@ -1152,25 +1159,14 @@ function AnnouncementsView({ h, onBack }: { h: Hub; onBack: () => void }) {
             onSend={post}
             leading={
               <>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt"
-                  className="hidden"
-                  onChange={(e) => {
-                    setFiles((cur) => [...cur, ...Array.from(e.target.files || [])].slice(0, 10));
-                    if (fileRef.current) fileRef.current.value = "";
-                  }}
+                <input ref={pictureRef} type="file" multiple accept="image/*" className="hidden" onChange={stageFiles} />
+                <input ref={videoRef} type="file" multiple accept="video/*" className="hidden" onChange={stageFiles} />
+                <input ref={fileRef} type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,application/*" className="hidden" onChange={stageFiles} />
+                <ChatAttachmentMenu
+                  onPictures={() => pictureRef.current?.click()}
+                  onVideo={() => videoRef.current?.click()}
+                  onFile={() => fileRef.current?.click()}
                 />
-                <button
-                  type="button"
-                  aria-label="Attach photos or files"
-                  onClick={() => fileRef.current?.click()}
-                  className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"
-                >
-                  <Paperclip className="h-[22px] w-[22px]" />
-                </button>
               </>
             }
           />

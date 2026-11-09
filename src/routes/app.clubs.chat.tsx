@@ -1,3 +1,4 @@
+import { ChatAttachmentMenu } from "@/features/community/ChatAttachmentMenu";
 import { ClubAIReply, askClubAI, tagsZeroAI } from "@/features/zeroAI/ClubAIReply";
 import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useDraggableFloat } from "@/hooks/useDraggableFloat";
@@ -3780,41 +3781,12 @@ function ClubChat() {
                   multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.csv,application/*"
                 />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      title="Add attachment"
-                      className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition hover:bg-foreground/[0.05] hover:text-foreground active:scale-95"
-                    >
-                      <Paperclip className="h-[22px] w-[22px]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    side="top"
-                    className="z-[100] w-52 rounded-2xl border-0 bg-card p-1.5 shadow-lift"
-                  >
-                    <DropdownMenuItem
-                      onSelect={() => mediaInputRef.current?.click()}
-                      className="gap-2.5"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Image className="h-5 w-5 fill-current" /></span> Pictures
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => videoInputRef.current?.click()}
-                      className="gap-2.5"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Film className="h-5 w-5 fill-current" /></span> Video
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => documentInputRef.current?.click()}
-                      className="gap-2.5"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><File className="h-5 w-5 fill-current" /></span> File
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setShowPoll(true)} className="gap-2.5">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><BarChart3 className="h-5 w-5 fill-current" /></span> Poll
-                    </DropdownMenuItem>
+                <ChatAttachmentMenu
+                  onPictures={() => mediaInputRef.current?.click()}
+                  onVideo={() => videoInputRef.current?.click()}
+                  onFile={() => documentInputRef.current?.click()}
+                  onPoll={() => setShowPoll(true)}
+                >
                     {/* Admins only: members see Pictures, Video and File. */}
                     {isAdmin && activeRoom === "general" && (
                       <DropdownMenuItem
@@ -3829,8 +3801,7 @@ function ClubChat() {
                         <Gift className="h-4 w-4 fill-current" /> Give Away
                       </DropdownMenuItem>
                     )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                </ChatAttachmentMenu>
               </>
             }
             trailing={
